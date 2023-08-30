@@ -16,16 +16,16 @@ function App() {
 
   useEffect(() => {
     if (showModal) {
-      document.body.classList.add('modal-open');
-      document.body.style.overflow = 'hidden';
-      document.body.style.paddingRight = '0px';
+      document.body.classList.add("modal-open");
+      document.body.style.overflow = "hidden";
+      document.body.style.paddingRight = "0px";
     } else {
-      document.body.classList.remove('modal-open');
-      document.body.style.removeProperty('overflow','padding-right')
+      document.body.classList.remove("modal-open");
+      document.body.style.removeProperty("overflow", "padding-right");
     }
 
     return () => {
-      document.body.classList.remove('modal-open');
+      document.body.classList.remove("modal-open");
     };
   }, [showModal]);
 
@@ -62,9 +62,9 @@ function App() {
             <div className="page-title">
               <div className="row">
                 <div className="col-12 col-md-6 order-md-1 order-last">
-                  <h3>Supplier Product</h3>
+                  <h3>Management Menu</h3>
                   <p className="text-subtitle text-muted">
-                    Management supplier product from main warehouse
+                    Management Menu
                   </p>
                 </div>
                 <div className="col-12 col-md-6 order-md-2 order-first">
@@ -80,7 +80,7 @@ function App() {
                         className="breadcrumb-item active"
                         aria-current="page"
                       >
-                        Supplier Product
+                        Management Menu
                       </li>
                     </ol>
                   </nav>
@@ -104,9 +104,12 @@ function App() {
             <section class="section">
               <div class="card">
                 <div class="card-header">
-                  Table Supplier Product
+                  Data Menu
                   <div class="float-lg-end">
-                    <div className="button btn btn-primary rounded-pill" onClick={openModal}>
+                    <div
+                      className="button btn btn-primary rounded-pill"
+                      onClick={openModal}
+                    >
                       <i class="bi bi-plus"></i> Tambah Data
                     </div>
                   </div>
@@ -160,16 +163,15 @@ function App() {
               </div>
             </section>
           </div>
-
-          <MenuModal
-            show={showModal}
-            onClose={closeModal}
-            onSave={handleSaveMenu}
-          />
           {/* Footer Section */}
           <Footer />
         </div>
       </div>
+      <MenuModal
+        show={showModal}
+        onClose={closeModal}
+        onSave={handleSaveMenu}
+      />
     </div>
   );
 }

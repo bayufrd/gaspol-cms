@@ -9,7 +9,7 @@ const Sidebar = ({ isOpen }) => {
             <div className="logo">
               <a href="index.html">
                 {/* <img src="assets/images/logo/logo.svg" alt="Logo" srcset="" /> */}
-                SCM V1
+                GASPOL CMS
               </a>
             </div>
             {/* <div class="theme-toggle d-flex gap-2 align-items-center mt-2">
@@ -81,7 +81,7 @@ const Sidebar = ({ isOpen }) => {
             <li class="sidebar-item">
               <a href="index.html" class="sidebar-link">
                 <i class="bi bi-grid-fill"></i>
-                <span>Supplier Product</span>
+                <span>Management Menu</span>
               </a>
             </li>
 

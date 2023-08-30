@@ -1,0 +1,18 @@
+.btn:hover {
+    border-color: white;
+}
+
+.modal-menu-detail-form-group {
+    display: flex;
+    align-items: center;
+    margin-top: 10px;
+    margin-bottom: 10px;
+}
+
+.modal-menu-detail-form-group div {
+    margin-right: 5px;
+}
+
+.modal-menu-detail-form-group button {
+    margin-top: 1.3rem;
+}
