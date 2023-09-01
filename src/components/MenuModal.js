@@ -8,35 +8,31 @@ export const MenuModal = ({ show, onClose, onSave }) => {
   const [menuName, setMenuName] = useState("");
   const [menuType, setMenuType] = useState("");
   const [menuPrice, setMenuPrice] = useState("");
-  const [menuDetails, setMenuDetails] = useState([{ varian: "", price: "" }]);
-
-  // const [showMenuDetails, setShowMenuDetails] = useState(false);
+  const [menuDetails, setMenuDetails] = useState([]);
 
   const [isMenuNameValid, setMenuNameValid] = useState(true);
   const [isMenuTypeValid, setMenuTypeValid] = useState(true);
   const [isMenuPriceValid, setMenuPriceValid] = useState(true);
-  // const [menuDetailValidations, setMenuDetailValidations] = useState([
-  //   { varian: true, price: true },
-  // ]);
+  const [menuDetailValidations, setMenuDetailValidations] = useState([
+    { varian: true, price: true },
+  ]);
 
   const handleMenuDetailChange = (index, field, value) => {
     const updatedMenuDetails = [...menuDetails];
     updatedMenuDetails[index][field] = value;
     setMenuDetails(updatedMenuDetails);
 
-    // const updatedValidations = [...menuDetailValidations];
-    // updatedValidations[index][field] = value !== "";
-    // setMenuDetailValidations(updatedValidations);
+    const updatedValidations = [...menuDetailValidations];
+    updatedValidations[index][field] = value !== "";
+    setMenuDetailValidations(updatedValidations);
   };
 
   const handleAddMenuDetail = () => {
     setMenuDetails([...menuDetails, { varian: "", price: "" }]);
-    // setMenuDetailValidations([
-    //   ...menuDetailValidations,
-    //   { varian: true, price: true },
-    // ]);
-
-    // setShowMenuDetails(true);
+    setMenuDetailValidations([
+      ...menuDetailValidations,
+      { varian: true, price: true },
+    ]);
   };
 
   const handleRemoveMenuDetail = (index) => {
@@ -63,6 +59,25 @@ export const MenuModal = ({ show, onClose, onSave }) => {
       setMenuPriceValid(false);
     }
 
+    const isMenuDetailsEmpty = menuDetails.length === 0;
+    if (!isMenuDetailsEmpty) {
+      const updatedValidations = menuDetails.map((menuDetail) => {
+        return {
+          varian: menuDetail.varian !== "",
+          price: menuDetail.price !== "",
+        };
+      });
+      setMenuDetailValidations(updatedValidations);
+  
+      const isMenuDetailsValid = updatedValidations.every(
+        (validation) => validation.varian && validation.price
+      );
+  
+      if (!isMenuDetailsValid) {
+        return;
+      }
+    }
+
     if (!isMenuNameValid || !isMenuTypeValid || !isMenuPriceValid) {
       return;
     }
@@ -71,12 +86,14 @@ export const MenuModal = ({ show, onClose, onSave }) => {
       name: menuName,
       menu_type: menuType,
       price: menuPrice,
-      menu_details: menuDetails,
+      menu_details: menuDetails ? menuDetails : [],
     };
+
+    console.log(newMenu);
 
     try {
       const response = await axios.post(`${apiBaseUrl}/menu`, newMenu);
-      console.log("Menu added:", response.message);
+      console.log("Menu added:", response.data.message);
       Swal.fire({
         icon: "success",
         title: "Success!",
@@ -86,11 +103,12 @@ export const MenuModal = ({ show, onClose, onSave }) => {
       setMenuName("");
       setMenuType("");
       setMenuPrice("");
+      setMenuDetails([]);
       onClose();
     } catch (error) {
       Swal.fire({
-        title: "Error",
-        text: "An error occurred while adding the menu.",
+        title: "Gagal",
+        text: "Terdapat data yang tidak valid",
         icon: "error",
       });
     }
@@ -175,27 +193,26 @@ export const MenuModal = ({ show, onClose, onSave }) => {
                       setMenuPriceValid(true);
                     }}
                   />
-                  <div className="invalid-feedback">Harga menu harus diisi</div>
+                  <div className="invalid-f eedback">Harga menu harus diisi</div>
                 </div>
               </div>
               <div>
                 <div className="modal-header">
-                  <h5 className="modal-title">Menu Details</h5>
+                  <h6 className="modal-title">Detail Menu Varian</h6>
                 </div>
                 <div class="modal-body">
                   {
-                  // showMenuDetails && 
-                  menuDetails.map((menuDetail, index) => (
+                    menuDetails.map((menuDetail, index) => (
                     <div key={index}>
                       <div className="modal-menu-detail-form-group">
                         <div>
                           <label>Varian:</label>
                           <input
                             type="text"
-                            // className={`form-control ${
-                            //   menuDetailValidations[index].varian ? "" : "is-invalid"
-                            // }`}    
-                            className="form-control"                  
+                            className={`form-control ${
+                              !menuDetailValidations[index].varian ? "is-invalid" : ""
+                            }`}    
+                            // className="form-control"                  
                             value={menuDetail.varian}
                             onChange={(e) =>
                               handleMenuDetailChange(
@@ -205,20 +222,20 @@ export const MenuModal = ({ show, onClose, onSave }) => {
                               )
                             }
                           />
-                          {/* {!menuDetailValidations[index].varian && (
+                          {!menuDetailValidations[index].varian && (
                             <div className="invalid-feedback">
                               Varian harus diisi.
                             </div>
-                          )} */}
+                          )}
                         </div>
                         <div>
                           <label>Price:</label>
                           <input
                             type="number"
-                            // className={`form-control ${
-                            //   menuDetailValidations[index].price ? "" : "is-invalid"
-                            // }`}
-                            className="form-control"                  
+                            className={`form-control ${
+                              !menuDetailValidations[index].price ? "is-invalid" : ""
+                            }`}
+                            // className="form-control"                  
                             value={menuDetail.price}
                             onChange={(e) =>
                               handleMenuDetailChange(
@@ -228,11 +245,11 @@ export const MenuModal = ({ show, onClose, onSave }) => {
                               )
                             }
                           />
-                          {/* {!menuDetailValidations[index].price && (
+                          {!menuDetailValidations[index].price && (
                             <div className="invalid-feedback">
                               Harga harus diisi.
                             </div>
-                          )} */}
+                          )}
                         </div>
                         <div>
                           {index >= 0 && (
