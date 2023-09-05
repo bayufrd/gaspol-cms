@@ -1,8 +1,8 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Swal from "sweetalert2";
 import axios from "axios";
 
-export const MenuModal = ({ show, onClose, onSave }) => {
+export const MenuModal = ({ show, onClose, onSave, selectedMenuId }) => {
   const apiBaseUrl = process.env.REACT_APP_API_BASE_URL;
 
   const [menuName, setMenuName] = useState("");
@@ -16,6 +16,8 @@ export const MenuModal = ({ show, onClose, onSave }) => {
   const [menuDetailValidations, setMenuDetailValidations] = useState([
     { varian: true, price: true },
   ]);
+
+  const [menuData, setMenuData] = useState(null);
 
   const handleMenuDetailChange = (index, field, value) => {
     const updatedMenuDetails = [...menuDetails];
@@ -39,10 +41,6 @@ export const MenuModal = ({ show, onClose, onSave }) => {
     const updatedMenuDetails = [...menuDetails];
     updatedMenuDetails.splice(index, 1);
     setMenuDetails(updatedMenuDetails);
-
-    // const updatedValidations = [...menuDetailValidations];
-    // updatedValidations.splice(index, 1);
-    // setMenuDetailValidations(updatedValidations);
   };
 
   const handleSave = async (e) => {
@@ -89,8 +87,6 @@ export const MenuModal = ({ show, onClose, onSave }) => {
       menu_details: menuDetails ? menuDetails : [],
     };
 
-    console.log(newMenu);
-
     try {
       const response = await axios.post(`${apiBaseUrl}/menu`, newMenu);
       console.log("Menu added:", response.data.message);
@@ -113,6 +109,21 @@ export const MenuModal = ({ show, onClose, onSave }) => {
       });
     }
   };
+
+  // Ambil data menu berdasarkan selectedMenuId saat modal terbuka
+  useEffect(() => {
+    const fetchData = async () => {
+        if (show && selectedMenuId) {
+            try {
+                const response = await axios.get(`${apiBaseUrl}/menu/${selectedMenuId}`);
+                setMenuData(response.data.data);
+            } catch (error) {
+                console.error('Error fetching menu:', error);
+            }
+        }
+    }
+    fetchData();
+  }, [show, selectedMenuId]); 
 
   return (
     <>
@@ -212,7 +223,6 @@ export const MenuModal = ({ show, onClose, onSave }) => {
                             className={`form-control ${
                               !menuDetailValidations[index].varian ? "is-invalid" : ""
                             }`}    
-                            // className="form-control"                  
                             value={menuDetail.varian}
                             onChange={(e) =>
                               handleMenuDetailChange(
@@ -235,7 +245,6 @@ export const MenuModal = ({ show, onClose, onSave }) => {
                             className={`form-control ${
                               !menuDetailValidations[index].price ? "is-invalid" : ""
                             }`}
-                            // className="form-control"                  
                             value={menuDetail.price}
                             onChange={(e) =>
                               handleMenuDetailChange(
