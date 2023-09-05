@@ -9,6 +9,7 @@ function App() {
   const [menus, setMenus] = useState([]);
   const [isSidebarOpen, setSidebarOpen] = useState(false);
   const [showModal, setShowModal] = useState(false);
+  const [selectedMenuId, setSelectedMenuId] = useState(null);
 
   useEffect(() => {
     getMenus();
@@ -38,7 +39,8 @@ function App() {
     setSidebarOpen(!isSidebarOpen);
   };
 
-  const openModal = () => {
+  const openModal = (menuId) => {
+    setSelectedMenuId(menuId);
     setShowModal(true);
   };
 
@@ -87,20 +89,6 @@ function App() {
                 </div>
               </div>
             </div>
-            {/* <section className="section">
-              <div className="card">
-                <div className="card-header">
-                  <h4 className="card-title">Example Content</h4>
-                </div>
-                <div className="card-body">
-                  Lorem ipsum dolor sit amet consectetur adipisicing elit.
-                  Consectetur quas omnis laudantium tempore exercitationem,
-                  expedita aspernatur sed officia asperiores unde tempora maxime
-                  odio reprehenderit distinctio incidunt! Vel aspernatur dicta
-                  consequatur!
-                </div>
-              </div>
-            </section> */}
             <section class="section">
               <div class="card">
                 <div class="card-header">
@@ -134,29 +122,16 @@ function App() {
                           <td>{menu.price}</td>
                           <td>
                             <div className="action-buttons">
-                              <div className="buttons">
-                                <a href="#" className="btn info btn-primary">
-                                  <i className="bi bi-pencil"></i>
-                                </a>
+                              <div className="buttons btn info btn-primary" onClick={() => openModal(menu.id)}>
+                                <i className="bi bi-pencil"></i>
                               </div>
-                              <div className="buttons">
-                                <a href="#" className="btn info btn-secondary">
-                                  <i class="bi bi-eye"></i>
-                                </a>
-                              </div>
+                              {/* <div className="buttons btn info btn-secondary" onClick={() => openDetail(menu.id)}>
+                                <i class="bi bi-eye"></i>
+                              </div> */}
                             </div>
                           </td>
                         </tr>
                       ))}
-                      {/* <tr>
-                        <td>Emmanuel</td>
-                        <td>eget.lacus.Mauris@feugiatSednec.org</td>
-                        <td>(016977) 8208</td>
-                        <td>Saint-Remy-Geest</td>
-                        <td>
-                          <span class="badge bg-success">Active</span>
-                        </td>
-                      </tr> */}
                     </tbody>
                   </table>
                 </div>
@@ -171,6 +146,7 @@ function App() {
         show={showModal}
         onClose={closeModal}
         onSave={handleSaveMenu}
+        selectedMenuId={selectedMenuId}
       />
     </div>
   );
