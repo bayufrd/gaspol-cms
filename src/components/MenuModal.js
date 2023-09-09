@@ -1,105 +1,116 @@
 import React, { useState, useEffect } from "react";
 import Swal from "sweetalert2";
 import axios from "axios";
+import { DeleteConfirmationModal } from "./DeleteConfirmationModal";
 
-export const MenuModal = ({ show, onClose, onSave, selectedMenuId }) => {
+export const MenuModal = ({ show, onClose, onSave, selectedMenuId, getMenus }) => {
   const apiBaseUrl = process.env.REACT_APP_API_BASE_URL;
 
-  const [menuName, setMenuName] = useState("");
-  const [menuType, setMenuType] = useState("");
-  const [menuPrice, setMenuPrice] = useState("");
-  const [menuDetails, setMenuDetails] = useState([]);
+  const initialMenuState = {
+    name: "",
+    menu_type: "",
+    price: "",
+    menu_details: [],
+  };
 
-  const [isMenuNameValid, setMenuNameValid] = useState(true);
-  const [isMenuTypeValid, setMenuTypeValid] = useState(true);
-  const [isMenuPriceValid, setMenuPriceValid] = useState(true);
-  const [menuDetailValidations, setMenuDetailValidations] = useState([
-    { varian: true, price: true },
-  ]);
+  const [menu, setMenu] = useState(initialMenuState);
+  const [isFormValid, setIsFormValid] = useState(true);
+  const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
 
-  const [menuData, setMenuData] = useState(null);
+  useEffect(() => {
+    if (show && selectedMenuId) {
+      const fetchData = async () => {
+        try {
+          const response = await axios.get(
+            `${apiBaseUrl}/menu/${selectedMenuId}`
+          );
+          setMenu(response.data.data);
+        } catch (error) {
+          console.error("Error fetching menu:", error);
+        }
+      };
+      fetchData();
+    } else {
+      setMenu(initialMenuState);
+    }
+  }, [show, selectedMenuId]);
+
+  const handleInputChange = (field, value) => {
+    setMenu({
+      ...menu,
+      [field]: value,
+    });
+  };
 
   const handleMenuDetailChange = (index, field, value) => {
-    const updatedMenuDetails = [...menuDetails];
+    const updatedMenuDetails = [...menu.menu_details];
     updatedMenuDetails[index][field] = value;
-    setMenuDetails(updatedMenuDetails);
-
-    const updatedValidations = [...menuDetailValidations];
-    updatedValidations[index][field] = value !== "";
-    setMenuDetailValidations(updatedValidations);
+    setMenu({
+      ...menu,
+      menu_details: updatedMenuDetails,
+    });
   };
 
   const handleAddMenuDetail = () => {
-    setMenuDetails([...menuDetails, { varian: "", price: "" }]);
-    setMenuDetailValidations([
-      ...menuDetailValidations,
-      { varian: true, price: true },
-    ]);
+    setMenu({
+      ...menu,
+      menu_details: [...menu.menu_details, { varian: "", price: "" }],
+    });
   };
 
   const handleRemoveMenuDetail = (index) => {
-    const updatedMenuDetails = [...menuDetails];
+    const updatedMenuDetails = [...menu.menu_details];
     updatedMenuDetails.splice(index, 1);
-    setMenuDetails(updatedMenuDetails);
+    setMenu({
+      ...menu,
+      menu_details: updatedMenuDetails,
+    });
   };
 
   const handleSave = async (e) => {
     e.preventDefault();
 
-    // Validasi input
-    if (!menuName) {
-      setMenuNameValid(false);
-    }
-    if (!menuType) {
-      setMenuTypeValid(false);
-    }
-    if (!menuPrice) {
-      setMenuPriceValid(false);
-    }
+    // Validate input
+    const isMenuNameValid = menu.name.trim() !== "";
+    const isMenuTypeValid = menu.menu_type.trim() !== "";
+    const isMenuPriceValid = menu.price !== "";
+    const isMenuDetailsValid = menu.menu_details.every(
+      (detail) => detail.varian.trim() !== "" && detail.price !== ""
+    );
 
-    const isMenuDetailsEmpty = menuDetails.length === 0;
-    if (!isMenuDetailsEmpty) {
-      const updatedValidations = menuDetails.map((menuDetail) => {
-        return {
-          varian: menuDetail.varian !== "",
-          price: menuDetail.price !== "",
-        };
-      });
-      setMenuDetailValidations(updatedValidations);
-  
-      const isMenuDetailsValid = updatedValidations.every(
-        (validation) => validation.varian && validation.price
-      );
-  
-      if (!isMenuDetailsValid) {
-        return;
-      }
-    }
-
-    if (!isMenuNameValid || !isMenuTypeValid || !isMenuPriceValid) {
+    if (
+      !isMenuNameValid ||
+      !isMenuTypeValid ||
+      !isMenuPriceValid ||
+      !isMenuDetailsValid
+    ) {
+      setIsFormValid(false);
       return;
     }
 
-    const newMenu = {
-      name: menuName,
-      menu_type: menuType,
-      price: menuPrice,
-      menu_details: menuDetails ? menuDetails : [],
-    };
-
     try {
-      const response = await axios.post(`${apiBaseUrl}/menu`, newMenu);
-      console.log("Menu added:", response.data.message);
-      Swal.fire({
-        icon: "success",
-        title: "Success!",
-        text: "Menu berhasil " + menuName + " berhasil ditambahkan!",
-      });
-      onSave(newMenu);
-      setMenuName("");
-      setMenuType("");
-      setMenuPrice("");
-      setMenuDetails([]);
+      if (selectedMenuId) {
+        const response = await axios.patch(
+          `${apiBaseUrl}/menu/${selectedMenuId}`,
+          menu
+        );
+        console.log("Menu added:", response.data.message);
+        Swal.fire({
+          icon: "success",
+          title: "Success!",
+          text: `Menu berhasil diupdate: ${menu.name}`,
+        });
+      } else {
+        const response = await axios.post(`${apiBaseUrl}/menu`, menu);
+        console.log("Menu added:", response.data.message);
+        Swal.fire({
+          icon: "success",
+          title: "Success!",
+          text: `Menu berhasil ${menu.name} berhasil ditambahkan!`,
+        });
+      }
+      onSave(menu);
+      setMenu(initialMenuState);
       onClose();
     } catch (error) {
       Swal.fire({
@@ -110,20 +121,24 @@ export const MenuModal = ({ show, onClose, onSave, selectedMenuId }) => {
     }
   };
 
-  // Ambil data menu berdasarkan selectedMenuId saat modal terbuka
-  useEffect(() => {
-    const fetchData = async () => {
-        if (show && selectedMenuId) {
-            try {
-                const response = await axios.get(`${apiBaseUrl}/menu/${selectedMenuId}`);
-                setMenuData(response.data.data);
-            } catch (error) {
-                console.error('Error fetching menu:', error);
-            }
-        }
+  const handleDeleteMenu = async () => {
+    try {
+      const response = await axios.delete(
+        `${apiBaseUrl}/menu/${selectedMenuId}`
+      );
+      console.log("Menu deleted:", response.data.message);
+      Swal.fire({
+        icon: "success",
+        title: "Success!",
+        text: `Menu berhasil dihapus: ${menu.name}`,
+      });
+      setShowDeleteConfirmation(false);
+      await getMenus();
+      onClose();
+    } catch (error) {
+      console.error("Error deleting menu:", error);
     }
-    fetchData();
-  }, [show, selectedMenuId]); 
+  };
 
   return (
     <>
@@ -144,7 +159,7 @@ export const MenuModal = ({ show, onClose, onSave, selectedMenuId }) => {
           <div class="modal-content">
             <div class="modal-header">
               <h4 class="modal-title" id="myModalLabel33">
-                Add Menu
+                {selectedMenuId ? "Edit Menu" : "Add Menu"}
               </h4>
               <button
                 type="button"
@@ -163,48 +178,56 @@ export const MenuModal = ({ show, onClose, onSave, selectedMenuId }) => {
                   <input
                     type="text"
                     placeholder="Nama Menu"
-                    class={`form-control ${
-                      isMenuNameValid ? "" : "is-invalid"
-                    }`}
-                    value={menuName}
+                    class={`form-control ${isFormValid ? "" : "is-invalid"}`}
+                    value={menu.name}
                     onChange={(e) => {
-                      setMenuName(e.target.value);
-                      setMenuNameValid(true);
+                      handleInputChange("name", e.target.value);
+                      setIsFormValid(true);
                     }}
                   />
-                  <div className="invalid-feedback">Nama menu harus diisi</div>
+                  {!isFormValid && (
+                    <div className="invalid-feedback">
+                      Nama menu harus diisi
+                    </div>
+                  )}
                 </div>
                 <label>Tipe Menu: </label>
                 <div class="form-group">
                   <input
                     type="text"
                     placeholder="Tipe Menu"
-                    class={`form-control ${
-                      isMenuTypeValid ? "" : "is-invalid"
-                    }`}
-                    value={menuType}
+                    class={`form-control ${isFormValid ? "" : "is-invalid"}`}
+                    value={menu.menu_type}
                     onChange={(e) => {
-                      setMenuType(e.target.value);
-                      setMenuTypeValid(true);
+                      handleInputChange("menu_type", e.target.value);
+                      setIsFormValid(true);
                     }}
                   />
-                  <div className="invalid-feedback">Tipe menu harus diisi</div>
+                  {!isFormValid && (
+                    <div className="invalid-feedback">
+                      Tipe menu harus diisi
+                    </div>
+                  )}
                 </div>
                 <label>Harga: </label>
                 <div class="form-group">
                   <input
                     type="number"
                     placeholder="Harga Menu"
-                    class={`form-control ${
-                      isMenuPriceValid ? "" : "is-invalid"
+                    className={`form-control ${
+                      isFormValid ? "" : "is-invalid"
                     }`}
-                    value={menuPrice}
+                    value={menu.price}
                     onChange={(e) => {
-                      setMenuPrice(e.target.value);
-                      setMenuPriceValid(true);
+                      handleInputChange("price", e.target.value);
+                      setIsFormValid(true);
                     }}
                   />
-                  <div className="invalid-f eedback">Harga menu harus diisi</div>
+                  {!isFormValid && (
+                    <div className="invalid-feedback">
+                      Harga menu harus diisi
+                    </div>
+                  )}
                 </div>
               </div>
               <div>
@@ -212,8 +235,7 @@ export const MenuModal = ({ show, onClose, onSave, selectedMenuId }) => {
                   <h6 className="modal-title">Detail Menu Varian</h6>
                 </div>
                 <div class="modal-body">
-                  {
-                    menuDetails.map((menuDetail, index) => (
+                  {menu.menu_details.map((menuDetail, index) => (
                     <div key={index}>
                       <div className="modal-menu-detail-form-group">
                         <div>
@@ -221,8 +243,8 @@ export const MenuModal = ({ show, onClose, onSave, selectedMenuId }) => {
                           <input
                             type="text"
                             className={`form-control ${
-                              !menuDetailValidations[index].varian ? "is-invalid" : ""
-                            }`}    
+                              isFormValid ? "" : "is-invalid"
+                            }`}
                             value={menuDetail.varian}
                             onChange={(e) =>
                               handleMenuDetailChange(
@@ -232,7 +254,7 @@ export const MenuModal = ({ show, onClose, onSave, selectedMenuId }) => {
                               )
                             }
                           />
-                          {!menuDetailValidations[index].varian && (
+                          {!isFormValid && (
                             <div className="invalid-feedback">
                               Varian harus diisi.
                             </div>
@@ -243,7 +265,7 @@ export const MenuModal = ({ show, onClose, onSave, selectedMenuId }) => {
                           <input
                             type="number"
                             className={`form-control ${
-                              !menuDetailValidations[index].price ? "is-invalid" : ""
+                              isFormValid ? "" : "is-invalid"
                             }`}
                             value={menuDetail.price}
                             onChange={(e) =>
@@ -254,7 +276,7 @@ export const MenuModal = ({ show, onClose, onSave, selectedMenuId }) => {
                               )
                             }
                           />
-                          {!menuDetailValidations[index].price && (
+                          {!isFormValid && (
                             <div className="invalid-feedback">
                               Harga harus diisi.
                             </div>
@@ -283,6 +305,18 @@ export const MenuModal = ({ show, onClose, onSave, selectedMenuId }) => {
                   </div>
                 </div>
               </div>
+              {selectedMenuId && (
+                <div className="modal-footer delete-menu">
+                  <button
+                    type="button"
+                    class="btn btn-danger rounded-pill"
+                    data-bs-dismiss="modal"
+                    onClick={() => setShowDeleteConfirmation(true)}
+                  >
+                    <span class="d-none d-sm-block">Hapus Menu !</span>
+                  </button>
+                </div>
+              )}
               <div class="modal-footer">
                 <button
                   type="button"
@@ -308,6 +342,11 @@ export const MenuModal = ({ show, onClose, onSave, selectedMenuId }) => {
         </div>
       </div>
       <div className={show && `modal-backdrop fade show`}></div>
+      <DeleteConfirmationModal
+        showDeleteConfirmation={showDeleteConfirmation}
+        onConfirmDelete={handleDeleteMenu} // Pass your delete logic function
+        onCancelDelete={() => setShowDeleteConfirmation(false)} // Close the delete confirmation modal
+      />
     </>
   );
 };

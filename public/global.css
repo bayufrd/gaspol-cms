@@ -16,3 +16,7 @@
 .modal-menu-detail-form-group button {
     margin-top: 1.3rem;
 }
+
+.modal-footer.delete-menu {
+    justify-content: center;
+}
