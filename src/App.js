@@ -4,6 +4,7 @@ import Footer from "./components/common/Footer";
 import Header from "./components/common/Header";
 import Sidebar from "./components/common/Sidebar";
 import { MenuModal } from "./components/MenuModal";
+const apiBaseUrl = process.env.REACT_APP_API_BASE_URL;
 
 function App() {
   const [menus, setMenus] = useState([]);
@@ -31,7 +32,7 @@ function App() {
   }, [showModal]);
 
   const getMenus = async () => {
-    const response = await axios.get("http://localhost:5000/menu");
+    const response = await axios.get(`${apiBaseUrl}/menu`);
     setMenus(response.data.data);
   };
 
@@ -48,9 +49,15 @@ function App() {
     setShowModal(false);
   };
 
-  const handleSaveMenu = (newMenu) => {
+  const handleSaveMenu = async (newMenu) => {
     setMenus([...menus, newMenu]);
     closeModal();
+
+    try {
+      await getMenus();
+    } catch (error) {
+      console.error('Error fetching menus:', error);
+    }
   };
 
   return (
@@ -96,7 +103,7 @@ function App() {
                   <div class="float-lg-end">
                     <div
                       className="button btn btn-primary rounded-pill"
-                      onClick={openModal}
+                      onClick={() => openModal(null)}
                     >
                       <i class="bi bi-plus"></i> Tambah Data
                     </div>
@@ -147,6 +154,7 @@ function App() {
         onClose={closeModal}
         onSave={handleSaveMenu}
         selectedMenuId={selectedMenuId}
+        getMenus={getMenus} 
       />
     </div>
   );
