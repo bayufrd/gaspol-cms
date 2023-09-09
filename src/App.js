@@ -72,9 +72,9 @@ function App() {
               <div className="row">
                 <div className="col-12 col-md-6 order-md-1 order-last">
                   <h3>Management Menu</h3>
-                  <p className="text-subtitle text-muted">
+                  {/* <p className="text-subtitle text-muted">
                     Management Menu
-                  </p>
+                  </p> */}
                 </div>
                 <div className="col-12 col-md-6 order-md-2 order-first">
                   <nav
@@ -114,6 +114,7 @@ function App() {
                     <thead>
                       <tr>
                         <th>No</th>
+                        <th>Gambar</th>
                         <th>Name</th>
                         <th>Menu Type</th>
                         <th>Price</th>
@@ -124,10 +125,14 @@ function App() {
                       {menus.map((menu, index) => (
                         <tr key={menu.id}>
                           <td>{index + 1}</td>
+                          <td>
+                           
+                                <img className="w-100" src={menu.image_url ? `${apiBaseUrl}/${menu.image_url}` : '/assets/images/menu-template.svg'} alt="Menu"/>
+                          </td>
                           <td>{menu.name}</td>
                           <td>{menu.menu_type}</td>
                           <td>{menu.price}</td>
-                          <td>
+                          <td>  
                             <div className="action-buttons">
                               <div className="buttons btn info btn-primary" onClick={() => openModal(menu.id)}>
                                 <i className="bi bi-pencil"></i>

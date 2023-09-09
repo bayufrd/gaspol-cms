@@ -3,7 +3,13 @@ import Swal from "sweetalert2";
 import axios from "axios";
 import { DeleteConfirmationModal } from "./DeleteConfirmationModal";
 
-export const MenuModal = ({ show, onClose, onSave, selectedMenuId, getMenus }) => {
+export const MenuModal = ({
+  show,
+  onClose,
+  onSave,
+  selectedMenuId,
+  getMenus,
+}) => {
   const apiBaseUrl = process.env.REACT_APP_API_BASE_URL;
 
   const initialMenuState = {
@@ -171,8 +177,12 @@ export const MenuModal = ({ show, onClose, onSave, selectedMenuId, getMenus }) =
                 <i data-feather="x"></i>x
               </button>
             </div>
-            <form action="#">
-              <div class="modal-body">
+            <div>
+              <div class="modal-body scrollable-content">
+                <label>Gambar:</label>
+                <div class="form-group">
+                  <input type="file" class="image-preview-filepond" />
+                </div>
                 <label>Nama: </label>
                 <div class="form-group">
                   <input
@@ -229,12 +239,9 @@ export const MenuModal = ({ show, onClose, onSave, selectedMenuId, getMenus }) =
                     </div>
                   )}
                 </div>
-              </div>
-              <div>
-                <div className="modal-header">
+                <div>
+                  <br></br>
                   <h6 className="modal-title">Detail Menu Varian</h6>
-                </div>
-                <div class="modal-body">
                   {menu.menu_details.map((menuDetail, index) => (
                     <div key={index}>
                       <div className="modal-menu-detail-form-group">
@@ -304,19 +311,19 @@ export const MenuModal = ({ show, onClose, onSave, selectedMenuId, getMenus }) =
                     </div>
                   </div>
                 </div>
+                {selectedMenuId && (
+                  <div className="modal-footer delete-menu">
+                    <button
+                      type="button"
+                      class="btn btn-danger rounded-pill"
+                      data-bs-dismiss="modal"
+                      onClick={() => setShowDeleteConfirmation(true)}
+                    >
+                      <span class="d-none d-sm-block">Hapus Menu !</span>
+                    </button>
+                  </div>
+                )}
               </div>
-              {selectedMenuId && (
-                <div className="modal-footer delete-menu">
-                  <button
-                    type="button"
-                    class="btn btn-danger rounded-pill"
-                    data-bs-dismiss="modal"
-                    onClick={() => setShowDeleteConfirmation(true)}
-                  >
-                    <span class="d-none d-sm-block">Hapus Menu !</span>
-                  </button>
-                </div>
-              )}
               <div class="modal-footer">
                 <button
                   type="button"
@@ -337,7 +344,7 @@ export const MenuModal = ({ show, onClose, onSave, selectedMenuId, getMenus }) =
                   <span class="d-none d-sm-block">Submit</span>
                 </button>
               </div>
-            </form>
+            </div>
           </div>
         </div>
       </div>
