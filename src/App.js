@@ -32,7 +32,7 @@ function App() {
   }, [showModal]);
 
   const getMenus = async () => {
-    const response = await axios.get(`${apiBaseUrl}/menu`);
+    const response = await axios.get(`${apiBaseUrl}/v2/menu`);
     setMenus(response.data.data);
   };
 
@@ -118,6 +118,7 @@ function App() {
                         <th>Name</th>
                         <th>Menu Type</th>
                         <th>Price</th>
+                        <th>Is Active</th>
                         <th>Actions</th>
                       </tr>
                     </thead>
@@ -126,12 +127,12 @@ function App() {
                         <tr key={menu.id}>
                           <td>{index + 1}</td>
                           <td>
-                           
-                                <img className="w-100" src={menu.image_url ? `${apiBaseUrl}/${menu.image_url}` : '/assets/images/menu-template.svg'} alt="Menu"/>
+                            <img className="w-100" src={menu.image_url ? `${apiBaseUrl}/${menu.image_url}` : '/assets/images/menu-template.svg'} alt="Menu"/>
                           </td>
                           <td>{menu.name}</td>
                           <td>{menu.menu_type}</td>
                           <td>{menu.price}</td>
+                          <td>{menu.is_active === 1 ? "Aktif" : "Tidak Aktif"}</td>
                           <td>  
                             <div className="action-buttons">
                               <div className="buttons btn info btn-primary" onClick={() => openModal(menu.id)}>

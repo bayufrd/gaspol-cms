@@ -1,7 +1,12 @@
 import React, { useState, useEffect } from "react";
 import Swal from "sweetalert2";
 import axios from "axios";
+import { FilePond, registerPlugin } from "react-filepond";
 import { DeleteConfirmationModal } from "./DeleteConfirmationModal";
+import "filepond/dist/filepond.min.css";
+import "filepond-plugin-image-preview/dist/filepond-plugin-image-preview.css";
+import filePondImagePreview from "filepond-plugin-image-preview";
+registerPlugin(filePondImagePreview);
 
 export const MenuModal = ({
   show,
@@ -16,6 +21,7 @@ export const MenuModal = ({
     name: "",
     menu_type: "",
     price: "",
+    is_active: 1,
     menu_details: [],
   };
 
@@ -28,7 +34,7 @@ export const MenuModal = ({
       const fetchData = async () => {
         try {
           const response = await axios.get(
-            `${apiBaseUrl}/menu/${selectedMenuId}`
+            `${apiBaseUrl}/v2/menu/${selectedMenuId}`
           );
           setMenu(response.data.data);
         } catch (error) {
@@ -78,7 +84,6 @@ export const MenuModal = ({
 
     // Validate input
     const isMenuNameValid = menu.name.trim() !== "";
-    const isMenuTypeValid = menu.menu_type.trim() !== "";
     const isMenuPriceValid = menu.price !== "";
     const isMenuDetailsValid = menu.menu_details.every(
       (detail) => detail.varian.trim() !== "" && detail.price !== ""
@@ -86,7 +91,6 @@ export const MenuModal = ({
 
     if (
       !isMenuNameValid ||
-      !isMenuTypeValid ||
       !isMenuPriceValid ||
       !isMenuDetailsValid
     ) {
@@ -97,7 +101,7 @@ export const MenuModal = ({
     try {
       if (selectedMenuId) {
         const response = await axios.patch(
-          `${apiBaseUrl}/menu/${selectedMenuId}`,
+          `${apiBaseUrl}/v2/menu/${selectedMenuId}`,
           menu
         );
         console.log("Menu added:", response.data.message);
@@ -107,7 +111,7 @@ export const MenuModal = ({
           text: `Menu berhasil diupdate: ${menu.name}`,
         });
       } else {
-        const response = await axios.post(`${apiBaseUrl}/menu`, menu);
+        const response = await axios.post(`${apiBaseUrl}/v2/menu`, menu);
         console.log("Menu added:", response.data.message);
         Swal.fire({
           icon: "success",
@@ -181,7 +185,29 @@ export const MenuModal = ({
               <div class="modal-body scrollable-content">
                 <label>Gambar:</label>
                 <div class="form-group">
-                  <input type="file" class="image-preview-filepond" />
+                  <FilePond
+                    className="image-preview-filepond"
+                    files={menu.image_url ? [`${apiBaseUrl}/${menu.image_url}`] : []}
+                    allowMultiple={false}
+                    maxFileSize="2MB"
+                    onupdatefiles={(fileItems) => {
+                      // Mengambil file pertama (jika ada)
+                      const file = fileItems[0];
+                      if (file) {
+                        // Simpan data gambar ke dalam state menu
+                        setMenu({
+                          ...menu,
+                          image: file.file,
+                        });
+                      } else {
+                        // Jika pengguna menghapus gambar, hapus dari state menu
+                        setMenu({
+                          ...menu,
+                          image: null,
+                        });
+                      }
+                    }}                
+                  />
                 </div>
                 <label>Nama: </label>
                 <div class="form-group">
@@ -203,21 +229,18 @@ export const MenuModal = ({
                 </div>
                 <label>Tipe Menu: </label>
                 <div class="form-group">
-                  <input
-                    type="text"
-                    placeholder="Tipe Menu"
-                    class={`form-control ${isFormValid ? "" : "is-invalid"}`}
+                  <select 
+                    class="choices form-select" 
                     value={menu.menu_type}
                     onChange={(e) => {
                       handleInputChange("menu_type", e.target.value);
-                      setIsFormValid(true);
                     }}
-                  />
-                  {!isFormValid && (
-                    <div className="invalid-feedback">
-                      Tipe menu harus diisi
-                    </div>
-                  )}
+                  >
+                    <option value="Makanan">Makanan</option>
+                    <option value="Minuman">Minuman</option>
+                    <option value="Additional Makanan">Additional Makanan</option>
+                    <option value="Additional Minuman">Additional Minuman</option>
+                  </select>
                 </div>
                 <label>Harga: </label>
                 <div class="form-group">
@@ -238,6 +261,19 @@ export const MenuModal = ({
                       Harga menu harus diisi
                     </div>
                   )}
+                </div>
+                <label>Is Active: </label>
+                <div class="form-group">
+                  <select 
+                    class="choices form-select"
+                    value={menu.is_active}
+                    onChange={(e) => {
+                      handleInputChange("is_active", e.target.value);
+                    }}
+                  >
+                    <option value="1">Aktif</option>
+                    <option value="0">Tidak Aktif</option>
+                  </select>
                 </div>
                 <div>
                   <br></br>
