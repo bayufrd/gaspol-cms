@@ -22,12 +22,18 @@ export const MenuModal = ({
     menu_type: "",
     price: "",
     is_active: 1,
+    image_url: null,
     menu_details: [],
   };
 
+  let imageFile = [];
   const [menu, setMenu] = useState(initialMenuState);
   const [isFormValid, setIsFormValid] = useState(true);
   const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
+
+  if (menu.image_url !== null && menu.image_url !== undefined) {
+    imageFile = `${apiBaseUrl}/${menu.image_url}`;
+  }
 
   useEffect(() => {
     if (show && selectedMenuId) {
@@ -187,26 +193,26 @@ export const MenuModal = ({
                 <div class="form-group">
                   <FilePond
                     className="image-preview-filepond"
-                    files={menu.image_url ? [`${apiBaseUrl}/${menu.image_url}`] : []}
+                    files={imageFile}
                     allowMultiple={false}
                     maxFileSize="2MB"
-                    onupdatefiles={(fileItems) => {
-                      // Mengambil file pertama (jika ada)
-                      const file = fileItems[0];
-                      if (file) {
-                        // Simpan data gambar ke dalam state menu
-                        setMenu({
-                          ...menu,
-                          image: file.file,
-                        });
-                      } else {
-                        // Jika pengguna menghapus gambar, hapus dari state menu
-                        setMenu({
-                          ...menu,
-                          image: null,
-                        });
-                      }
-                    }}                
+                    // onupdatefiles={(fileItems) => {
+                    //   // Mengambil file pertama (jika ada)
+                    //   const file = fileItems[0];
+                    //   if (file) {
+                    //     // Simpan data gambar ke dalam state menu
+                    //     setMenu({
+                    //       ...menu,
+                    //       image: file.file,
+                    //     });
+                    //   } else {
+                    //     // Jika pengguna menghapus gambar, hapus dari state menu
+                    //     setMenu({
+                    //       ...menu,
+                    //       image: null,
+                    //     });
+                    //   }
+                    // }}                
                   />
                 </div>
                 <label>Nama: </label>

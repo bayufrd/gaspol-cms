@@ -30,6 +30,10 @@
     overflow-x: auto; /* Aktifkan scroll horizontal jika diperlukan */
 }
 
+.fade {
+    transition: none;
+}
+
 @media (min-width: 981px) {
     img.w-100 {
         max-width: 300px !important; /* New width for screens wider than 980px */
