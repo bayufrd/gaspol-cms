@@ -22,18 +22,13 @@ export const MenuModal = ({
     menu_type: "",
     price: "",
     is_active: 1,
-    image_url: null,
     menu_details: [],
   };
 
-  let imageFile = [];
   const [menu, setMenu] = useState(initialMenuState);
+  const [fileState, setFileState] = useState(null);
   const [isFormValid, setIsFormValid] = useState(true);
   const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
-
-  if (menu.image_url !== null && menu.image_url !== undefined) {
-    imageFile = `${apiBaseUrl}/${menu.image_url}`;
-  }
 
   useEffect(() => {
     if (show && selectedMenuId) {
@@ -43,6 +38,9 @@ export const MenuModal = ({
             `${apiBaseUrl}/v2/menu/${selectedMenuId}`
           );
           setMenu(response.data.data);
+          if(response.data.data.image_url) {
+            setFileState(`${apiBaseUrl}/${response.data.data.image_url}`)
+          }
         } catch (error) {
           console.error("Error fetching menu:", error);
         }
@@ -50,6 +48,7 @@ export const MenuModal = ({
       fetchData();
     } else {
       setMenu(initialMenuState);
+      setFileState(null);
     }
   }, [show, selectedMenuId]);
 
@@ -105,10 +104,28 @@ export const MenuModal = ({
     }
 
     try {
+      const formData = new FormData();
+      formData.append("name", menu.name);
+      formData.append("menu_type", menu.menu_type);
+      formData.append("price", menu.price);
+      formData.append("is_active", menu.is_active);
+
+      if (menu.menu_details[0] != null) {
+        formData.append("menu_details", JSON.stringify(menu.menu_details));
+      }
+
       if (selectedMenuId) {
+        if (fileState && fileState !== `${apiBaseUrl}/${menu.image_url}`) {
+          formData.append("image", fileState[0]);
+        }
         const response = await axios.patch(
           `${apiBaseUrl}/v2/menu/${selectedMenuId}`,
-          menu
+          formData,
+          {
+            headers: {
+              "Content-Type": "multipart/form-data", 
+            },
+          }
         );
         console.log("Menu added:", response.data.message);
         Swal.fire({
@@ -117,7 +134,16 @@ export const MenuModal = ({
           text: `Menu berhasil diupdate: ${menu.name}`,
         });
       } else {
-        const response = await axios.post(`${apiBaseUrl}/v2/menu`, menu);
+        if(fileState) {
+          formData.append("image", fileState[0]);
+        }
+        const response = await axios.post(`${apiBaseUrl}/v2/menu`, 
+          formData, 
+          {
+            headers: {
+              "Content-Type": "multipart/form-data", // Set content type to multipart/form-data
+            }
+          });
         console.log("Menu added:", response.data.message);
         Swal.fire({
           icon: "success",
@@ -193,26 +219,16 @@ export const MenuModal = ({
                 <div class="form-group">
                   <FilePond
                     className="image-preview-filepond"
-                    files={imageFile}
+                    files={fileState}
                     allowMultiple={false}
-                    maxFileSize="2MB"
-                    // onupdatefiles={(fileItems) => {
-                    //   // Mengambil file pertama (jika ada)
-                    //   const file = fileItems[0];
-                    //   if (file) {
-                    //     // Simpan data gambar ke dalam state menu
-                    //     setMenu({
-                    //       ...menu,
-                    //       image: file.file,
-                    //     });
-                    //   } else {
-                    //     // Jika pengguna menghapus gambar, hapus dari state menu
-                    //     setMenu({
-                    //       ...menu,
-                    //       image: null,
-                    //     });
-                    //   }
-                    // }}                
+                    maxFileSize="2MB"  
+                    onupdatefiles={(fileItems) => {
+                      if (fileItems.length > 0) {
+                        setFileState(fileItems.map((fileItem) => fileItem.file));
+                      } else {
+                        setFileState(null);
+                      }
+                    }}
                   />
                 </div>
                 <label>Nama: </label>
