@@ -1,6 +1,6 @@
 export function isTokenValid(token) {
     if (!token) {
-        return { valid: false, message: "Invalid Token!" }; 
+        return { valid: false }; 
     }
   
     const tokenData = JSON.parse(atob(token.split('.')[1]));

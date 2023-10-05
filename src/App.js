@@ -23,10 +23,12 @@ function App() {
     if(isValidedToken.valid) {
       setIsLoggedIn(true);
     } else {
-      Swal.fire({
-        icon: "Info",
-        title: isValidedToken.message
-      });
+      if(isValidedToken.message) {
+        Swal.fire({
+          icon: "Info",
+          title: isValidedToken.message
+        });
+      }
     }
 
     setTimeout(() => {
