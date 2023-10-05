@@ -19,7 +19,7 @@ export const MenuModal = ({
 
   const initialMenuState = {
     name: "",
-    menu_type: "",
+    menu_type: "Makanan",
     price: "",
     is_active: 1,
     menu_details: [],
@@ -187,7 +187,6 @@ export const MenuModal = ({
       <div
         className={`modal fade text-left ${show ? "show" : ""}`}
         id="inlineForm"
-        tabindex="-1"
         role="dialog"
         aria-labelledby="myModalLabel33"
         aria-modal={show ? "true" : undefined}
@@ -252,7 +251,8 @@ export const MenuModal = ({
                 <label>Tipe Menu: </label>
                 <div class="form-group">
                   <select 
-                    class="choices form-select" 
+                    class="form-select" 
+                    id="basicSelect"
                     value={menu.menu_type}
                     onChange={(e) => {
                       handleInputChange("menu_type", e.target.value);

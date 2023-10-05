@@ -39,3 +39,45 @@
         max-width: 300px !important; /* New width for screens wider than 980px */
     }
 }
+
+@media screen and (max-width: 1199px) {
+    .sidebar-wrapper {
+        position: fixed;
+        height: auto;
+    }
+}
+
+.custome-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+}
+
+/* Login page */
+.login-form {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border: 1px solid #ccc; 
+    border-radius: 10px; 
+    box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.2); 
+    background-color: #fff; 
+    padding: 2rem;
+}
+
+.login-title {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.login-content {
+    margin-bottom: 1.5rem;
+}
+
+.login-button {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+

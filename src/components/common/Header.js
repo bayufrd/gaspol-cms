@@ -2,7 +2,7 @@ import React from "react";
 
 const Header = ({ onToggleSidebar }) => {
   return (
-    <header className="mb-3">
+    <header>
       <nav className="navbar navbar-expand navbar-light navbar-top">
         <div className="container-fluid">
           <div className="buttons" onClick={onToggleSidebar}>
@@ -24,83 +24,6 @@ const Header = ({ onToggleSidebar }) => {
           </button>
           <div className="collapse navbar-collapse" id="navbarSupportedContent">
             <ul className="navbar-nav ms-auto mb-lg-0">
-              <li className="nav-item dropdown me-1">
-                <a
-                  className="nav-link active dropdown-toggle text-gray-600"
-                  href="#"
-                  data-bs-toggle="dropdown"
-                  aria-expanded="false"
-                >
-                  <i className="bi bi-envelope bi-sub fs-4"></i>
-                </a>
-                <ul
-                  className="dropdown-menu dropdown-menu-end"
-                  aria-labelledby="dropdownMenuButton"
-                >
-                  <li>
-                    <h6 className="dropdown-header">Mail</h6>
-                  </li>
-                  <li>
-                    <a class="dropdown-item" href="#">
-                      No new mail
-                    </a>
-                  </li>
-                </ul>
-              </li>
-              <li class="nav-item dropdown me-3">
-                <a
-                  class="nav-link active dropdown-toggle text-gray-600"
-                  href="#"
-                  data-bs-toggle="dropdown"
-                  data-bs-display="static"
-                  aria-expanded="false"
-                >
-                  <i class="bi bi-bell bi-sub fs-4"></i>
-                </a>
-                <ul
-                  class="dropdown-menu dropdown-menu-end notification-dropdown"
-                  aria-labelledby="dropdownMenuButton"
-                >
-                  <li class="dropdown-header">
-                    <h6>Notifications</h6>
-                  </li>
-                  <li class="dropdown-item notification-item">
-                    <a class="d-flex align-items-center" href="#">
-                      <div class="notification-icon bg-primary">
-                        <i class="bi bi-cart-check"></i>
-                      </div>
-                      <div class="notification-text ms-4">
-                        <p class="notification-title font-bold">
-                          Successfully check out
-                        </p>
-                        <p class="notification-subtitle font-thin text-sm">
-                          Order ID #256
-                        </p>
-                      </div>
-                    </a>
-                  </li>
-                  <li class="dropdown-item notification-item">
-                    <a class="d-flex align-items-center" href="#">
-                      <div class="notification-icon bg-success">
-                        <i class="bi bi-file-earmark-check"></i>
-                      </div>
-                      <div class="notification-text ms-4">
-                        <p class="notification-title font-bold">
-                          Homework submitted
-                        </p>
-                        <p class="notification-subtitle font-thin text-sm">
-                          Algebra math homework
-                        </p>
-                      </div>
-                    </a>
-                  </li>
-                  <li>
-                    <p class="text-center py-2 mb-0">
-                      <a href="#">See all notification</a>
-                    </p>
-                  </li>
-                </ul>
-              </li>
             </ul>
             <div className="dropdown">
               <a href="#" data-bs-toggle="dropdown" aria-expanded="false">
@@ -123,24 +46,6 @@ const Header = ({ onToggleSidebar }) => {
               >
                 <li>
                   <h6 className="dropdown-header">Hello, John!</h6>
-                </li>
-                <li>
-                  <a class="dropdown-item" href="#">
-                    <i class="icon-mid bi bi-person me-2"></i> My Profile
-                  </a>
-                </li>
-                <li>
-                  <a class="dropdown-item" href="#">
-                    <i class="icon-mid bi bi-gear me-2"></i> Settings
-                  </a>
-                </li>
-                <li>
-                  <a class="dropdown-item" href="#">
-                    <i class="icon-mid bi bi-wallet me-2"></i> Wallet
-                  </a>
-                </li>
-                <li>
-                  <hr class="dropdown-divider" />
                 </li>
                 <li>
                   <a class="dropdown-item" href="#">
