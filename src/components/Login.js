@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { extractUserTokenData } from "../helpers/token";
 import axios from 'axios';
 import Swal from "sweetalert2";
 
-const LoginForm = ({ setIsLoggedIn }) => {
+const LoginForm = ({ setIsLoggedIn, setUserTokenData }) => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const navigate = useNavigate(); 
@@ -16,6 +17,8 @@ const LoginForm = ({ setIsLoggedIn }) => {
       const response = await axios.post(`${apiBaseUrl}/login`, { username, password });
       if (response.status === 200) {
         const token = response.data.token;
+        const tokenData = extractUserTokenData(token);
+        setUserTokenData(tokenData);
         setIsLoggedIn(true);
         localStorage.setItem('token', token);
         Swal.fire({

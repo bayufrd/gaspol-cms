@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
-import { isTokenValid } from "./helpers/token";
+import { isTokenValid, extractUserTokenData } from "./helpers/token";
 import Footer from "./components/common/Footer";
 import Header from "./components/common/Header";
 import Sidebar from "./components/common/Sidebar";
@@ -12,6 +12,7 @@ function App() {
   const [isSidebarOpen, setSidebarOpen] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [userTokenData, setUserTokenData] = useState(null); 
 
   const toggleSidebar = () => {
     setSidebarOpen(!isSidebarOpen);
@@ -22,6 +23,9 @@ function App() {
     const isValidedToken = isTokenValid(token);
     if(isValidedToken.valid) {
       setIsLoggedIn(true);
+      if (!userTokenData) {
+        setUserTokenData(extractUserTokenData(token));
+      }
     } else {
       if(isValidedToken.message) {
         Swal.fire({
@@ -62,7 +66,7 @@ function App() {
           ) : (
             <Router>
               <Routes>
-                <Route path="/" element={<Login setIsLoggedIn={setIsLoggedIn}/>} />
+                <Route path="/" element={<Login setIsLoggedIn={setIsLoggedIn} setUserTokenData={setUserTokenData}/>} />
               </Routes>
             </Router>
           )
