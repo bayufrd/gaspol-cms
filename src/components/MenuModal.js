@@ -14,6 +14,7 @@ export const MenuModal = ({
   onSave,
   selectedMenuId,
   getMenus,
+  userTokenData,
 }) => {
   const apiBaseUrl = process.env.REACT_APP_API_BASE_URL;
 
@@ -22,6 +23,7 @@ export const MenuModal = ({
     menu_type: "Makanan",
     price: "",
     is_active: 1,
+    outlet_id: userTokenData.outlet_id,
     menu_details: [],
   };
 
@@ -50,7 +52,7 @@ export const MenuModal = ({
       setMenu(initialMenuState);
       setFileState(null);
     }
-  }, [show, selectedMenuId]);
+  }, [show, selectedMenuId, apiBaseUrl]);
 
   const handleInputChange = (field, value) => {
     setMenu({
@@ -108,6 +110,7 @@ export const MenuModal = ({
       formData.append("name", menu.name);
       formData.append("menu_type", menu.menu_type);
       formData.append("price", menu.price);
+      formData.append("outlet_id", menu.outlet_id);
       formData.append("is_active", menu.is_active);
 
       if (menu.menu_details[0] != null) {

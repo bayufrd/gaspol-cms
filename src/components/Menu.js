@@ -3,7 +3,7 @@ import { MenuModal } from "../components/MenuModal";
 import axios from "axios";
 const apiBaseUrl = process.env.REACT_APP_API_BASE_URL;
 
-const Menu = () => {
+const Menu = ({userTokenData}) => {
   const [menus, setMenus] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [selectedMenuId, setSelectedMenuId] = useState(null);
@@ -28,7 +28,11 @@ const Menu = () => {
   }, [showModal]);
 
   const getMenus = async () => {
-    const response = await axios.get(`${apiBaseUrl}/v2/menu`);
+    const response = await axios.get(`${apiBaseUrl}/v2/menu`, {
+      params: {
+        outlet_id: userTokenData.outlet_id
+      }
+    });
     setMenus(response.data.data);
   };
 
@@ -60,21 +64,6 @@ const Menu = () => {
             <div className="col-12 col-md-6 order-md-1 order-last mb-3">
               <h3>Management Menu</h3>
             </div>
-            {/* <div className="col-12 col-md-6 order-md-2 order-first">
-              <nav
-                aria-label="breadcrumb"
-                className="breadcrumb-header float-start float-lg-end"
-              >
-                <ol className="breadcrumb">
-                  <li className="breadcrumb-item">
-                    <a href="index.html">Dashboard</a>
-                  </li>
-                  <li className="breadcrumb-item active" aria-current="page">
-                    Management Menu
-                  </li>
-                </ol>
-              </nav>
-            </div> */}
           </div>
         </div>
         <section class="section">
@@ -146,6 +135,7 @@ const Menu = () => {
         onSave={handleSaveMenu}
         selectedMenuId={selectedMenuId}
         getMenus={getMenus}
+        userTokenData={userTokenData}
       />
     </div>
   );

@@ -59,7 +59,7 @@ function App() {
               <Router>
                 <Routes>
                   {userTokenData && userTokenData.menu_access.includes("2") && (
-                    <Route path="/" element={<Menu />} />
+                    <Route path="/" element={<Menu userTokenData={userTokenData}/>} />
                   )}
                 </Routes>
               </Router>

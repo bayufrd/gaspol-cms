@@ -15,9 +15,9 @@ const Header = ({ onToggleSidebar, userTokenData, setIsLoggedIn }) => {
       <nav className="navbar navbar-expand navbar-light navbar-top">
         <div className="container-fluid">
           <div className="buttons" onClick={onToggleSidebar}>
-            <a href="#" className="burger-btn d-block">
+            <div className="burger-btn d-block">
               <i className="bi bi-justify fs-3"></i>
-            </a>
+            </div>
           </div>
 
           <button
