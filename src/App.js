@@ -49,7 +49,7 @@ function App() {
           </div>
         ) : isLoggedIn ? (
           <div>
-            <Sidebar isOpen={isSidebarOpen} />
+            <Sidebar isOpen={isSidebarOpen} userTokenData={userTokenData}/>
             <div id="main" className="layout-navbar">
               <Header
                 onToggleSidebar={toggleSidebar}
