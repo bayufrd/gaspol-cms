@@ -412,8 +412,9 @@ export const MenuModal = ({
       <div className={show && `modal-backdrop fade show`}></div>
       <DeleteConfirmationModal
         showDeleteConfirmation={showDeleteConfirmation}
-        onConfirmDelete={handleDeleteMenu} // Pass your delete logic function
-        onCancelDelete={() => setShowDeleteConfirmation(false)} // Close the delete confirmation modal
+        onConfirmDelete={handleDeleteMenu}
+        onCancelDelete={() => setShowDeleteConfirmation(false)}
+        purposeDialog={"menu"}
       />
     </>
   );

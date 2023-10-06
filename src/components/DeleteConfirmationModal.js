@@ -4,6 +4,7 @@ export const DeleteConfirmationModal = ({
   showDeleteConfirmation,
   onConfirmDelete,
   onCancelDelete,
+  purposeDialog,
 }) => {
   return (
     <>
@@ -25,7 +26,7 @@ export const DeleteConfirmationModal = ({
             <div className="modal-content">
               <div className="modal-header">
                 <h4 className="modal-title" id="deleteConfirmationModalLabel">
-                  Delete Menu
+                  Delete {purposeDialog}
                 </h4>
                 <button
                   type="button"
@@ -38,7 +39,7 @@ export const DeleteConfirmationModal = ({
                 </button>
               </div>
               <div className="modal-body">
-                Apakah anda yakin menghapus menu ini?
+                Apakah anda yakin menghapus {purposeDialog} ini?
               </div>
               <div className="modal-footer">
                 <button
