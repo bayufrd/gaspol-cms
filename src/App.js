@@ -5,6 +5,7 @@ import Footer from "./components/common/Footer";
 import Header from "./components/common/Header";
 import Sidebar from "./components/common/Sidebar";
 import Menu from "./components/Menu";
+import User from "./components/User";
 import Login from "./components/Login";
 import Swal from "sweetalert2";
 
@@ -58,6 +59,12 @@ function App() {
               />
               <div id="main-content">
                 <Routes>
+                  {userTokenData && userTokenData.menu_access.includes("1") && (
+                    <Route
+                      path="/"
+                      element={<User userTokenData={userTokenData} />}
+                    />
+                  )}
                   {userTokenData && userTokenData.menu_access.includes("2") && (
                     <Route
                       path="/"

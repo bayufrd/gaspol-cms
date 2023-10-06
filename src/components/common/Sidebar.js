@@ -20,19 +20,27 @@ const Sidebar = ({ isOpen, userTokenData }) => {
         <div className="sidebar-menu">
           <ul class="menu">
             <li class="sidebar-title">Menu</li>
+            {userTokenData.menu_access.includes("1") && (
+              <li class="sidebar-item">
+                <Link to="/" class="sidebar-link">
+                  <i className="bi bi-tags-fill"></i>
+                  <span>Management Users</span>
+                </Link>
+              </li>
+            )}
             {userTokenData.menu_access.includes("2") && (
               <li class="sidebar-item">
                 <Link to="/" class="sidebar-link">
                   <i className="bi bi-grid-fill"></i>
-                  <span>Management Menu</span>
+                  <span>Management Menus</span>
                 </Link>
               </li>
             )}
             {userTokenData.menu_access.includes("3") && (
               <li class="sidebar-item">
                 <Link to="/discount" class="sidebar-link">
-                  <i className="bi bi-grid-fill"></i>
-                  <span>Management Discount</span>
+                  <i className="bi bi-tags-fill"></i>
+                  <span>Management Discounts</span>
                 </Link>
               </li>
             )}
