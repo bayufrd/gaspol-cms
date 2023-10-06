@@ -42,7 +42,7 @@ const LoginForm = ({ setIsLoggedIn, setUserTokenData }) => {
   };
 
   return (
-    <div className='custome-container'>
+    <div className='custom-container'>
       <form className='login-form'>
         <div>
           <h2 className='login-title'>Login</h2>

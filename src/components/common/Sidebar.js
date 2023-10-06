@@ -1,4 +1,5 @@
 import React from "react";
+import { Link } from "react-router-dom";
 
 const Sidebar = ({ isOpen }) => {
   return (
@@ -7,9 +8,9 @@ const Sidebar = ({ isOpen }) => {
         <div className="sidebar-header position-relative">
           <div className="d-flex justify-content-between align-items-center">
               <div className="logo">
-                <a href="index.html">
+                <Link to="/">
                   GASPOL CMS
-                </a>
+                </Link>
               </div>
               <div className="sidebar-toggler x">
                 <div className="sidebar-hide d-xl-none d-block">
@@ -23,10 +24,10 @@ const Sidebar = ({ isOpen }) => {
             <li class="sidebar-title">Menu</li>
 
             <li class="sidebar-item">
-              <a href="index.html" class="sidebar-link">
-                <i class="bi bi-grid-fill"></i>
+              <Link to="/management-menu" class="sidebar-link">
+                <i className="bi bi-grid-fill"></i>
                 <span>Management Menu</span>
-              </a>
+              </Link>
             </li>
           </ul>
         </div>

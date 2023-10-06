@@ -42,33 +42,34 @@ function App() {
 
   return (
     <div id="app">
-      {isLoading ? (
-        <div className="custome-container">
-          <div className="spinner-border" />
-        </div>
-      ) : isLoggedIn ? (
-        <div>
-          <Sidebar isOpen={isSidebarOpen} />
-          <div id="main" className="layout-navbar">
-            <Header
-              onToggleSidebar={toggleSidebar}
-              userTokenData={userTokenData}
-              setIsLoggedIn={setIsLoggedIn}
-            />
-            <div id="main-content">
-              <Router>
+      <Router>
+        {isLoading ? (
+          <div className="custom-container">
+            <div className="spinner-border" />
+          </div>
+        ) : isLoggedIn ? (
+          <div>
+            <Sidebar isOpen={isSidebarOpen} />
+            <div id="main" className="layout-navbar">
+              <Header
+                onToggleSidebar={toggleSidebar}
+                userTokenData={userTokenData}
+                setIsLoggedIn={setIsLoggedIn}
+              />
+              <div id="main-content">
                 <Routes>
                   {userTokenData && userTokenData.menu_access.includes("2") && (
-                    <Route path="/" element={<Menu userTokenData={userTokenData}/>} />
+                    <Route
+                      path="/"
+                      element={<Menu userTokenData={userTokenData} />}
+                    />
                   )}
                 </Routes>
-              </Router>
-              <Footer />
+                <Footer />
+              </div>
             </div>
           </div>
-        </div>
-      ) : (
-        <Router>
+        ) : (
           <Routes>
             <Route
               path="/"
@@ -80,8 +81,8 @@ function App() {
               }
             />
           </Routes>
-        </Router>
-      )}
+        )}
+      </Router>
     </div>
   );
 }
