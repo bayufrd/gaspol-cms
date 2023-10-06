@@ -12,7 +12,7 @@ function App() {
   const [isSidebarOpen, setSidebarOpen] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  const [userTokenData, setUserTokenData] = useState(null); 
+  const [userTokenData, setUserTokenData] = useState(null);
 
   const toggleSidebar = () => {
     setSidebarOpen(!isSidebarOpen);
@@ -21,16 +21,16 @@ function App() {
   useEffect(() => {
     const token = localStorage.getItem("token");
     const isValidedToken = isTokenValid(token);
-    if(isValidedToken.valid) {
+    if (isValidedToken.valid) {
       setIsLoggedIn(true);
       if (!userTokenData) {
         setUserTokenData(extractUserTokenData(token));
       }
     } else {
-      if(isValidedToken.message) {
+      if (isValidedToken.message) {
         Swal.fire({
           icon: "Info",
-          title: isValidedToken.message
+          title: isValidedToken.message,
         });
       }
     }
@@ -38,40 +38,50 @@ function App() {
     setTimeout(() => {
       setIsLoading(false);
     }, 1000);
-  }, []);
+  }, [userTokenData]);
 
   return (
     <div id="app">
-      {
-        isLoading ? (
-          <div className="custome-container">
-            <div className="spinner-border" />
-          </div>
-        ) : (
-          isLoggedIn ? (
-            <div>
-              <Sidebar isOpen={isSidebarOpen} />
-              <div id="main" className="layout-navbar">
-                <Header onToggleSidebar={toggleSidebar} />
-                <div id="main-content">
-                  <Router>
-                    <Routes>
-                      <Route path="/" element={<Menu />} />
-                    </Routes>
-                  </Router>
-                  <Footer />
-                </div>
-              </div>
+      {isLoading ? (
+        <div className="custome-container">
+          <div className="spinner-border" />
+        </div>
+      ) : isLoggedIn ? (
+        <div>
+          <Sidebar isOpen={isSidebarOpen} />
+          <div id="main" className="layout-navbar">
+            <Header
+              onToggleSidebar={toggleSidebar}
+              userTokenData={userTokenData}
+              setIsLoggedIn={setIsLoggedIn}
+            />
+            <div id="main-content">
+              <Router>
+                <Routes>
+                  {userTokenData && userTokenData.menu_access.includes("2") && (
+                    <Route path="/" element={<Menu />} />
+                  )}
+                </Routes>
+              </Router>
+              <Footer />
             </div>
-          ) : (
-            <Router>
-              <Routes>
-                <Route path="/" element={<Login setIsLoggedIn={setIsLoggedIn} setUserTokenData={setUserTokenData}/>} />
-              </Routes>
-            </Router>
-          )
-        ) 
-      }
+          </div>
+        </div>
+      ) : (
+        <Router>
+          <Routes>
+            <Route
+              path="/"
+              element={
+                <Login
+                  setIsLoggedIn={setIsLoggedIn}
+                  setUserTokenData={setUserTokenData}
+                />
+              }
+            />
+          </Routes>
+        </Router>
+      )}
     </div>
   );
 }

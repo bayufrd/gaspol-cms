@@ -19,11 +19,11 @@ export function extractUserTokenData(token) {
     const tokenData = JSON.parse(atob(token.split(".")[1]));
     return {
       userId: tokenData.userId,
-      username: tokenData.username,
+      name: tokenData.name,
       role: tokenData.role,
       outlet_id: tokenData.outlet_id,
       outlet_name: tokenData.outlet_name,
-      menu_access: JSON.parse(tokenData.menu_access),
+      menu_access: tokenData.menu_access,
     };
   } catch (error) {
     console.error("Error extracting userTokenData:", error);

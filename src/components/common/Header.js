@@ -1,6 +1,15 @@
 import React from "react";
 
-const Header = ({ onToggleSidebar }) => {
+const Header = ({ onToggleSidebar, userTokenData, setIsLoggedIn }) => {
+  const handleLogout = () => {
+    try {
+      localStorage.removeItem('token');
+      setIsLoggedIn(false);
+    } catch (error) {
+      console.error('Error during logout:', error);
+    }
+  }
+
   return (
     <header>
       <nav className="navbar navbar-expand navbar-light navbar-top">
@@ -26,11 +35,15 @@ const Header = ({ onToggleSidebar }) => {
             <ul className="navbar-nav ms-auto mb-lg-0">
             </ul>
             <div className="dropdown">
-              <a href="#" data-bs-toggle="dropdown" aria-expanded="false">
+              <div data-bs-toggle="dropdown" aria-expanded="false">
                 <div className="user-menu d-flex">
                   <div className="user-name text-end me-3">
-                    <h6 className="mb-0 text-gray-600">John Ducky</h6>
-                    <p className="mb-0 text-sm text-gray-600">Administrator</p>
+                  {userTokenData && (
+                    <div className="user-name text-end me-3">
+                      <h6 className="mb-0 text-gray-600">{userTokenData.name}</h6>
+                      <p className="mb-0 text-sm text-gray-600">{userTokenData.role}</p>
+                    </div>
+                  )}
                   </div>
                   <div className="user-img d-flex align-items-center">
                     <div className="avatar avatar-md">
@@ -38,20 +51,20 @@ const Header = ({ onToggleSidebar }) => {
                     </div>
                   </div>
                 </div>
-              </a>
+              </div>
               <ul
                 className="dropdown-menu dropdown-menu-end"
                 aria-labelledby="dropdownMenuButton"
                 style={{ minWidth: "11rem" }}
               >
-                <li>
+                {/* <li>
                   <h6 className="dropdown-header">Hello, John!</h6>
-                </li>
+                </li> */}
                 <li>
-                  <a class="dropdown-item" href="#">
+                  <button class="dropdown-item" onClick={handleLogout}>
                     <i class="icon-mid bi bi-box-arrow-left me-2"></i>
                     Logout
-                  </a>
+                  </button>
                 </li>
               </ul>
             </div>
