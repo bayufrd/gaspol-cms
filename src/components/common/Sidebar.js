@@ -21,12 +21,17 @@ const Sidebar = ({ isOpen, userTokenData }) => {
           <ul class="menu">
             <li class="sidebar-title">Menu</li>
             {userTokenData.menu_access.includes("1") && (
-              <li class="sidebar-item">
+              <><li class="sidebar-item">
                 <Link to="/" class="sidebar-link">
                   <i className="bi bi-tags-fill"></i>
                   <span>Management Users</span>
                 </Link>
-              </li>
+              </li><li class="sidebar-item">
+                  <Link to="/outlet" class="sidebar-link">
+                    <i className="bi bi-building"></i>
+                    <span>Management Outlet</span>
+                  </Link>
+                </li></>
             )}
             {userTokenData.menu_access.includes("2") && (
               <li class="sidebar-item">

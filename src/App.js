@@ -64,6 +64,10 @@ function App() {
                       path="/"
                       element={<User userTokenData={userTokenData} />}
                     />
+                    // <Route
+                    //   path="/"
+                    //   element={<Outlet userTokenData={userTokenData} />}
+                    // />
                   )}
                   {userTokenData && userTokenData.menu_access.includes("2") && (
                     <Route

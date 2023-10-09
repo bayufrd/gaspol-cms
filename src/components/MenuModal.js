@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import Swal from "sweetalert2";
 import axios from "axios";
 import { FilePond, registerPlugin } from "react-filepond";
@@ -18,14 +18,14 @@ export const MenuModal = ({
 }) => {
   const apiBaseUrl = process.env.REACT_APP_API_BASE_URL;
 
-  const initialMenuState = {
+  const initialMenuState = useMemo(() => ({
     name: "",
     menu_type: "Makanan",
     price: "",
     is_active: 1,
     outlet_id: userTokenData.outlet_id,
     menu_details: [],
-  };
+  }), [userTokenData]);
 
   const [menu, setMenu] = useState(initialMenuState);
   const [fileState, setFileState] = useState(null);
@@ -52,7 +52,7 @@ export const MenuModal = ({
       setMenu(initialMenuState);
       setFileState(null);
     }
-  }, [show, selectedMenuId, apiBaseUrl]);
+  }, [show, selectedMenuId, apiBaseUrl, initialMenuState]);
 
   const handleInputChange = (field, value) => {
     setMenu({

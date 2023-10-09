@@ -3,8 +3,9 @@ import { UserModal } from "../components/UserModal";
 import axios from "axios";
 const apiBaseUrl = process.env.REACT_APP_API_BASE_URL;
 
-const User = ({userTokenData}) => {
+const User = () => {
   const [users, setUsers] = useState([]);
+  const [outlets, setOutlets] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [selectedUserId, setSelectedUserId] = useState(null);
 
@@ -29,7 +30,8 @@ const User = ({userTokenData}) => {
 
   const getUsers = async () => {
     const response = await axios.get(`${apiBaseUrl}/user-management`);
-    setUsers(response.data.data);
+    setUsers(response.data.data.users);
+    setOutlets(response.data.data.outlets);
   };
 
   const openModal = (userId) => {
@@ -80,7 +82,6 @@ const User = ({userTokenData}) => {
                   <tr>
                     <th>No</th>
                     <th>Name</th>
-                    <th>Role Name</th>
                     <th>Username</th>
                     <th>Outlet</th>
                     <th>Actions</th>
@@ -91,7 +92,6 @@ const User = ({userTokenData}) => {
                     <tr key={user.id}>
                       <td>{index + 1}</td>
                       <td>{user.name}</td>
-                      <td>{user.role_name}</td>
                       <td>{user.username}</td>
                       <td>{user.outlet_name}</td>
                       <td>
@@ -113,14 +113,14 @@ const User = ({userTokenData}) => {
         </section>
       </div>
 
-      {/* <UserModal
+      <UserModal
         show={showModal}
         onClose={closeModal}
         onSave={handleSaveMenu}
         selectedUserId={selectedUserId}
         getUsers={getUsers}
-        userTokenData={userTokenData}
-      /> */}
+        outlets={outlets}
+      />
     </div>
   );
 };

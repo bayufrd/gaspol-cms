@@ -1,413 +1,322 @@
-// import React, { useState, useEffect } from "react";
-// import Swal from "sweetalert2";
-// import axios from "axios";
-// import { DeleteConfirmationModal } from "./DeleteConfirmationModal";
+import React, { useState, useEffect, useMemo } from "react";
+import Swal from "sweetalert2";
+import axios from "axios";
+import { DeleteConfirmationModal } from "./DeleteConfirmationModal";
 
-// export const UserModal = ({
-//   show,
-//   onClose,
-//   onSave,
-//   selectedUserId,
-//   getUsers,
-//   userTokenData,
-// }) => {
-//   const apiBaseUrl = process.env.REACT_APP_API_BASE_URL;
+export const UserModal = ({
+  show,
+  onClose,
+  onSave,
+  selectedUserId,
+  getUsers,
+  outlets,
+}) => {
+  const apiBaseUrl = process.env.REACT_APP_API_BASE_URL;
 
-//   const initialUserState = {
-//     name: "",
-//     username: "",
-//     outlet_id: 0,
-//     role: 2,
-//     menu_access: [],
-//   };
+  const initialUserState = useMemo(() => ({
+    name: "",
+    username: "",
+    password: "",
+    outlet_id: 1,
+    menu_access: "",
+  }), []);
 
-//   const [user, setUser] = useState(initialUserState);
-//   const [isFormValid, setIsFormValid] = useState(true);
-//   const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
+  const [user, setUser] = useState(initialUserState);
+  const [isFormValid, setIsFormValid] = useState(true);
+  const [menuAccess, setMenuAccess] = useState({
+    menu: false,
+    discount: false,
+  });
 
-//   useEffect(() => {
-//     if (show && selectedUserId) {
-//       const fetchData = async () => {
-//         try {
-//           const response = await axios.get(
-//             `${apiBaseUrl}/user-management/${selectedUserId}`
-//           );
-//           setUser(response.data.data);
-//           if(response.data.data.image_url) {
-//             setFileState(`${apiBaseUrl}/${response.data.data.image_url}`)
-//           }
-//         } catch (error) {
-//           console.error("Error fetching menu:", error);
-//         }
-//       };
-//       fetchData();
-//     } else {
-//       setMenu(initialMenuState);
-//       setFileState(null);
-//     }
-//   }, [show, selectedMenuId, apiBaseUrl]);
+  const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
+  
+  useEffect(() => {
+    if (show && selectedUserId) {
+      const fetchData = async () => {
+        try {
+          const response = await axios.get(
+            `${apiBaseUrl}/user-management/${selectedUserId}`
+          );
+          const userData = response.data.data;
+          setUser(userData);
+          const menuAccessArray = userData.menu_access.split(",");
+          setMenuAccess({
+            menu: menuAccessArray.includes("2"),
+            discount: menuAccessArray.includes("3"),
+          });
+        } catch (error) {
+          console.error("Error fetching user:", error);
+        }
+      };
+      fetchData();
+    } else {
+      setUser(initialUserState);
+      setMenuAccess({
+        menu: false,
+        discount: false,
+      });
+    }
+  }, [show, selectedUserId, apiBaseUrl, initialUserState]);
 
-//   const handleInputChange = (field, value) => {
-//     setMenu({
-//       ...menu,
-//       [field]: value,
-//     });
-//   };
+  const handleInputChange = (field, value) => {
+    setUser((prevUser) => ({
+      ...prevUser,
+      [field]: value,
+    }));
+  };
 
-//   const handleMenuDetailChange = (index, field, value) => {
-//     const updatedMenuDetails = [...menu.menu_details];
-//     updatedMenuDetails[index][field] = value;
-//     setMenu({
-//       ...menu,
-//       menu_details: updatedMenuDetails,
-//     });
-//   };
+  const handleCheckboxChange = (field) => {
+    setMenuAccess({
+      ...menuAccess,
+      [field]: !menuAccess[field],
+    });
+  };
 
-//   const handleAddMenuDetail = () => {
-//     setMenu({
-//       ...menu,
-//       menu_details: [...menu.menu_details, { varian: "", price: "" }],
-//     });
-//   };
+  const handleSave = async (e) => {
+    e.preventDefault();
 
-//   const handleRemoveMenuDetail = (index) => {
-//     const updatedMenuDetails = [...menu.menu_details];
-//     updatedMenuDetails.splice(index, 1);
-//     setMenu({
-//       ...menu,
-//       menu_details: updatedMenuDetails,
-//     });
-//   };
+    const isUserNameValid = user.name.trim() !== "";
+    const isUserUsernameValid = user.username.trim() !== "";
+    let isPasswordValid = true;
+    if(user.password) {
+      isPasswordValid = user.password.trim().length >= 5;
+    }
+    
+    if (!isUserNameValid || !isUserUsernameValid || !isPasswordValid) {
+      setIsFormValid(false);
+      return;
+    }
 
-//   const handleSave = async (e) => {
-//     e.preventDefault();
+    const selectedMenuAccess = [];
+    if (menuAccess.menu) selectedMenuAccess.push("2");
+    if (menuAccess.discount) selectedMenuAccess.push("3");
+    user.menu_access = selectedMenuAccess.join(",");
 
-//     // Validate input
-//     const isMenuNameValid = menu.name.trim() !== "";
-//     const isMenuPriceValid = menu.price !== "";
-//     const isMenuDetailsValid = menu.menu_details.every(
-//       (detail) => detail.varian.trim() !== "" && detail.price !== ""
-//     );
+    try {
+      if (selectedUserId) {
+        await axios.patch(
+          `${apiBaseUrl}/user-management/${selectedUserId}`,
+          user
+        );
+        Swal.fire({
+          icon: "success",
+          title: "Success!",
+          text: `User berhasil diupdate: ${user.name}`,
+        });
+      } else {
+        await axios.post(`${apiBaseUrl}/user-management/`, user);
+        Swal.fire({
+          icon: "success",
+          title: "Success!",
+          text: `${user.name} berhasil ditambahkan!`,
+        });
+      }
+      onSave(user);
+      setUser(initialUserState);
+      onClose();
+    } catch (error) {
+      Swal.fire({
+        title: "Gagal",
+        text: "Terdapat data yang tidak valid",
+        icon: "error",
+      });
+    }
+  };
 
-//     if (
-//       !isMenuNameValid ||
-//       !isMenuPriceValid ||
-//       !isMenuDetailsValid
-//     ) {
-//       setIsFormValid(false);
-//       return;
-//     }
+    const handleDeleteUser = async () => {
+      try {
+        await axios.delete(
+          `${apiBaseUrl}/user-management/${selectedUserId}`
+        );
+        Swal.fire({
+          icon: "success",
+          title: "Success!",
+          text: `User berhasil dihapus: ${user.name}`,
+        });
+        setShowDeleteConfirmation(false);
+        await getUsers();
+        onClose();
+      } catch (error) {
+        console.error("Error deleting user:", error);
+      }
+    };
 
-//     try {
-//       const formData = new FormData();
-//       formData.append("name", menu.name);
-//       formData.append("menu_type", menu.menu_type);
-//       formData.append("price", menu.price);
-//       formData.append("outlet_id", menu.outlet_id);
-//       formData.append("is_active", menu.is_active);
-
-//       if (menu.menu_details[0] != null) {
-//         formData.append("menu_details", JSON.stringify(menu.menu_details));
-//       }
-
-//       if (selectedMenuId) {
-//         if (fileState && fileState !== `${apiBaseUrl}/${menu.image_url}`) {
-//           formData.append("image", fileState[0]);
-//         }
-//         const response = await axios.patch(
-//           `${apiBaseUrl}/v2/menu/${selectedMenuId}`,
-//           formData,
-//           {
-//             headers: {
-//               "Content-Type": "multipart/form-data", 
-//             },
-//           }
-//         );
-//         console.log("Menu added:", response.data.message);
-//         Swal.fire({
-//           icon: "success",
-//           title: "Success!",
-//           text: `Menu berhasil diupdate: ${menu.name}`,
-//         });
-//       } else {
-//         if(fileState) {
-//           formData.append("image", fileState[0]);
-//         }
-//         const response = await axios.post(`${apiBaseUrl}/v2/menu`, 
-//           formData, 
-//           {
-//             headers: {
-//               "Content-Type": "multipart/form-data", // Set content type to multipart/form-data
-//             }
-//           });
-//         console.log("Menu added:", response.data.message);
-//         Swal.fire({
-//           icon: "success",
-//           title: "Success!",
-//           text: `Menu berhasil ${menu.name} berhasil ditambahkan!`,
-//         });
-//       }
-//       onSave(menu);
-//       setMenu(initialMenuState);
-//       onClose();
-//     } catch (error) {
-//       Swal.fire({
-//         title: "Gagal",
-//         text: "Terdapat data yang tidak valid",
-//         icon: "error",
-//       });
-//     }
-//   };
-
-//   const handleDeleteMenu = async () => {
-//     try {
-//       const response = await axios.delete(
-//         `${apiBaseUrl}/menu/${selectedMenuId}`
-//       );
-//       console.log("Menu deleted:", response.data.message);
-//       Swal.fire({
-//         icon: "success",
-//         title: "Success!",
-//         text: `Menu berhasil dihapus: ${menu.name}`,
-//       });
-//       setShowDeleteConfirmation(false);
-//       await getMenus();
-//       onClose();
-//     } catch (error) {
-//       console.error("Error deleting menu:", error);
-//     }
-//   };
-
-//   return (
-//     <>
-//       <div
-//         className={`modal fade text-left ${show ? "show" : ""}`}
-//         id="inlineForm"
-//         role="dialog"
-//         aria-labelledby="myModalLabel33"
-//         aria-modal={show ? "true" : undefined}
-//         aria-hidden={show ? undefined : "true"}
-//         style={show ? { display: "block" } : { display: "none" }}
-//       >
-//         <div
-//           class="modal-dialog modal-dialog-centered modal-dialog-scrollable"
-//           role="document"
-//         >
-//           <div class="modal-content">
-//             <div class="modal-header">
-//               <h4 class="modal-title" id="myModalLabel33">
-//                 {selectedMenuId ? "Edit Menu" : "Add Menu"}
-//               </h4>
-//               <button
-//                 type="button"
-//                 class="close"
-//                 data-bs-dismiss="modal"
-//                 aria-label="Close"
-//                 onClick={onClose}
-//               >
-//                 <i data-feather="x"></i>x
-//               </button>
-//             </div>
-//             <div>
-//               <div class="modal-body scrollable-content">
-//                 <label>Gambar:</label>
-//                 <div class="form-group">
-//                   <FilePond
-//                     className="image-preview-filepond"
-//                     files={fileState}
-//                     allowMultiple={false}
-//                     maxFileSize="2MB"  
-//                     onupdatefiles={(fileItems) => {
-//                       if (fileItems.length > 0) {
-//                         setFileState(fileItems.map((fileItem) => fileItem.file));
-//                       } else {
-//                         setFileState(null);
-//                       }
-//                     }}
-//                   />
-//                 </div>
-//                 <label>Nama: </label>
-//                 <div class="form-group">
-//                   <input
-//                     type="text"
-//                     placeholder="Nama Menu"
-//                     class={`form-control ${isFormValid ? "" : "is-invalid"}`}
-//                     value={menu.name}
-//                     onChange={(e) => {
-//                       handleInputChange("name", e.target.value);
-//                       setIsFormValid(true);
-//                     }}
-//                   />
-//                   {!isFormValid && (
-//                     <div className="invalid-feedback">
-//                       Nama menu harus diisi
-//                     </div>
-//                   )}
-//                 </div>
-//                 <label>Tipe Menu: </label>
-//                 <div class="form-group">
-//                   <select 
-//                     class="form-select" 
-//                     id="basicSelect"
-//                     value={menu.menu_type}
-//                     onChange={(e) => {
-//                       handleInputChange("menu_type", e.target.value);
-//                     }}
-//                   >
-//                     <option value="Makanan">Makanan</option>
-//                     <option value="Minuman">Minuman</option>
-//                     <option value="Additional Makanan">Additional Makanan</option>
-//                     <option value="Additional Minuman">Additional Minuman</option>
-//                   </select>
-//                 </div>
-//                 <label>Harga: </label>
-//                 <div class="form-group">
-//                   <input
-//                     type="number"
-//                     placeholder="Harga Menu"
-//                     className={`form-control ${
-//                       isFormValid ? "" : "is-invalid"
-//                     }`}
-//                     value={menu.price}
-//                     onChange={(e) => {
-//                       handleInputChange("price", e.target.value);
-//                       setIsFormValid(true);
-//                     }}
-//                   />
-//                   {!isFormValid && (
-//                     <div className="invalid-feedback">
-//                       Harga menu harus diisi
-//                     </div>
-//                   )}
-//                 </div>
-//                 <label>Is Active: </label>
-//                 <div class="form-group">
-//                   <select 
-//                     class="choices form-select"
-//                     value={menu.is_active}
-//                     onChange={(e) => {
-//                       handleInputChange("is_active", e.target.value);
-//                     }}
-//                   >
-//                     <option value="1">Aktif</option>
-//                     <option value="0">Tidak Aktif</option>
-//                   </select>
-//                 </div>
-//                 <div>
-//                   <br></br>
-//                   <h6 className="modal-title">Detail Menu Varian</h6>
-//                   {menu.menu_details.map((menuDetail, index) => (
-//                     <div key={index}>
-//                       <div className="modal-menu-detail-form-group">
-//                         <div>
-//                           <label>Varian:</label>
-//                           <input
-//                             type="text"
-//                             className={`form-control ${
-//                               isFormValid ? "" : "is-invalid"
-//                             }`}
-//                             value={menuDetail.varian}
-//                             onChange={(e) =>
-//                               handleMenuDetailChange(
-//                                 index,
-//                                 "varian",
-//                                 e.target.value
-//                               )
-//                             }
-//                           />
-//                           {!isFormValid && (
-//                             <div className="invalid-feedback">
-//                               Varian harus diisi.
-//                             </div>
-//                           )}
-//                         </div>
-//                         <div>
-//                           <label>Price:</label>
-//                           <input
-//                             type="number"
-//                             className={`form-control ${
-//                               isFormValid ? "" : "is-invalid"
-//                             }`}
-//                             value={menuDetail.price}
-//                             onChange={(e) =>
-//                               handleMenuDetailChange(
-//                                 index,
-//                                 "price",
-//                                 e.target.value
-//                               )
-//                             }
-//                           />
-//                           {!isFormValid && (
-//                             <div className="invalid-feedback">
-//                               Harga harus diisi.
-//                             </div>
-//                           )}
-//                         </div>
-//                         <div>
-//                           {index >= 0 && (
-//                             <button
-//                               className="button btn icon btn-danger"
-//                               onClick={() => handleRemoveMenuDetail(index)}
-//                             >
-//                               <i className="bi bi-x"></i>
-//                             </button>
-//                           )}
-//                         </div>
-//                       </div>
-//                     </div>
-//                   ))}
-//                   <div class="form-group">
-//                     <div
-//                       className="button btn btn-light rounded-pill"
-//                       onClick={handleAddMenuDetail}
-//                     >
-//                       <i class="bi bi-plus"></i> Tambah detail menu
-//                     </div>
-//                   </div>
-//                 </div>
-//                 {selectedMenuId && (
-//                   <div className="modal-footer delete-menu">
-//                     <button
-//                       type="button"
-//                       class="btn btn-danger rounded-pill"
-//                       data-bs-dismiss="modal"
-//                       onClick={() => setShowDeleteConfirmation(true)}
-//                     >
-//                       <span class="d-none d-sm-block">Hapus Menu !</span>
-//                     </button>
-//                   </div>
-//                 )}
-//               </div>
-//               <div class="modal-footer">
-//                 <button
-//                   type="button"
-//                   class="btn btn-light-secondary"
-//                   data-bs-dismiss="modal"
-//                   onClick={onClose}
-//                 >
-//                   <i class="bx bx-x d-block d-sm-none"></i>
-//                   <span class="d-none d-sm-block">Close</span>
-//                 </button>
-//                 <button
-//                   type="button"
-//                   class="btn btn-primary ml-1"
-//                   data-bs-dismiss="modal"
-//                   onClick={handleSave}
-//                 >
-//                   <i class="bx bx-check d-block d-sm-none"></i>
-//                   <span class="d-none d-sm-block">Submit</span>
-//                 </button>
-//               </div>
-//             </div>
-//           </div>
-//         </div>
-//       </div>
-//       <div className={show && `modal-backdrop fade show`}></div>
-//       <DeleteConfirmationModal
-//         showDeleteConfirmation={showDeleteConfirmation}
-//         onConfirmDelete={handleDeleteMenu} // Pass your delete logic function
-//         onCancelDelete={() => setShowDeleteConfirmation(false)} // Close the delete confirmation modal
-//       />
-//     </>
-//   );
-// };
+  return (
+    <>
+      <div
+        className={`modal fade text-left ${show ? "show" : ""}`}
+        id="inlineForm"
+        role="dialog"
+        aria-labelledby="myModalLabel33"
+        aria-modal={show ? "true" : undefined}
+        aria-hidden={show ? undefined : "true"}
+        style={show ? { display: "block" } : { display: "none" }}
+      >
+        <div
+          class="modal-dialog modal-dialog-centered modal-dialog-scrollable"
+          role="document"
+        >
+          <div class="modal-content">
+            <div class="modal-header">
+              <h4 class="modal-title" id="myModalLabel33">
+                {selectedUserId ? "Edit User" : "Add User"}
+              </h4>
+              <button
+                type="button"
+                class="close"
+                data-bs-dismiss="modal"
+                aria-label="Close"
+                onClick={onClose}
+              >
+                <i data-feather="x"></i>x
+              </button>
+            </div>
+            <div>
+              <div class="modal-body scrollable-content">
+                <label>Nama: </label>
+                <div class="form-group">
+                  <input
+                    type="text"
+                    placeholder="nama user"
+                    class={`form-control ${isFormValid ? "" : "is-invalid"}`}
+                    value={user.name}
+                    onChange={(e) => {
+                      handleInputChange("name", e.target.value);
+                      setIsFormValid(true);
+                    }}
+                  />
+                  {!isFormValid && (
+                    <div className="invalid-feedback">
+                      Nama user harus diisi
+                    </div>
+                  )}
+                </div>
+                <label>Username: </label>
+                <div class="form-group">
+                  <input
+                    type="text"
+                    placeholder="username"
+                    class={`form-control ${isFormValid ? "" : "is-invalid"}`}
+                    value={user.username}
+                    onChange={(e) => {
+                      handleInputChange("username", e.target.value);
+                      setIsFormValid(true);
+                    }}
+                  />
+                  {!isFormValid && (
+                    <div className="invalid-feedback">Username harus diisi</div>
+                  )}
+                </div>
+                {!selectedUserId && (
+                  <>
+                    <label>Password: </label>
+                    <div class="form-group">
+                      <input
+                        type="password"
+                        placeholder="password"
+                        class={`form-control ${
+                          isFormValid ? "" : "is-invalid"
+                        }`}
+                        value={user.password}
+                        onChange={(e) => {
+                          handleInputChange("password", e.target.value);
+                          setIsFormValid(true);
+                        }}
+                      />
+                      {!isFormValid && (
+                        <div className="invalid-feedback">
+                          Password harus diisi dan minimal 5 karakter!
+                        </div>
+                      )}
+                    </div>
+                  </>
+                )}
+                <label>Outlet:</label>
+                <div className="form-group">
+                  <select
+                    className="form-select"
+                    value={user.outlet_id}
+                    onChange={(e) =>
+                      handleInputChange("outlet_id", e.target.value)
+                    }
+                  >
+                    {outlets &&
+                      outlets.map((outlet) => (
+                        <option key={outlet.id} value={outlet.id}>
+                          {outlet.name}
+                        </option>
+                      ))}
+                  </select>
+                </div>
+                <label>Akses Menu:</label>
+                <div class="form-check">
+                  <input
+                    type="checkbox"
+                    class="form-check-input"
+                    id="menuCheckbox"
+                    checked={menuAccess.menu}
+                    onChange={() => handleCheckboxChange("menu")}
+                  />
+                  <label class="form-check-label" for="menuCheckbox">
+                    Menu
+                  </label>
+                </div>
+                <div class="form-check">
+                  <input
+                    type="checkbox"
+                    class="form-check-input"
+                    id="discountCheckbox"
+                    checked={menuAccess.discount}
+                    onChange={() => handleCheckboxChange("discount")}
+                  />
+                  <label class="form-check-label" for="discountCheckbox">
+                    Discount
+                  </label>
+                </div>
+              </div>
+              {selectedUserId && (
+                  <div className="modal-footer delete-menu">
+                    <button
+                      type="button"
+                      class="btn btn-danger rounded-pill"
+                      data-bs-dismiss="modal"
+                      onClick={() => setShowDeleteConfirmation(true)}
+                    >
+                      <span class="d-none d-sm-block">Hapus User !</span>
+                    </button>
+                  </div>
+                )}
+              <div class="modal-footer">
+                <button
+                  type="button"
+                  class="btn btn-light-secondary"
+                  data-bs-dismiss="modal"
+                  onClick={onClose}
+                >
+                  <i class="bx bx-x d-block d-sm-none"></i>
+                  <span class="d-none d-sm-block">Close</span>
+                </button>
+                <button
+                  type="button"
+                  class="btn btn-primary ml-1"
+                  data-bs-dismiss="modal"
+                  onClick={handleSave}
+                >
+                  <i class="bx bx-check d-block d-sm-none"></i>
+                  <span class="d-none d-sm-block">Submit</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div className={show && `modal-backdrop fade show`}></div>
+      <DeleteConfirmationModal
+        showDeleteConfirmation={showDeleteConfirmation}
+        onConfirmDelete={handleDeleteUser}
+        onCancelDelete={() => setShowDeleteConfirmation(false)}
+        purposeDialog={"user"}                      
+      />
+    </>
+  );
+};
