@@ -7,6 +7,7 @@ import Sidebar from "./components/common/Sidebar";
 import Menu from "./components/Menu";
 import User from "./components/User";
 import Login from "./components/Login";
+import Discount from "./components/Discount";
 import Swal from "sweetalert2";
 
 function App() {
@@ -62,7 +63,7 @@ function App() {
                   {userTokenData && userTokenData.menu_access.includes("1") && (
                     <Route
                       path="/"
-                      element={<User userTokenData={userTokenData} />}
+                      element={<User />}
                     />
                     // <Route
                     //   path="/"
@@ -73,6 +74,12 @@ function App() {
                     <Route
                       path="/"
                       element={<Menu userTokenData={userTokenData} />}
+                    />
+                  )}
+                  {userTokenData && userTokenData.menu_access.includes("3") && (
+                    <Route
+                      path="/discount"
+                      element={<Discount userTokenData={userTokenData} />}
                     />
                   )}
                 </Routes>

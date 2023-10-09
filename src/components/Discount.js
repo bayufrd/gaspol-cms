@@ -1,16 +1,15 @@
 import React, { useState, useEffect } from "react";
-import { UserModal } from "../components/UserModal";
 import axios from "axios";
+import { DiscountModal } from "./DiscountModal";
 const apiBaseUrl = process.env.REACT_APP_API_BASE_URL;
 
-const User = () => {
-  const [users, setUsers] = useState([]);
-  const [outlets, setOutlets] = useState([]);
+const Discount = ({ userTokenData }) => {
+  const [discounts, setDiscounts] = useState([]);
   const [showModal, setShowModal] = useState(false);
-  const [selectedUserId, setSelectedUserId] = useState(null);
+  const [selectedDiscountId, setSelectedDiscountId] = useState(null);
 
   useEffect(() => {
-    getUsers();
+    getDiscounts();
   }, []);
 
   useEffect(() => {
@@ -28,14 +27,17 @@ const User = () => {
     };
   }, [showModal]);
 
-  const getUsers = async () => {
-    const response = await axios.get(`${apiBaseUrl}/user-management`);
-    setUsers(response.data.data.users);
-    setOutlets(response.data.data.outlets);
+  const getDiscounts = async () => {
+    const response = await axios.get(`${apiBaseUrl}/v2/discount`, {
+      params: {
+        outlet_id: userTokenData.outlet_id,
+      },
+    });
+    setDiscounts(response.data.data);
   };
 
-  const openModal = (userId) => {
-    setSelectedUserId(userId);
+  const openModal = (discountId) => {
+    setSelectedDiscountId(discountId);
     setShowModal(true);
   };
 
@@ -43,14 +45,14 @@ const User = () => {
     setShowModal(false);
   };
 
-  const handleSaveUser = async (newUser) => {
-    setUsers([...users, newUser]);
+  const handleSaveDiscount = async (newDiscount) => {
+    setDiscounts([...discounts, newDiscount]);
     closeModal();
 
     try {
-      await getUsers();
+      await getDiscounts();
     } catch (error) {
-      console.error("Error fetching users:", error);
+      console.error("Error fetching discounts:", error);
     }
   };
 
@@ -60,7 +62,7 @@ const User = () => {
         <div className="page-title">
           <div className="row">
             <div className="col-12 col-md-6 order-md-1 order-last mb-3">
-              <h3>Management Users</h3>
+              <h3>Management Discounts</h3>
             </div>
           </div>
         </div>
@@ -81,24 +83,36 @@ const User = () => {
                 <thead>
                   <tr>
                     <th>No</th>
-                    <th>Name</th>
-                    <th>Username</th>
-                    <th>Outlet</th>
+                    <th>Code</th>
+                    <th>Diskon persen</th>
+                    <th>Diskon untuk keranjang</th>
+                    <th>Nilai discount</th>
+                    <th>Tanggal mulai diskon</th>
+                    <th>Tanggal akhir diskon</th>
+                    <th>Minimal Pembelian</th>
+                    <th>Maksimal diskon</th>
+                    <th>Data terakhir diperbarui</th>
                     <th>Actions</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {users.map((user, index) => (
-                    <tr key={user.id}>
+                  {discounts.map((discount, index) => (
+                    <tr key={discount.id}>
                       <td>{index + 1}</td>
-                      <td>{user.name}</td>
-                      <td>{user.username}</td>
-                      <td>{user.outlet_name}</td>
+                      <td>{discount.code}</td>
+                      <td>{discount.is_percent}</td>
+                      <td>{discount.is_discount_cart}</td>
+                      <td>{discount.value}</td>
+                      <td>{discount.start_date}</td>
+                      <td>{discount.end_date}</td>
+                      <td>{discount.min_purchase}</td>
+                      <td>{discount.max_discount}</td>
+                      <td>{discount.updated_at}</td>
                       <td>
                         <div className="action-buttons">
                           <div
                             className="buttons btn info btn-primary"
-                            onClick={() => openModal(user.id)}
+                            onClick={() => openModal(discount.id)}
                           >
                             <i className="bi bi-pencil"></i>
                           </div>
@@ -113,16 +127,16 @@ const User = () => {
         </section>
       </div>
 
-      <UserModal
+      <DiscountModal
         show={showModal}
         onClose={closeModal}
-        onSave={handleSaveUser}
-        selectedUserId={selectedUserId}
-        getUsers={getUsers}
-        outlets={outlets}
+        onSave={handleSaveDiscount}
+        selectedDiscountId={selectedDiscountId}
+        getDiscounts={getDiscounts}
+        userTokenData={userTokenData}
       />
     </div>
   );
 };
 
-export default User;
+export default Discount;
