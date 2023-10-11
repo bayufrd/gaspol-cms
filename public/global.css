@@ -22,7 +22,7 @@
 }
 
 .scrollable-content {
-    max-height: 300px; /* Adjust the maximum height as needed */
+    max-height: 580px; /* Adjust the maximum height as needed */
     overflow-y: auto;
 }
 
@@ -41,6 +41,10 @@
 }
 
 @media screen and (max-width: 1199px) {
+    .sidebar-wrapper .sidebar-header {
+        padding: 2rem 1rem 1rem;
+    }
+
     .sidebar-wrapper {
         position: fixed;
         height: auto;

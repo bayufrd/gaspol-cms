@@ -100,8 +100,8 @@ const Discount = ({ userTokenData }) => {
                     <tr key={discount.id}>
                       <td>{index + 1}</td>
                       <td>{discount.code}</td>
-                      <td>{discount.is_percent}</td>
-                      <td>{discount.is_discount_cart}</td>
+                      <td>{discount.is_percent == 1 ? "Ya" : "Tidak"}</td>
+                      <td>{discount.is_discount_cart == 1 ? "Ya" : "Tidak"}</td>
                       <td>{discount.value}</td>
                       <td>{discount.start_date}</td>
                       <td>{discount.end_date}</td>

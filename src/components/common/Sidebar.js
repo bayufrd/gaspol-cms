@@ -1,7 +1,7 @@
 import React from "react";
 import { Link } from "react-router-dom";
 
-const Sidebar = ({ isOpen, userTokenData }) => {
+const Sidebar = ({ onToggleSidebar, isOpen, userTokenData }) => {
   return (
     <div id="sidebar" className={`sidebar ${isOpen ? "active" : ""}`}>
       <div className="sidebar-wrapper active">
@@ -10,7 +10,7 @@ const Sidebar = ({ isOpen, userTokenData }) => {
             <div className="logo">
               <Link to="/">GASPOL CMS</Link>
             </div>
-            <div className="sidebar-toggler x">
+            <div className="sidebar-toggler" onClick={onToggleSidebar}>
               <div className="sidebar-hide d-xl-none d-block">
                 <i className="bi bi-x bi-middle"></i>
               </div>

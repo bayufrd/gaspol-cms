@@ -287,7 +287,7 @@ export const MenuModal = ({
                     </div>
                   )}
                 </div>
-                <label>Is Active: </label>
+                <label>Status Active: </label>
                 <div class="form-group">
                   <select 
                     class="choices form-select"

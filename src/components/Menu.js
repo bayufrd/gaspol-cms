@@ -87,7 +87,7 @@ const Menu = ({userTokenData}) => {
                     <th>Name</th>
                     <th>Menu Type</th>
                     <th>Price</th>
-                    <th>Is Active</th>
+                    <th>Status Active</th>
                     <th>Actions</th>
                   </tr>
                 </thead>

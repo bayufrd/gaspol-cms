@@ -29,17 +29,23 @@ function App() {
         setUserTokenData(extractUserTokenData(token));
       }
     } else {
+      setUserTokenData(null);
       if (isValidedToken.message) {
         Swal.fire({
           icon: "Info",
           title: isValidedToken.message,
-        });
+        }).then(() => {
+          if (window.location.pathname !== "/") {
+            window.location.href = "/";
+          }
+        })
       }
     }
 
     setTimeout(() => {
       setIsLoading(false);
     }, 1000);
+
   }, [userTokenData]);
 
   return (
@@ -51,7 +57,11 @@ function App() {
           </div>
         ) : isLoggedIn ? (
           <div>
-            <Sidebar isOpen={isSidebarOpen} userTokenData={userTokenData}/>
+            <Sidebar
+              isOpen={isSidebarOpen}
+              userTokenData={userTokenData}
+              onToggleSidebar={toggleSidebar}
+            />
             <div id="main" className="layout-navbar">
               <Header
                 onToggleSidebar={toggleSidebar}
@@ -61,10 +71,7 @@ function App() {
               <div id="main-content">
                 <Routes>
                   {userTokenData && userTokenData.menu_access.includes("1") && (
-                    <Route
-                      path="/"
-                      element={<User />}
-                    />
+                    <Route path="/" element={<User />} />
                     // <Route
                     //   path="/"
                     //   element={<Outlet userTokenData={userTokenData} />}

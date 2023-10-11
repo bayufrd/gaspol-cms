@@ -1,6 +1,8 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useRef } from "react";
 import Swal from "sweetalert2";
 import axios from "axios";
+import flatpickr from "flatpickr";
+import "flatpickr/dist/flatpickr.min.css";
 import { DeleteConfirmationModal } from "./DeleteConfirmationModal";
 
 export const DiscountModal = ({
@@ -13,22 +15,29 @@ export const DiscountModal = ({
 }) => {
   const apiBaseUrl = process.env.REACT_APP_API_BASE_URL;
 
-  const initialDiscountState = useMemo(() => ({
-    code: "",
-    is_percent: "",
-    is_discount_cart: "",
-    value: "",
-    start_date: "",
-    end_date: "",
-    min_purchase: "",
-    max_discount: "",
-    outlet_id: userTokenData.outlet_id,
-  }), [userTokenData]);
+  const initialDiscountState = useMemo(
+    () => ({
+      code: "",
+      is_percent: 1,
+      is_discount_cart: 1,
+      value: "",
+      start_date: null,
+      end_date: null,
+      min_purchase: "",
+      max_discount: "",
+      outlet_id: userTokenData.outlet_id,
+    }),
+    [userTokenData]
+  );
 
   const [discount, setDiscount] = useState(initialDiscountState);
   const [isFormValid, setIsFormValid] = useState(true);
   const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
-  
+  const startDateInputRef = useRef(null);
+  const endDateInputRef = useRef(null);
+  const [startDate, setStartDate] = useState(discount.start_date || null);
+  const [endDate, setEndDate] = useState(discount.end_date || null);
+
   useEffect(() => {
     if (show && selectedDiscountId) {
       const fetchData = async () => {
@@ -37,7 +46,12 @@ export const DiscountModal = ({
             `${apiBaseUrl}/discount/${selectedDiscountId}`
           );
           const discountData = response.data.data;
-          setDiscount(discountData);
+          setDiscount({
+            ...discountData,
+            outlet_id: userTokenData.outlet_id,
+          });
+          setStartDate(discountData.start_date);
+          setEndDate(discountData.end_date);
         } catch (error) {
           console.error("Error fetching discount:", error);
         }
@@ -47,6 +61,42 @@ export const DiscountModal = ({
       setDiscount(initialDiscountState);
     }
   }, [show, selectedDiscountId, apiBaseUrl, initialDiscountState]);
+
+  useEffect(() => {
+    let startDatePicker, endDatePicker;
+    if (startDateInputRef.current) {
+      startDatePicker = flatpickr(startDateInputRef.current, {
+        enableTime: true,
+        dateFormat: "Y-m-d H:i",
+        defaultDate: discount.start_date ? new Date(discount.start_date) : null,
+        onChange: (selectedDates, dateStr) => {
+          setStartDate(dateStr);
+          handleInputChange("start_date", dateStr);
+        },
+      });
+    }
+
+    if (endDateInputRef.current) {
+      endDatePicker = flatpickr(endDateInputRef.current, {
+        enableTime: true,
+        dateFormat: "Y-m-d H:i",
+        defaultDate: discount.end_date ? new Date(discount.end_date) : null,
+        onChange: (selectedDates, dateStr) => {
+          setEndDate(dateStr);
+          handleInputChange("end_date", dateStr);
+        },
+      });
+    }
+
+    return () => {
+      if (startDatePicker) {
+        startDatePicker.destroy();
+      }
+      if (endDatePicker) {
+        endDatePicker.destroy();
+      }
+    };
+  }, [discount]);
 
   const handleInputChange = (field, value) => {
     setDiscount((prevDiscount) => ({
@@ -58,9 +108,15 @@ export const DiscountModal = ({
   const handleSave = async (e) => {
     e.preventDefault();
 
-    const isDiscountCodeValid = discount.code.trim() !== "";
-    
-    if (!isDiscountCodeValid) {
+    const isDiscountCodeValid = discount.code === "";
+    const isDiscountValueValid = discount.value === "";
+
+    if (
+      isDiscountCodeValid ||
+      isDiscountValueValid ||
+      startDate == null ||
+      endDate == null
+    ) {
       setIsFormValid(false);
       return;
     }
@@ -96,23 +152,21 @@ export const DiscountModal = ({
     }
   };
 
-    const handleDeleteDiscount = async () => {
-      try {
-        await axios.delete(
-          `${apiBaseUrl}/discount/${selectedDiscountId}`
-        );
-        Swal.fire({
-          icon: "success",
-          title: "Success!",
-          text: `Diskon berhasil diperbarui: ${discount.code}`,
-        });
-        setShowDeleteConfirmation(false);
-        await getDiscounts();
-        onClose();
-      } catch (error) {
-        console.error("Error deleting discount:", error);
-      }
-    };
+  const handleDeleteDiscount = async () => {
+    try {
+      await axios.delete(`${apiBaseUrl}/discount/${selectedDiscountId}`);
+      Swal.fire({
+        icon: "success",
+        title: "Success!",
+        text: `Diskon berhasil diperbarui: ${discount.code}`,
+      });
+      setShowDeleteConfirmation(false);
+      await getDiscounts();
+      onClose();
+    } catch (error) {
+      console.error("Error deleting discount:", error);
+    }
+  };
 
   return (
     <>
@@ -129,7 +183,7 @@ export const DiscountModal = ({
           class="modal-dialog modal-dialog-centered modal-dialog-scrollable"
           role="document"
         >
-          <div class="modal-content">
+          <div class="modal-content scrollable-content">
             <div class="modal-header">
               <h4 class="modal-title" id="myModalLabel33">
                 {selectedDiscountId ? "Edit Discount" : "Add Discount"}
@@ -145,96 +199,147 @@ export const DiscountModal = ({
               </button>
             </div>
             <div>
-              {/* <div class="modal-body scrollable-content">
-                <label>Nama: </label>
+              <div class="modal-body scrollable-content">
+                <label>Code: </label>
                 <div class="form-group">
                   <input
                     type="text"
-                    placeholder="nama user"
+                    placeholder="Code diskon"
                     class={`form-control ${isFormValid ? "" : "is-invalid"}`}
-                    value={user.name}
+                    value={discount.code}
                     onChange={(e) => {
-                      handleInputChange("name", e.target.value);
+                      handleInputChange("code", e.target.value);
                       setIsFormValid(true);
                     }}
                   />
                   {!isFormValid && (
                     <div className="invalid-feedback">
-                      Nama user harus diisi
+                      Code diskon harus diisi
                     </div>
                   )}
                 </div>
-                <label>Username: </label>
-                <div class="form-group">
+                <label>Tanggal mulai diskon: </label>
+                <div className="form-group">
                   <input
                     type="text"
-                    placeholder="username"
-                    class={`form-control ${isFormValid ? "" : "is-invalid"}`}
-                    value={user.username}
+                    id="startDateInput"
+                    ref={startDateInputRef}
+                    className={`form-control ${
+                      !isFormValid && !discount.start_date ? "is-invalid" : ""
+                    }`}
+                    placeholder="Tanggal mulai diskon"
+                    value={startDate || ""}
+                  />
+                  {!isFormValid && !discount.start_date && (
+                    <div className="invalid-feedback">
+                      Tanggal mulai diskon harus diisi
+                    </div>
+                  )}
+                </div>
+                <label>Tanggal akhir diskon: </label>
+                <div className="form-group">
+                  <input
+                    type="text"
+                    id="startDateInput"
+                    ref={endDateInputRef}
+                    className={`form-control ${
+                      !isFormValid && !discount.end_date ? "is-invalid" : ""
+                    }`}
+                    placeholder="Tanggal akhir diskon"
+                    value={endDate || ""}
+                  />
+                  {!isFormValid && !discount.end_date && (
+                    <div className="invalid-feedback">
+                      Tanggal akhir diskon harus diisi
+                    </div>
+                  )}
+                </div>
+                <label>Diskon Persen: </label>
+                <div class="form-group">
+                  <select
+                    class="choices form-select"
+                    value={discount.is_percent}
                     onChange={(e) => {
-                      handleInputChange("username", e.target.value);
+                      handleInputChange("is_percent", e.target.value);
+                    }}
+                  >
+                    <option value="1">Ya</option>
+                    <option value="0">Tidak</option>
+                  </select>
+                </div>
+                <label>Diskon untuk keranjang: </label>
+                <div class="form-group">
+                  <select
+                    class="choices form-select"
+                    value={discount.is_discount_cart}
+                    onChange={(e) => {
+                      handleInputChange("is_discount_cart", e.target.value);
+                    }}
+                  >
+                    <option value="1">Ya</option>
+                    <option value="0">Tidak</option>
+                  </select>
+                </div>
+                <label>Nilai discount: </label>
+                <div class="form-group">
+                  <input
+                    type="number"
+                    placeholder="Nilai discount"
+                    class={`form-control ${isFormValid ? "" : "is-invalid"}`}
+                    value={discount.value}
+                    onChange={(e) => {
+                      handleInputChange("value", e.target.value);
+                      setIsFormValid(true);
+                    }}
+                    max={discount.is_percent !== "0" ? 100 : undefined}
+                  />
+                  {!isFormValid && (
+                    <div className="invalid-feedback">
+                      Nilai diskon harus diisi
+                    </div>
+                  )}
+                </div>
+                <label>Minimal pembelian: </label>
+                <div class="form-group">
+                  <input
+                    type="number"
+                    placeholder="Minimal pembelian"
+                    class="form-control"
+                    value={discount.min_purchase}
+                    onChange={(e) => {
+                      handleInputChange("min_purchase", e.target.value);
                       setIsFormValid(true);
                     }}
                   />
-                  {!isFormValid && (
-                    <div className="invalid-feedback">Username harus diisi</div>
-                  )}
                 </div>
-                {!selectedDiscountId && (
-                  <>
-                    <label>Password: </label>
-                    <div class="form-group">
-                      <input
-                        type="password"
-                        placeholder="password"
-                        class={`form-control ${
-                          isFormValid ? "" : "is-invalid"
-                        }`}
-                        value={user.password}
-                        onChange={(e) => {
-                          handleInputChange("password", e.target.value);
-                          setIsFormValid(true);
-                        }}
-                      />
-                      {!isFormValid && (
-                        <div className="invalid-feedback">
-                          Password harus diisi dan minimal 5 karakter!
-                        </div>
-                      )}
-                    </div>
-                  </>
-                )}
-                <label>Outlet:</label>
-                <div className="form-group">
-                  <select
-                    className="form-select"
-                    value={user.outlet_id}
-                    onChange={(e) =>
-                      handleInputChange("outlet_id", e.target.value)
-                    }
-                  >
-                    {outlets &&
-                      outlets.map((outlet) => (
-                        <option key={outlet.id} value={outlet.id}>
-                          {outlet.name}
-                        </option>
-                      ))}
-                  </select>
+                <label>Maksimal diskon: </label>
+                <div class="form-group">
+                  <input
+                    type="number"
+                    placeholder="Maksimal diskon"
+                    class="form-control"
+                    value={discount.max_discount}
+                    onChange={(e) => {
+                      handleInputChange("max_discount", e.target.value);
+                      setIsFormValid(true);
+                    }}
+                    disabled={discount.is_percent === "0"}
+                  />
                 </div>
-              </div> */}
-              {selectedDiscountId && (
-                  <div className="modal-footer delete-menu">
-                    <button
-                      type="button"
-                      class="btn btn-danger rounded-pill"
-                      data-bs-dismiss="modal"
-                      onClick={() => setShowDeleteConfirmation(true)}
-                    >
-                      <span class="d-none d-sm-block">Hapus Discount !</span>
-                    </button>
-                  </div>
-                )}
+              </div>
               <div class="modal-footer">
+              {selectedDiscountId && (
+                <div className="delete-modal">
+                  <button
+                    type="button"
+                    class="btn btn-danger rounded-pill"
+                    data-bs-dismiss="modal"
+                    onClick={() => setShowDeleteConfirmation(true)}
+                  >
+                    <span class="d-none d-sm-block">Hapus Dikson!</span>
+                  </button>
+                </div>
+              )}
                 <button
                   type="button"
                   class="btn btn-light-secondary"
@@ -263,7 +368,7 @@ export const DiscountModal = ({
         showDeleteConfirmation={showDeleteConfirmation}
         onConfirmDelete={handleDeleteDiscount}
         onCancelDelete={() => setShowDeleteConfirmation(false)}
-        purposeDialog={"discount"}                      
+        purposeDialog={"discount"}
       />
     </>
   );
