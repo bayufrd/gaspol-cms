@@ -8,6 +8,7 @@ import Menu from "./components/Menu";
 import User from "./components/User";
 import Login from "./components/Login";
 import Discount from "./components/Discount";
+import Profile from "./components/Profile";
 import Swal from "sweetalert2";
 
 function App() {
@@ -38,14 +39,13 @@ function App() {
           if (window.location.pathname !== "/") {
             window.location.href = "/";
           }
-        })
+        });
       }
     }
 
     setTimeout(() => {
       setIsLoading(false);
     }, 1000);
-
   }, [userTokenData]);
 
   return (
@@ -89,6 +89,10 @@ function App() {
                       element={<Discount userTokenData={userTokenData} />}
                     />
                   )}
+                  <Route
+                    path="/profile"
+                    element={<Profile userTokenData={userTokenData} />}
+                  />
                 </Routes>
                 <Footer />
               </div>

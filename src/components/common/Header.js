@@ -1,14 +1,17 @@
 import React from "react";
+import { Link, useNavigate } from "react-router-dom";
 
 const Header = ({ onToggleSidebar, userTokenData, setIsLoggedIn }) => {
+  const navigate = useNavigate();
   const handleLogout = () => {
     try {
-      localStorage.removeItem('token');
+      localStorage.removeItem("token");
       setIsLoggedIn(false);
+      navigate("/");
     } catch (error) {
-      console.error('Error during logout:', error);
+      console.error("Error during logout:", error);
     }
-  }
+  };
 
   return (
     <header>
@@ -32,18 +35,21 @@ const Header = ({ onToggleSidebar, userTokenData, setIsLoggedIn }) => {
             <span className="navbar-toggler-icon"></span>
           </button>
           <div className="collapse navbar-collapse" id="navbarSupportedContent">
-            <ul className="navbar-nav ms-auto mb-lg-0">
-            </ul>
+            <ul className="navbar-nav ms-auto mb-lg-0"></ul>
             <div className="dropdown">
               <div data-bs-toggle="dropdown" aria-expanded="false">
                 <div className="user-menu d-flex">
                   <div className="user-name text-end me-3">
-                  {userTokenData && (
-                    <div className="user-name text-end me-3">
-                      <h6 className="mb-0 text-gray-600">{userTokenData.name}</h6>
-                      <p className="mb-0 text-sm text-gray-600">{userTokenData.role}</p>
-                    </div>
-                  )}
+                    {userTokenData && (
+                      <div className="user-name text-end me-3">
+                        <h6 className="mb-0 text-gray-600">
+                          {userTokenData.name}
+                        </h6>
+                        <p className="mb-0 text-sm text-gray-600">
+                          {userTokenData.role}
+                        </p>
+                      </div>
+                    )}
                   </div>
                   <div className="user-img d-flex align-items-center">
                     <div className="avatar avatar-md">
@@ -57,9 +63,11 @@ const Header = ({ onToggleSidebar, userTokenData, setIsLoggedIn }) => {
                 aria-labelledby="dropdownMenuButton"
                 style={{ minWidth: "11rem" }}
               >
-                {/* <li>
-                  <h6 className="dropdown-header">Hello, John!</h6>
-                </li> */}
+                <li>
+                  <Link class="dropdown-item" to="/profile">
+                    <i class="icon-mid bi bi-person me-2"></i> My Profile
+                  </Link>
+                </li>
                 <li>
                   <button class="dropdown-item" onClick={handleLogout}>
                     <i class="icon-mid bi bi-box-arrow-left me-2"></i>
