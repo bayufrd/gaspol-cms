@@ -9,6 +9,7 @@ import User from "./components/User";
 import Login from "./components/Login";
 import Discount from "./components/Discount";
 import Profile from "./components/Profile";
+import Report from "./components/Report";
 import Swal from "sweetalert2";
 
 function App() {
@@ -87,6 +88,12 @@ function App() {
                     <Route
                       path="/discount"
                       element={<Discount userTokenData={userTokenData} />}
+                    />
+                  )}
+                  {userTokenData && userTokenData.menu_access.includes("4") && (
+                    <Route
+                      path="/report"
+                      element={<Report userTokenData={userTokenData} />}
                     />
                   )}
                   <Route

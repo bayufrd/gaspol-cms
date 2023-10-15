@@ -59,8 +59,10 @@ export const DiscountModal = ({
       fetchData();
     } else {
       setDiscount(initialDiscountState);
+      setStartDate(null);
+      setEndDate(null);
     }
-  }, [show, selectedDiscountId, apiBaseUrl, initialDiscountState]);
+  }, [show, selectedDiscountId, apiBaseUrl, initialDiscountState, userTokenData]);
 
   useEffect(() => {
     let startDatePicker, endDatePicker;

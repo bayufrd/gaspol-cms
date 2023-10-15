@@ -13,23 +13,27 @@ export const UserModal = ({
 }) => {
   const apiBaseUrl = process.env.REACT_APP_API_BASE_URL;
 
-  const initialUserState = useMemo(() => ({
-    name: "",
-    username: "",
-    password: "",
-    outlet_id: 1,
-    menu_access: "",
-  }), []);
+  const initialUserState = useMemo(
+    () => ({
+      name: "",
+      username: "",
+      password: "",
+      outlet_id: 1,
+      menu_access: "",
+    }),
+    []
+  );
 
   const [user, setUser] = useState(initialUserState);
   const [isFormValid, setIsFormValid] = useState(true);
   const [menuAccess, setMenuAccess] = useState({
     menu: false,
     discount: false,
+    report: false,
   });
 
   const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
-  
+
   useEffect(() => {
     if (show && selectedUserId) {
       const fetchData = async () => {
@@ -43,6 +47,7 @@ export const UserModal = ({
           setMenuAccess({
             menu: menuAccessArray.includes("2"),
             discount: menuAccessArray.includes("3"),
+            report: menuAccessArray.includes("4"),
           });
         } catch (error) {
           console.error("Error fetching user:", error);
@@ -54,6 +59,7 @@ export const UserModal = ({
       setMenuAccess({
         menu: false,
         discount: false,
+        report: false,
       });
     }
   }, [show, selectedUserId, apiBaseUrl, initialUserState]);
@@ -78,10 +84,10 @@ export const UserModal = ({
     const isUserNameValid = user.name.trim() !== "";
     const isUserUsernameValid = user.username.trim() !== "";
     let isPasswordValid = true;
-    if(user.password) {
+    if (user.password) {
       isPasswordValid = user.password.trim().length >= 5;
     }
-    
+
     if (!isUserNameValid || !isUserUsernameValid || !isPasswordValid) {
       setIsFormValid(false);
       return;
@@ -90,6 +96,7 @@ export const UserModal = ({
     const selectedMenuAccess = [];
     if (menuAccess.menu) selectedMenuAccess.push("2");
     if (menuAccess.discount) selectedMenuAccess.push("3");
+    if (menuAccess.report) selectedMenuAccess.push("4");
     user.menu_access = selectedMenuAccess.join(",");
 
     try {
@@ -124,23 +131,21 @@ export const UserModal = ({
     }
   };
 
-    const handleDeleteUser = async () => {
-      try {
-        await axios.delete(
-          `${apiBaseUrl}/user-management/${selectedUserId}`
-        );
-        Swal.fire({
-          icon: "success",
-          title: "Success!",
-          text: `User berhasil dihapus: ${user.name}`,
-        });
-        setShowDeleteConfirmation(false);
-        await getUsers();
-        onClose();
-      } catch (error) {
-        console.error("Error deleting user:", error);
-      }
-    };
+  const handleDeleteUser = async () => {
+    try {
+      await axios.delete(`${apiBaseUrl}/user-management/${selectedUserId}`);
+      Swal.fire({
+        icon: "success",
+        title: "Success!",
+        text: `User berhasil dihapus: ${user.name}`,
+      });
+      setShowDeleteConfirmation(false);
+      await getUsers();
+      onClose();
+    } catch (error) {
+      console.error("Error deleting user:", error);
+    }
+  };
 
   return (
     <>
@@ -274,19 +279,31 @@ export const UserModal = ({
                     Discount
                   </label>
                 </div>
+                <div class="form-check">
+                  <input
+                    type="checkbox"
+                    class="form-check-input"
+                    id="discountCheckbox"
+                    checked={menuAccess.report}
+                    onChange={() => handleCheckboxChange("report")}
+                  />
+                  <label class="form-check-label" for="discountCheckbox">
+                    Report
+                  </label>
+                </div>
               </div>
               {selectedUserId && (
-                  <div className="modal-footer delete-menu">
-                    <button
-                      type="button"
-                      class="btn btn-danger rounded-pill"
-                      data-bs-dismiss="modal"
-                      onClick={() => setShowDeleteConfirmation(true)}
-                    >
-                      <span class="d-none d-sm-block">Hapus User !</span>
-                    </button>
-                  </div>
-                )}
+                <div className="modal-footer delete-menu">
+                  <button
+                    type="button"
+                    class="btn btn-danger rounded-pill"
+                    data-bs-dismiss="modal"
+                    onClick={() => setShowDeleteConfirmation(true)}
+                  >
+                    <span class="d-none d-sm-block">Hapus User !</span>
+                  </button>
+                </div>
+              )}
               <div class="modal-footer">
                 <button
                   type="button"
@@ -316,7 +333,7 @@ export const UserModal = ({
         showDeleteConfirmation={showDeleteConfirmation}
         onConfirmDelete={handleDeleteUser}
         onCancelDelete={() => setShowDeleteConfirmation(false)}
-        purposeDialog={"user"}                      
+        purposeDialog={"user"}
       />
     </>
   );

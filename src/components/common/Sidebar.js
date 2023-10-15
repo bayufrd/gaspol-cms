@@ -36,7 +36,7 @@ const Sidebar = ({ onToggleSidebar, isOpen, userTokenData }) => {
             {userTokenData.menu_access.includes("2") && (
               <li class="sidebar-item">
                 <Link to="/" class="sidebar-link">
-                  <i className="bi bi-grid-fill"></i>
+                  <i className="bi bi-cup-straw"></i>
                   <span>Management Menus</span>
                 </Link>
               </li>
@@ -46,6 +46,14 @@ const Sidebar = ({ onToggleSidebar, isOpen, userTokenData }) => {
                 <Link to="/discount" class="sidebar-link">
                   <i className="bi bi-tags-fill"></i>
                   <span>Management Discounts</span>
+                </Link>
+              </li>
+            )}
+            {userTokenData.menu_access.includes("4") && (
+              <li class="sidebar-item">
+                <Link to="/report" class="sidebar-link">
+                  <i className="bi bi-book"></i>
+                  <span>Laporan</span>
                 </Link>
               </li>
             )}
