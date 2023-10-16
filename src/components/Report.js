@@ -99,10 +99,10 @@ const Report = ({ userTokenData }) => {
     const outlet_id = userTokenData.outlet_id;
     const start_date = startDate;
     const end_date = endDate;
-  
+
     const is_success = isSuccess;
     const is_pending = isPending;
-  
+
     try {
       const response = await axios.get(`${apiBaseUrl}/report`, {
         params: {
@@ -113,7 +113,7 @@ const Report = ({ userTokenData }) => {
           is_pending,
         },
       });
-      
+
       setReports(response.data.data);
     } catch (error) {
       console.error("Gagal mengambil data laporan:", error);
@@ -135,7 +135,10 @@ const Report = ({ userTokenData }) => {
             <div class="card-header">
               <div className="float-lg-start">
                 <div className="card-header-report">
-                  <div className="button btn btn-primary rounded-pill" onClick={handleSearch}>
+                  <div
+                    className="button btn btn-primary rounded-pill"
+                    onClick={handleSearch}
+                  >
                     <i class="bi bi-search"></i> Cari
                   </div>
                   <div>
@@ -206,17 +209,17 @@ const Report = ({ userTokenData }) => {
                   {reports.map((report, index) => (
                     <tr key={report.id}>
                       <td>{index + 1}</td>
-                      <td>{report.receipt_number}</td>
-                      <td>{report.customer_name}</td>
-                      <td>{report.customer_seat}</td>
-                      <td>{report.customer_cash}</td>
-                      <td>{report.customer_change}</td>
-                      <td>{report.payment_type}</td>
-                      <td>{report.delivery_type}</td>
-                      <td>{report.delivery_note}</td>
-                      <td>{report.invoice_number}</td>
-                      <td>{report.invoice_due_date}</td>
-                      <td>{report.updated_at}</td>
+                      <td>{report.receipt_number || "-"}</td>
+                      <td>{report.customer_name || "-"}</td>
+                      <td>{report.customer_seat || "-"}</td>
+                      <td>{report.customer_cash || "-"}</td>
+                      <td>{report.customer_change || "-"}</td>
+                      <td>{report.payment_type || "-"}</td>
+                      <td>{report.delivery_type || "-"}</td>
+                      <td>{report.delivery_note || "-"}</td>
+                      <td>{report.invoice_number || "-"}</td>
+                      <td>{report.invoice_due_date || "-"}</td>
+                      <td>{report.updated_at || "-"}</td>
                       <td>
                         <div className="action-buttons">
                           <div
@@ -236,7 +239,7 @@ const Report = ({ userTokenData }) => {
         </section>
       </div>
 
-      <ReportDetailModal 
+      <ReportDetailModal
         show={showModal}
         onClose={closeModal}
         selectedTransactionId={selectedTransactionId}

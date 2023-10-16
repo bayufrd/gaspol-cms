@@ -99,15 +99,22 @@
     max-width: 100%;
 }
 
+.report-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
 .section-report {
     display: flex;
+    width: 50%;
     justify-content: space-between;
     margin-bottom: 10px;
 }
 
 .section-report-title {
     font-weight: bold;
-    width: 45%; /* Lebar judul */
+    width: 50%;
 }
 
 .section-report-data {

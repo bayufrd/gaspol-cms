@@ -21,8 +21,9 @@ export const ReportDetailModal = ({ show, onClose, selectedTransactionId }) => {
     fetchData();
   }, [show, selectedTransactionId, apiBaseUrl]);
 
-  const showRefundDetails = transaction?.refund_details && transaction.refund_details.length > 0;
-  const showRefund = transaction?.total_refund !== 0;
+  const showRefundDetails =
+    transaction?.refund_details && transaction.refund_details.length > 0;
+  const showRefund = transaction.total_refund !== 0 && transaction.total_refund !== undefined;
 
   return (
     <>
@@ -55,127 +56,159 @@ export const ReportDetailModal = ({ show, onClose, selectedTransactionId }) => {
               </button>
             </div>
             <div>
-              {/* <div class="modal-body scrollable-content">
-              <h4>Transaction</h4>
-                  <div className="section-report">
-                    <div className="section-report-title">Receipt Number:</div>
-                    <div className=".section-report-data">{transaction.receipt_number}</div>
-                  </div>
-                  <div className="section-report">
-                    <div className="section-report-title">Customer Name:</div>
-                    <div className=".section-report-data">{transaction.customer_name}</div>
-                  </div>
-                  <div className="section-report">
-                    <div className="section-report-title">Customer Seat:</div>
-                    <div className=".section-report-data">{transaction.customer_seat}</div>
-                  </div>
-                  <div className="section-report">
-                    <div className="section-report-title">Payment Type:</div>
-                    <div className=".section-report-data">{transaction.payment_type}</div>
-                  </div>
-                  <div className="section-report">
-                    <div className="section-report-title">Delivery Type:</div>
-                    <div className=".section-report-data">{transaction.delivery_type || "-"}</div>
-                  </div>
-                  <div className="section-report">
-                    <div className="section-report-title">Delivery Note:</div>
-                    <div className=".section-report-data">{transaction.delivery_note || "-"}</div>
-                  </div>
-
-                  <h4>Cart</h4>
-                  <table className="table table-striped">
-                    <thead>
-                      <tr>
-                        <th>Menu Name</th>
-                        <th>Menu Type</th>
-                        <th>Menu Varian</th>
-                        <th>Menu Price</th>
-                        <th>Serving Type</th>
-                        <th>Discount Code</th>
-                        <th>Discount Value</th>
-                        <th>Discount Type</th>
-                        <th>Qty</th>
-                        <th>Note Item</th>
-                        <th>Total Price</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {transaction.cart_details.map((item, index) => (
-                        <tr key={index}>
-                          <td>{item.menu_name}</td>
-                          <td>{item.menu_type}</td>
-                          <td>{item.varian || "-"}</td>
-                          <td>{item.menu_price}</td>
-                          <td>{item.serving_type_name}</td>
-                          <td>{item.discount_code || "-"}</td>
-                          <td>{item.discounts_value || "-"}</td>
-                          <td>{item.discounted_price || "-"}</td>
-                          <td>{item.qty}</td>
-                          <td>{item.note_item || "-"}</td>
-                          <td>{item.total_price}</td>
+              <div class="modal-body scrollable-content">
+                {transaction && (
+                  <>
+                    <h4 style={{textAlign: "center", marginBottom: "3vh"}}>Transaction</h4>
+                    <div className="report-container">
+                      <div className="section-report">
+                        <div className="section-report-title">
+                          Receipt Number:
+                        </div>
+                        <div className="section-report-data">
+                          {transaction.receipt_number}
+                        </div>
+                      </div>
+                      <div className="section-report">
+                        <div className="section-report-title">Customer Name:</div>
+                        <div className="section-report-data">
+                          {transaction.customer_name}
+                        </div>
+                      </div>
+                      <div className="section-report">
+                        <div className="section-report-title">Customer Seat:</div>
+                        <div className="section-report-data">
+                          {transaction.customer_seat}
+                        </div>
+                      </div>
+                      <div className="section-report">
+                        <div className="section-report-title">Payment Type:</div>
+                        <div className="section-report-data">
+                          {transaction.payment_type}
+                        </div>
+                      </div>
+                      <div className="section-report">
+                        <div className="section-report-title">Delivery Type:</div>
+                        <div className="section-report-data">
+                          {transaction.delivery_type || "-"}
+                        </div>
+                      </div>
+                      <div className="section-report">
+                        <div className="section-report-title">Delivery Note:</div>
+                        <div className="section-report-data">
+                          {transaction.delivery_note || "-"}
+                        </div>
+                      </div>
+                    </div>
+                    <hr></hr>
+                    <h4 style={{textAlign: "center", marginBottom: "3vh"}}>Cart</h4>
+                    <table className="table table-striped">
+                      <thead>
+                        <tr>
+                          <th>Menu Name</th>
+                          <th>Menu Type</th>
+                          <th>Menu Varian</th>
+                          <th>Menu Price</th>
+                          <th>Serving Type</th>
+                          <th>Discount Code</th>
+                          <th>Discount Value</th>
+                          <th>Discount Type</th>
+                          <th>Qty</th>
+                          <th>Note Item</th>
+                          <th>Total Price</th>
                         </tr>
-                      ))}
-                    </tbody>
-                  </table>
-
-                  {showRefund && (
-                    <>
-                      <h4>Refund</h4>
-                      <div className="section-report">
-                        <div className="section-report-title">Is Refund All:</div>
-                        <div className=".section-report-data">{transaction.is_refund_all ? "Yes" : "No"}</div>
-                      </div>
-                      <div className="section-report">
-                        <div className="section-report-title">Refund Reason:</div>
-                        <div className=".section-report-data">{transaction.refund_reason || "-"}</div>
-                      </div>
-                      <div className="section-report">
-                        <div className="section-report-title">Total Refund:</div>
-                        <div className=".section-report-data">{transaction.total_refund}</div>
-                      </div>
-                    </>
-                  )}
-
-                  {showRefundDetails && (
-                    <>
-                      <h4>Refund Detail</h4>
-                      <table className="table table-striped">
-                        <thead>
-                          <tr>
-                            <th>Menu Name</th>
-                            <th>Menu Type</th>
-                            <th>Menu Varian</th>
-                            <th>Menu Price</th>
-                            <th>Serving Type</th>
-                            <th>Discount Code</th>
-                            <th>Discount Value</th>
-                            <th>Discount Type</th>
-                            <th>Qty Refund Item</th>
-                            <th>Refund Reason Item</th>
-                            <th>Total Refund Price</th>
+                      </thead>
+                      <tbody>
+                        {transaction.cart_details.map((item, index) => (
+                          <tr key={index}>
+                            <td>{item.menu_name}</td>
+                            <td>{item.menu_type}</td>
+                            <td>{item.varian || "-"}</td>
+                            <td>{item.price}</td>
+                            <td>{item.serving_type_name}</td>
+                            <td>{item.discount_code || "-"}</td>
+                            <td>{item.discounts_value || "-"}</td>
+                            <td>{item.discounted_price || "-"}</td>
+                            <td>{item.qty}</td>
+                            <td>{item.note_item || "-"}</td>
+                            <td>{item.total_price}</td>
                           </tr>
-                        </thead>
-                        <tbody>
-                          {transaction.refund_details.map((item, index) => (
-                            <tr key={index}>
-                              <td>{item.menu_name}</td>
-                              <td>{item.menu_type}</td>
-                              <td>{item.varian || "-"}</td>
-                              <td>{item.menu_price}</td>
-                              <td>{item.serving_type_name}</td>
-                              <td>{item.discount_code || "-"}</td>
-                              <td>{item.discounts_value || "-"}</td>
-                              <td>{item.discounted_price || "-"}</td>
-                              <td>{item.qty_refund_item}</td>
-                              <td>{item.refund_reason_item || "-"}</td>
-                              <td>{item.total_refund_price}</td>
+                        ))}
+                      </tbody>
+                    </table>
+                    {showRefund && (
+                      <>
+                      <hr></hr>
+                        <h4 style={{textAlign: "center", marginBottom: "3vh"}}>Refund</h4>
+                        <div className="report-container">
+                          <div className="section-report">
+                            <div className="section-report-title">
+                              Is Refund All:
+                            </div>
+                            <div className="section-report-data">
+                              {transaction.is_refund_all ? "Yes" : "No"}
+                            </div>
+                          </div>
+                          <div className="section-report">
+                            <div className="section-report-title">
+                              Refund Reason:
+                            </div>
+                            <div className="section-report-data">
+                              {transaction.refund_reason || "-"}
+                            </div>
+                          </div>
+                          <div className="section-report">
+                            <div className="section-report-title">
+                              Total Refund:
+                            </div>
+                            <div className="section-report-data">
+                              {transaction.total_refund}
+                            </div>
+                          </div>
+                        </div>
+                        <hr></hr>
+                      </>
+                    )}
+                    {showRefundDetails && (
+                      <>
+                        <h4 style={{textAlign: "center", marginBottom: "3vh"}}>Refund Detail</h4>
+                        <table className="table table-striped">
+                          <thead>
+                            <tr>
+                              <th>Menu Name</th>
+                              <th>Menu Varian</th>
+                              <th>Menu Price</th>
+                              <th>Serving Type</th>
+                              <th>Discount Code</th>
+                              <th>Discount Value</th>
+                              <th>Discount Type</th>
+                              <th>Qty Refund Item</th>
+                              <th>Refund Reason Item</th>
+                              <th>Total Refund Price</th>
                             </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </>
-                  )}
-              </div> */}
+                          </thead>
+                          <tbody>
+                            {transaction.refund_details.map((item, index) => (
+                              <tr key={index}>
+                                <td>{item.menu_name}</td>
+                                <td>{item.varian || "-"}</td>
+                                <td>{item.menu_price}</td>
+                                <td>{item.serving_type_name}</td>
+                                <td>{item.discount_code || "-"}</td>
+                                <td>{item.discounts_value || "-"}</td>
+                                <td>{item.discounts_is_percent ? (item.discounts_is_percent === 1 ? "Persen" : "Bukan Persen") : "-"}</td>
+                                <td>{item.qty_refund_item}</td>
+                                <td>{item.refund_reason_item || "-"}</td>
+                                <td>{item.total_refund_price}</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </>
+                    )}
+                  </>
+                )}
+              </div>
               <div class="modal-footer">
                 <button
                   type="button"
