@@ -1,6 +1,8 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
+import { ReportDetailModal } from "./ReportDetailModal";
 import flatpickr from "flatpickr";
+import Swal from "sweetalert2";
 import "flatpickr/dist/flatpickr.min.css";
 const apiBaseUrl = process.env.REACT_APP_API_BASE_URL;
 
@@ -8,9 +10,62 @@ const Report = ({ userTokenData }) => {
   const [reports, setReports] = useState([]);
   const [startDate, setStartDate] = useState(null);
   const [endDate, setEndDate] = useState(null);
+  const startDateInputRef = useRef(null);
+  const endDateInputRef = useRef(null);
+  const [isSuccess, setIsSuccess] = useState(false);
+  const [isPending, setIsPending] = useState(false);
+  const [showModal, setShowModal] = useState(false);
+  const [selectedTransactionId, setSelectedTransactionId] = useState(null);
 
   useEffect(() => {
     getReports();
+  }, []);
+
+  useEffect(() => {
+    if (showModal) {
+      document.body.classList.add("modal-open");
+      document.body.style.overflow = "hidden";
+      document.body.style.paddingRight = "0px";
+    } else {
+      document.body.classList.remove("modal-open");
+      document.body.style.removeProperty("overflow", "padding-right");
+    }
+
+    return () => {
+      document.body.classList.remove("modal-open");
+    };
+  }, [showModal]);
+
+  useEffect(() => {
+    let startDatePicker, endDatePicker;
+    if (startDateInputRef.current) {
+      startDatePicker = flatpickr(startDateInputRef.current, {
+        enableTime: false,
+        dateFormat: "Y-m-d",
+        onChange: (selectedDates, dateStr) => {
+          setStartDate(dateStr);
+        },
+      });
+    }
+
+    if (endDateInputRef.current) {
+      endDatePicker = flatpickr(endDateInputRef.current, {
+        enableTime: false,
+        dateFormat: "Y-m-d",
+        onChange: (selectedDates, dateStr) => {
+          setEndDate(dateStr);
+        },
+      });
+    }
+
+    return () => {
+      if (startDatePicker) {
+        startDatePicker.destroy();
+      }
+      if (endDatePicker) {
+        endDatePicker.destroy();
+      }
+    };
   }, []);
 
   const getReports = async () => {
@@ -20,6 +75,49 @@ const Report = ({ userTokenData }) => {
       },
     });
     setReports(response.data.data);
+  };
+
+  const openModal = (transactionId) => {
+    setSelectedTransactionId(transactionId);
+    setShowModal(true);
+  };
+
+  const closeModal = () => {
+    setShowModal(false);
+  };
+
+  const handleSearch = async () => {
+    if ((startDate && !endDate) || (!startDate && endDate)) {
+      Swal.fire({
+        icon: "error",
+        title: "Gagal",
+        text: "Silakan pilih kedua tanggal (mulai dan akhir) untuk melakukan pencarian.",
+      });
+      return;
+    }
+
+    const outlet_id = userTokenData.outlet_id;
+    const start_date = startDate;
+    const end_date = endDate;
+  
+    const is_success = isSuccess;
+    const is_pending = isPending;
+  
+    try {
+      const response = await axios.get(`${apiBaseUrl}/report`, {
+        params: {
+          outlet_id,
+          start_date,
+          end_date,
+          is_success,
+          is_pending,
+        },
+      });
+      
+      setReports(response.data.data);
+    } catch (error) {
+      console.error("Gagal mengambil data laporan:", error);
+    }
   };
 
   return (
@@ -37,7 +135,7 @@ const Report = ({ userTokenData }) => {
             <div class="card-header">
               <div className="float-lg-start">
                 <div className="card-header-report">
-                  <div className="button btn btn-primary rounded-pill">
+                  <div className="button btn btn-primary rounded-pill" onClick={handleSearch}>
                     <i class="bi bi-search"></i> Cari
                   </div>
                   <div>
@@ -47,6 +145,7 @@ const Report = ({ userTokenData }) => {
                       className={`form-control`}
                       placeholder="Tanggal mulai"
                       value={startDate || ""}
+                      ref={startDateInputRef}
                     />
                   </div>
                   <div>
@@ -56,6 +155,7 @@ const Report = ({ userTokenData }) => {
                       className={`form-control`}
                       placeholder="Tanggal akhir"
                       value={endDate || ""}
+                      ref={endDateInputRef}
                     />
                   </div>
                   <div class="form-check">
@@ -63,6 +163,8 @@ const Report = ({ userTokenData }) => {
                       <input
                         type="checkbox"
                         class="form-check-input"
+                        checked={isSuccess}
+                        onChange={() => setIsSuccess(!isSuccess)}
                       />
                       <label for="checkbox2">Transaksi Sukses </label>
                     </div>
@@ -72,6 +174,8 @@ const Report = ({ userTokenData }) => {
                       <input
                         type="checkbox"
                         class="form-check-input"
+                        checked={isPending}
+                        onChange={() => setIsPending(!isPending)}
                       />
                       <label for="checkbox2">Transaksi Pending </label>
                     </div>
@@ -87,6 +191,15 @@ const Report = ({ userTokenData }) => {
                     <th>Receipt Number</th>
                     <th>Customer Name</th>
                     <th>Customer Seat</th>
+                    <th>Customer Cash</th>
+                    <th>Customer Change</th>
+                    <th>Payment Type</th>
+                    <th>Delivery Type</th>
+                    <th>Delivery Note</th>
+                    <th>Invoice Number</th>
+                    <th>Invoice Due Date</th>
+                    <th>Last Data Changed</th>
+                    <th>Actions</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -96,6 +209,24 @@ const Report = ({ userTokenData }) => {
                       <td>{report.receipt_number}</td>
                       <td>{report.customer_name}</td>
                       <td>{report.customer_seat}</td>
+                      <td>{report.customer_cash}</td>
+                      <td>{report.customer_change}</td>
+                      <td>{report.payment_type}</td>
+                      <td>{report.delivery_type}</td>
+                      <td>{report.delivery_note}</td>
+                      <td>{report.invoice_number}</td>
+                      <td>{report.invoice_due_date}</td>
+                      <td>{report.updated_at}</td>
+                      <td>
+                        <div className="action-buttons">
+                          <div
+                            className="buttons btn info btn-primary"
+                            onClick={() => openModal(report.id)}
+                          >
+                            <i className="bi bi-eye"></i>
+                          </div>
+                        </div>
+                      </td>
                     </tr>
                   ))}
                 </tbody>
@@ -104,6 +235,12 @@ const Report = ({ userTokenData }) => {
           </div>
         </section>
       </div>
+
+      <ReportDetailModal 
+        show={showModal}
+        onClose={closeModal}
+        selectedTransactionId={selectedTransactionId}
+      />
     </div>
   );
 };

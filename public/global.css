@@ -22,8 +22,12 @@
 }
 
 .scrollable-content {
-    max-height: 580px; /* Adjust the maximum height as needed */
+    max-height: 80vh;
     overflow-y: auto;
+}
+
+.modal-dialog-scrollable .modal-content {
+    overflow: auto;
 }
 
 .card-body {
@@ -89,4 +93,23 @@
     display: flex;
     gap: 20px;
     align-items: center;
+}
+
+.modal-report {
+    max-width: 100%;
+}
+
+.section-report {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 10px;
+}
+
+.section-report-title {
+    font-weight: bold;
+    width: 45%; /* Lebar judul */
+}
+
+.section-report-data {
+    width: 50%;
 }
