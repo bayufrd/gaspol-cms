@@ -43,10 +43,10 @@ const Header = ({ onToggleSidebar, userTokenData, setIsLoggedIn }) => {
                     {userTokenData && (
                       <div className="user-name text-end me-3">
                         <h6 className="mb-0 text-gray-600">
-                          {userTokenData.name}
+                          {userTokenData.outlet_name}
                         </h6>
                         <p className="mb-0 text-sm text-gray-600">
-                          {userTokenData.role}
+                          {userTokenData.name}
                         </p>
                       </div>
                     )}

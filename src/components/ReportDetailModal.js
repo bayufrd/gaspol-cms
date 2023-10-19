@@ -7,23 +7,25 @@ export const ReportDetailModal = ({ show, onClose, selectedTransactionId }) => {
   const [transaction, setTransaction] = useState(null);
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const response = await axios.get(
-          `${apiBaseUrl}/transaction/${selectedTransactionId}`
-        );
-        const transactionsData = response.data.data;
-        setTransaction(transactionsData);
-      } catch (error) {
-        console.error("Error fetching transaction:", error);
-      }
-    };
-    fetchData();
+    if (show && selectedTransactionId) {
+      const fetchData = async () => {
+        try {
+          const response = await axios.get(
+            `${apiBaseUrl}/transaction/${selectedTransactionId}`
+          );
+          const transactionsData = response.data.data;
+          setTransaction(transactionsData);
+        } catch (error) {
+          console.error("Error fetching transaction:", error);
+        }
+      };
+      fetchData();
+    }
   }, [show, selectedTransactionId, apiBaseUrl]);
 
   const showRefundDetails =
     transaction?.refund_details && transaction.refund_details.length > 0;
-  const showRefund = transaction.total_refund !== 0 && transaction.total_refund !== undefined;
+  const showRefund = transaction?.total_refund !== 0 && transaction?.total_refund !== undefined;
 
   return (
     <>

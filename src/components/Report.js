@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import { ReportDetailModal } from "./ReportDetailModal";
+import { ReportPaymentModal } from "./ReportPaymentModal";
 import flatpickr from "flatpickr";
 import Swal from "sweetalert2";
 import "flatpickr/dist/flatpickr.min.css";
@@ -16,6 +17,8 @@ const Report = ({ userTokenData }) => {
   const [isPending, setIsPending] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [selectedTransactionId, setSelectedTransactionId] = useState(null);
+  const [isCashierReportEnabled, setIsCashierReportEnabled] = useState(false);
+  const [showReportPaymentModal, setShowReportPaymentModal] = useState(false);
 
   useEffect(() => {
     getReports();
@@ -84,6 +87,10 @@ const Report = ({ userTokenData }) => {
 
   const closeModal = () => {
     setShowModal(false);
+  };
+
+  const openReportPaymentModal = () => {
+    setShowReportPaymentModal(true);
   };
 
   const handleSearch = async () => {
@@ -167,7 +174,10 @@ const Report = ({ userTokenData }) => {
                         type="checkbox"
                         class="form-check-input"
                         checked={isSuccess}
-                        onChange={() => setIsSuccess(!isSuccess)}
+                        onChange={(e) => {
+                          setIsSuccess(!isSuccess);
+                          setIsCashierReportEnabled(e.target.checked);
+                        }}
                       />
                       <label for="checkbox2">Transaksi Sukses </label>
                     </div>
@@ -183,6 +193,14 @@ const Report = ({ userTokenData }) => {
                       <label for="checkbox2">Transaksi Pending </label>
                     </div>
                   </div>
+                </div>
+              </div>
+              <div className="float-lg-end">
+                <div 
+                  className={`button btn btn-primary rounded-pill ${isCashierReportEnabled ? "" : "disabled"}`}
+                  onClick={openReportPaymentModal}
+                >
+                  Laporan Kasir
                 </div>
               </div>
             </div>
@@ -243,6 +261,14 @@ const Report = ({ userTokenData }) => {
         show={showModal}
         onClose={closeModal}
         selectedTransactionId={selectedTransactionId}
+      />
+
+      <ReportPaymentModal
+        show={showReportPaymentModal}
+        onClose={() => setShowReportPaymentModal(false)}
+        userTokenData={userTokenData}
+        startDate={startDate}
+        endDate={endDate}
       />
     </div>
   );
