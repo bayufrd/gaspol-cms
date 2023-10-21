@@ -18,19 +18,23 @@ export const MenuModal = ({
 }) => {
   const apiBaseUrl = process.env.REACT_APP_API_BASE_URL;
 
-  const initialMenuState = useMemo(() => ({
-    name: "",
-    menu_type: "Makanan",
-    price: "",
-    is_active: 1,
-    outlet_id: userTokenData.outlet_id,
-    menu_details: [],
-  }), [userTokenData]);
+  const initialMenuState = useMemo(
+    () => ({
+      name: "",
+      menu_type: "Makanan",
+      price: "",
+      is_active: 1,
+      outlet_id: userTokenData.outlet_id,
+      menu_details: [],
+    }),
+    [userTokenData]
+  );
 
   const [menu, setMenu] = useState(initialMenuState);
   const [fileState, setFileState] = useState(null);
   const [isFormValid, setIsFormValid] = useState(true);
   const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
+  const [initialMenuDetailsLength, setInitialMenuDetailsLength] = useState(0);
 
   useEffect(() => {
     if (show && selectedMenuId) {
@@ -40,9 +44,10 @@ export const MenuModal = ({
             `${apiBaseUrl}/v2/menu/${selectedMenuId}`
           );
           setMenu(response.data.data);
-          if(response.data.data.image_url) {
-            setFileState(`${apiBaseUrl}/${response.data.data.image_url}`)
+          if (response.data.data.image_url) {
+            setFileState(`${apiBaseUrl}/${response.data.data.image_url}`);
           }
+          setInitialMenuDetailsLength(response.data.data.menu_details.length);
         } catch (error) {
           console.error("Error fetching menu:", error);
         }
@@ -51,6 +56,7 @@ export const MenuModal = ({
     } else {
       setMenu(initialMenuState);
       setFileState(null);
+      setInitialMenuDetailsLength(0);
     }
   }, [show, selectedMenuId, apiBaseUrl, initialMenuState]);
 
@@ -96,11 +102,7 @@ export const MenuModal = ({
       (detail) => detail.varian.trim() !== "" && detail.price !== ""
     );
 
-    if (
-      !isMenuNameValid ||
-      !isMenuPriceValid ||
-      !isMenuDetailsValid
-    ) {
+    if (!isMenuNameValid || !isMenuPriceValid || !isMenuDetailsValid) {
       setIsFormValid(false);
       return;
     }
@@ -126,7 +128,7 @@ export const MenuModal = ({
           formData,
           {
             headers: {
-              "Content-Type": "multipart/form-data", 
+              "Content-Type": "multipart/form-data",
             },
           }
         );
@@ -137,16 +139,14 @@ export const MenuModal = ({
           text: `Menu berhasil diupdate: ${menu.name}`,
         });
       } else {
-        if(fileState) {
+        if (fileState) {
           formData.append("image", fileState[0]);
         }
-        const response = await axios.post(`${apiBaseUrl}/v2/menu`, 
-          formData, 
-          {
-            headers: {
-              "Content-Type": "multipart/form-data", // Set content type to multipart/form-data
-            }
-          });
+        const response = await axios.post(`${apiBaseUrl}/v2/menu`, formData, {
+          headers: {
+            "Content-Type": "multipart/form-data", // Set content type to multipart/form-data
+          },
+        });
         console.log("Menu added:", response.data.message);
         Swal.fire({
           icon: "success",
@@ -223,10 +223,12 @@ export const MenuModal = ({
                     className="image-preview-filepond"
                     files={fileState}
                     allowMultiple={false}
-                    maxFileSize="2MB"  
+                    maxFileSize="2MB"
                     onupdatefiles={(fileItems) => {
                       if (fileItems.length > 0) {
-                        setFileState(fileItems.map((fileItem) => fileItem.file));
+                        setFileState(
+                          fileItems.map((fileItem) => fileItem.file)
+                        );
                       } else {
                         setFileState(null);
                       }
@@ -253,8 +255,8 @@ export const MenuModal = ({
                 </div>
                 <label>Tipe Menu: </label>
                 <div class="form-group">
-                  <select 
-                    class="form-select" 
+                  <select
+                    class="form-select"
                     id="basicSelect"
                     value={menu.menu_type}
                     onChange={(e) => {
@@ -263,33 +265,41 @@ export const MenuModal = ({
                   >
                     <option value="Makanan">Makanan</option>
                     <option value="Minuman">Minuman</option>
-                    <option value="Additional Makanan">Additional Makanan</option>
-                    <option value="Additional Minuman">Additional Minuman</option>
+                    <option value="Additional Makanan">
+                      Additional Makanan
+                    </option>
+                    <option value="Additional Minuman">
+                      Additional Minuman
+                    </option>
                   </select>
                 </div>
-                <label>Harga: </label>
-                <div class="form-group">
-                  <input
-                    type="number"
-                    placeholder="Harga Menu"
-                    className={`form-control ${
-                      isFormValid ? "" : "is-invalid"
-                    }`}
-                    value={menu.price}
-                    onChange={(e) => {
-                      handleInputChange("price", e.target.value);
-                      setIsFormValid(true);
-                    }}
-                  />
-                  {!isFormValid && (
-                    <div className="invalid-feedback">
-                      Harga menu harus diisi
+                {!selectedMenuId && (
+                  <>
+                    <label>Harga: </label>
+                    <div class="form-group">
+                      <input
+                        type="number"
+                        placeholder="Harga Menu"
+                        className={`form-control ${
+                          isFormValid ? "" : "is-invalid"
+                        }`}
+                        value={menu.price}
+                        onChange={(e) => {
+                          handleInputChange("price", e.target.value);
+                          setIsFormValid(true);
+                        }}
+                      />
+                      {!isFormValid && (
+                        <div className="invalid-feedback">
+                          Harga menu harus diisi
+                        </div>
+                      )}
                     </div>
-                  )}
-                </div>
+                  </>
+                )}
                 <label>Status Active: </label>
                 <div class="form-group">
-                  <select 
+                  <select
                     class="choices form-select"
                     value={menu.is_active}
                     onChange={(e) => {
@@ -305,7 +315,10 @@ export const MenuModal = ({
                   <h6 className="modal-title">Detail Menu Varian</h6>
                   {menu.menu_details.map((menuDetail, index) => (
                     <div key={index}>
-                      <div className="modal-menu-detail-form-group">
+                      <div 
+                        className="modal-menu-detail-form-group" 
+                        style={selectedMenuId ? {justifyContent : "center"} : {}}
+                      >
                         <div>
                           <label>Varian:</label>
                           <input
@@ -328,28 +341,30 @@ export const MenuModal = ({
                             </div>
                           )}
                         </div>
-                        <div>
-                          <label>Price:</label>
-                          <input
-                            type="number"
-                            className={`form-control ${
-                              isFormValid ? "" : "is-invalid"
-                            }`}
-                            value={menuDetail.price}
-                            onChange={(e) =>
-                              handleMenuDetailChange(
-                                index,
-                                "price",
-                                e.target.value
-                              )
-                            }
-                          />
-                          {!isFormValid && (
-                            <div className="invalid-feedback">
-                              Harga harus diisi.
-                            </div>
-                          )}
-                        </div>
+                        {(!selectedMenuId || (selectedMenuId && (index >= initialMenuDetailsLength))) && (
+                          <div>
+                            <label>Price:</label>
+                            <input
+                              type="number"
+                              className={`form-control ${
+                                isFormValid ? "" : "is-invalid"
+                              }`}
+                              value={menuDetail.price}
+                              onChange={(e) =>
+                                handleMenuDetailChange(
+                                  index,
+                                  "price",
+                                  e.target.value
+                                )
+                              }
+                            />
+                            {!isFormValid && (
+                              <div className="invalid-feedback">
+                                Harga harus diisi.
+                              </div>
+                            )}
+                          </div>
+                        )}
                         <div>
                           {index >= 0 && (
                             <button
@@ -367,8 +382,9 @@ export const MenuModal = ({
                     <div
                       className="button btn btn-light rounded-pill"
                       onClick={handleAddMenuDetail}
+                      style={selectedMenuId ? {display: "flex", justifyContent : "center"} : {}}
                     >
-                      <i class="bi bi-plus"></i> Tambah detail menu
+                      <i class="bi bi-plus"></i> Tambah varian menu
                     </div>
                   </div>
                 </div>

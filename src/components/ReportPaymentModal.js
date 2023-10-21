@@ -203,7 +203,9 @@ export const ReportPaymentModal = ({
                       <h4 style={{ textAlign: "center", marginBottom: "3vh" }}>
                         Pengeluaran
                       </h4>
-                      <table className="table table-striped">
+                      {paymentReport.refund && paymentReport.refund[0] ? (
+                        <>
+                          <table className="table table-striped">
                         <thead>
                           <tr>
                             <th>Menu Name</th>
@@ -245,6 +247,8 @@ export const ReportPaymentModal = ({
                           ))}
                         </tbody>
                       </table>
+                        </>
+                      ) : <h6 style={{textAlign:"center"}}>Data Kosong</h6>}
                     </div>
                     <hr></hr>
                     <div className="login-button">
