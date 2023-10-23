@@ -3,6 +3,7 @@ import Swal from "sweetalert2";
 import axios from "axios";
 import { FilePond, registerPlugin } from "react-filepond";
 import { DeleteConfirmationModal } from "./DeleteConfirmationModal";
+import { CustomPriceModal } from "./MenuCustomPriceModel";
 import "filepond/dist/filepond.min.css";
 import "filepond-plugin-image-preview/dist/filepond-plugin-image-preview.css";
 import filePondImagePreview from "filepond-plugin-image-preview";
@@ -35,6 +36,7 @@ export const MenuModal = ({
   const [isFormValid, setIsFormValid] = useState(true);
   const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
   const [initialMenuDetailsLength, setInitialMenuDetailsLength] = useState(0);
+  const [showCustomPriceModal, setShowCustomPriceModal] = useState(false);
 
   useEffect(() => {
     if (show && selectedMenuId) {
@@ -166,6 +168,10 @@ export const MenuModal = ({
     }
   };
 
+  const openCustomPriceModal = () => {
+    setShowCustomPriceModal(true);
+  };
+
   const handleDeleteMenu = async () => {
     try {
       const response = await axios.delete(
@@ -194,7 +200,10 @@ export const MenuModal = ({
         aria-labelledby="myModalLabel33"
         aria-modal={show ? "true" : undefined}
         aria-hidden={show ? undefined : "true"}
-        style={show ? { display: "block" } : { display: "none" }}
+        style={{
+          display: show ? "block" : "none",
+          ...(showCustomPriceModal ? { zIndex: "1039" } : {}),
+        }}
       >
         <div
           class="modal-dialog modal-dialog-centered modal-dialog-scrollable"
@@ -310,14 +319,26 @@ export const MenuModal = ({
                     <option value="0">Tidak Aktif</option>
                   </select>
                 </div>
+                {selectedMenuId && (
+                  <div className="d-flex justify-content-center">
+                    <div
+                      className="btn btn-secondary rounded-pill"
+                      onClick={openCustomPriceModal}
+                    >
+                      Custom Price
+                    </div>
+                  </div>
+                )}
                 <div>
                   <br></br>
                   <h6 className="modal-title">Detail Menu Varian</h6>
                   {menu.menu_details.map((menuDetail, index) => (
                     <div key={index}>
-                      <div 
-                        className="modal-menu-detail-form-group" 
-                        style={selectedMenuId ? {justifyContent : "center"} : {}}
+                      <div
+                        className="modal-menu-detail-form-group"
+                        style={
+                          selectedMenuId ? { justifyContent: "center" } : {}
+                        }
                       >
                         <div>
                           <label>Varian:</label>
@@ -341,7 +362,9 @@ export const MenuModal = ({
                             </div>
                           )}
                         </div>
-                        {(!selectedMenuId || (selectedMenuId && (index >= initialMenuDetailsLength))) && (
+                        {(!selectedMenuId ||
+                          (selectedMenuId &&
+                            index >= initialMenuDetailsLength)) && (
                           <div>
                             <label>Price:</label>
                             <input
@@ -382,7 +405,11 @@ export const MenuModal = ({
                     <div
                       className="button btn btn-light rounded-pill"
                       onClick={handleAddMenuDetail}
-                      style={selectedMenuId ? {display: "flex", justifyContent : "center"} : {}}
+                      style={
+                        selectedMenuId
+                          ? { display: "flex", justifyContent: "center" }
+                          : {}
+                      }
                     >
                       <i class="bi bi-plus"></i> Tambah varian menu
                     </div>
@@ -431,6 +458,12 @@ export const MenuModal = ({
         onConfirmDelete={handleDeleteMenu}
         onCancelDelete={() => setShowDeleteConfirmation(false)}
         purposeDialog={"menu"}
+      />
+      <CustomPriceModal
+        showCustomPriceModal={showCustomPriceModal}
+        selectedMenuId={selectedMenuId}
+        menuName={menu.name}
+        onCloseCustomPrice={() => setShowCustomPriceModal(false)}
       />
     </>
   );

@@ -122,7 +122,6 @@ export const UserModal = ({
       setUser(initialUserState);
       onClose();
     } catch (error) {
-      console.log(error);
       Swal.fire({
         title: "Gagal",
         text: error.response.data.message,
