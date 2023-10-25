@@ -57,6 +57,7 @@ export const MenuModal = ({
       fetchData();
     } else {
       setMenu(initialMenuState);
+      setIsFormValid(true);
       setFileState(null);
       setInitialMenuDetailsLength(0);
     }
