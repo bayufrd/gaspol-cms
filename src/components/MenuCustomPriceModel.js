@@ -7,11 +7,11 @@ export const CustomPriceModal = ({
   onCloseCustomPrice,
   selectedMenuId,
   menuName,
+  userTokenData,
 }) => {
   const apiBaseUrl = process.env.REACT_APP_API_BASE_URL;
 
   const [customPrice, setCustomPrice] = useState([]);
-  const [customMenuPrices, setCustomMenuPrices] = useState([]);
   const [customMenuVariants, setCustomMenuVariants] = useState([]);
   const [updatedCustomMenuPrice, setUpdatedCustomMenuPrice] = useState([]);
 
@@ -20,11 +20,15 @@ export const CustomPriceModal = ({
       const fetchData = async () => {
         try {
           const response = await axios.get(
-            `${apiBaseUrl}/custom-menu-price/${selectedMenuId}`
+            `${apiBaseUrl}/custom-menu-price/${selectedMenuId}`,
+            {
+              params: {
+                outlet_id: userTokenData.outlet_id
+              }
+            }
           );
           const data = response.data.data;
           setCustomPrice(data.custom_prices);
-          setCustomMenuPrices(data.custom_menu_prices);
 
           const initialCustomMenuPrice = data.custom_menu_prices.map(item => {
             return {
@@ -60,10 +64,9 @@ export const CustomPriceModal = ({
       fetchData();
     } else {
       setCustomPrice([]);
-      setCustomMenuPrices([]);
       setCustomMenuVariants([]);
     }
-  }, [showCustomPriceModal, selectedMenuId, apiBaseUrl]);
+  }, [showCustomPriceModal, selectedMenuId, apiBaseUrl, userTokenData]);
 
   const handleInputChange = (field, value, menuDetailId = 0) => {
     // Parse nilai input sebagai angka (gunakan parseFloat atau parseInt sesuai kebutuhan)

@@ -465,6 +465,7 @@ export const MenuModal = ({
         selectedMenuId={selectedMenuId}
         menuName={menu.name}
         onCloseCustomPrice={() => setShowCustomPriceModal(false)}
+        userTokenData={userTokenData}
       />
     </>
   );
