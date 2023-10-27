@@ -33,7 +33,7 @@ export const CustomPriceModal = ({
           const initialCustomMenuPrice = data.custom_menu_prices.map(item => {
             return {
               id: item.id,
-              custom_price_id: item.custom_price_id,
+              serving_type_id: item.serving_type_id,
               menu_detail_id: item.menu_detail_id === 0 ? 0 : item.menu_detail_id,
               price: item.price
             };
@@ -80,8 +80,8 @@ export const CustomPriceModal = ({
     // Temukan indeks elemen yang sesuai berdasarkan field dan menuDetailId
     const index = updatedPrice.findIndex((price) =>
       menuDetailId === 0
-        ? price.custom_price_id === field
-        : price.custom_price_id === field && price.menu_detail_id === menuDetailId
+        ? price.serving_type_id === field
+        : price.serving_type_id === field && price.menu_detail_id === menuDetailId
     );
 
     // Jika indeks ditemukan, perbarui nilai harga kustom
@@ -94,7 +94,7 @@ export const CustomPriceModal = ({
       // Jika indeks tidak ditemukan, tambahkan elemen baru ke updatedPrice
       updatedPrice.push({
         menu_id: selectedMenuId,
-        custom_price_id: field,
+        serving_type_id: field,
         menu_detail_id: isMainMenuItem ? 0 : menuDetailId,
         price: numericValue,
       });
@@ -243,7 +243,7 @@ export const CustomPriceModal = ({
   // Function to get custom price for a specific id
   function getCustomPriceForId(id) {
     const priceData = updatedCustomMenuPrice.find(
-      (price) => price.custom_price_id === id
+      (price) => price.serving_type_id === id
     );
     return priceData ? priceData.price : 0;
   }
@@ -253,7 +253,7 @@ export const CustomPriceModal = ({
     const updatedPriceData = updatedCustomMenuPrice.find((price) => {
       return (
         price.menu_detail_id === variantId &&
-        price.custom_price_id === priceId
+        price.serving_type_id === priceId
       );
     });
     return updatedPriceData ? updatedPriceData.price : 0;
