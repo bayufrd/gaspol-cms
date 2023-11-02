@@ -30,6 +30,7 @@ export const UserModal = ({
     menu: false,
     discount: false,
     report: false,
+    serving_type: false,
   });
 
   const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
@@ -48,6 +49,7 @@ export const UserModal = ({
             menu: menuAccessArray.includes("2"),
             discount: menuAccessArray.includes("3"),
             report: menuAccessArray.includes("4"),
+            serving_type: menuAccessArray.includes("5"),
           });
         } catch (error) {
           console.error("Error fetching user:", error);
@@ -60,6 +62,7 @@ export const UserModal = ({
         menu: false,
         discount: false,
         report: false,
+        serving_type: false,
       });
     }
   }, [show, selectedUserId, apiBaseUrl, initialUserState]);
@@ -97,6 +100,7 @@ export const UserModal = ({
     if (menuAccess.menu) selectedMenuAccess.push("2");
     if (menuAccess.discount) selectedMenuAccess.push("3");
     if (menuAccess.report) selectedMenuAccess.push("4");
+    if (menuAccess.serving_type) selectedMenuAccess.push("5");
     user.menu_access = selectedMenuAccess.join(",");
 
     try {
@@ -288,6 +292,18 @@ export const UserModal = ({
                   />
                   <label class="form-check-label" for="discountCheckbox">
                     Report
+                  </label>
+                </div>
+                <div class="form-check">
+                  <input
+                    type="checkbox"
+                    class="form-check-input"
+                    id="discountCheckbox"
+                    checked={menuAccess.serving_type}
+                    onChange={() => handleCheckboxChange("serving_type")}
+                  />
+                  <label class="form-check-label" for="discountCheckbox">
+                    Serving Type
                   </label>
                 </div>
               </div>

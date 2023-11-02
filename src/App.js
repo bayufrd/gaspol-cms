@@ -10,6 +10,7 @@ import Login from "./components/Login";
 import Discount from "./components/Discount";
 import Profile from "./components/Profile";
 import Report from "./components/Report";
+import ServingType from "./components/ServingType";
 import Swal from "sweetalert2";
 
 function App() {
@@ -94,6 +95,12 @@ function App() {
                     <Route
                       path="/report"
                       element={<Report userTokenData={userTokenData} />}
+                    />
+                  )}
+                  {userTokenData && userTokenData.menu_access.includes("5") && (
+                    <Route
+                      path="/serving-type"
+                      element={<ServingType userTokenData={userTokenData} />}
                     />
                   )}
                   <Route

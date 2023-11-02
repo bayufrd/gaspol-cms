@@ -49,11 +49,19 @@ const Sidebar = ({ onToggleSidebar, isOpen, userTokenData }) => {
                 </Link>
               </li>
             )}
+            {userTokenData.menu_access.includes("5") && (
+              <li class="sidebar-item">
+                <Link to="/serving-type" class="sidebar-link">
+                  <i className="bi bi-currency-exchange"></i>
+                  <span>Serving Types</span>
+                </Link>
+              </li>
+            )}
             {userTokenData.menu_access.includes("4") && (
               <li class="sidebar-item">
                 <Link to="/report" class="sidebar-link">
                   <i className="bi bi-book"></i>
-                  <span>Laporan</span>
+                  <span>Reports</span>
                 </Link>
               </li>
             )}
