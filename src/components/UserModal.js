@@ -86,12 +86,8 @@ export const UserModal = ({
 
     const isUserNameValid = user.name.trim() !== "";
     const isUserUsernameValid = user.username.trim() !== "";
-    let isPasswordValid = true;
-    if (user.password) {
-      isPasswordValid = user.password.trim().length >= 5;
-    }
 
-    if (!isUserNameValid || !isUserUsernameValid || !isPasswordValid) {
+    if (!isUserNameValid || !isUserUsernameValid) {
       setIsFormValid(false);
       return;
     }
@@ -115,6 +111,11 @@ export const UserModal = ({
           text: `User berhasil diupdate: ${user.name}`,
         });
       } else {
+        const isPasswordValid = user.password.trim() !== "" && user.password.length >= 5;
+        if (!isPasswordValid) {
+          setIsFormValid(false);
+          return;
+        }
         await axios.post(`${apiBaseUrl}/user-management/`, user);
         Swal.fire({
           icon: "success",
@@ -187,34 +188,34 @@ export const UserModal = ({
                   <input
                     type="text"
                     placeholder="nama user"
-                    class={`form-control ${isFormValid ? "" : "is-invalid"}`}
+                    class={`form-control ${!isFormValid && user.name === "" ? "is-invalid" : ""}`}
                     value={user.name}
                     onChange={(e) => {
                       handleInputChange("name", e.target.value);
                       setIsFormValid(true);
                     }}
                   />
-                  {!isFormValid && (
+                  {!isFormValid && user.name === "" ? (
                     <div className="invalid-feedback">
                       Nama user harus diisi
                     </div>
-                  )}
+                  ): null }
                 </div>
                 <label>Username: </label>
                 <div class="form-group">
                   <input
                     type="text"
                     placeholder="username"
-                    class={`form-control ${isFormValid ? "" : "is-invalid"}`}
+                    class={`form-control ${!isFormValid && user.username === "" ? "is-invalid" : ""}`}
                     value={user.username}
                     onChange={(e) => {
                       handleInputChange("username", e.target.value);
                       setIsFormValid(true);
                     }}
                   />
-                  {!isFormValid && (
+                  {!isFormValid && user.username === "" ? (
                     <div className="invalid-feedback">Username harus diisi</div>
-                  )}
+                  ) : null}
                 </div>
                 {!selectedUserId && (
                   <>
@@ -224,7 +225,7 @@ export const UserModal = ({
                         type="password"
                         placeholder="password"
                         class={`form-control ${
-                          isFormValid ? "" : "is-invalid"
+                          !isFormValid && user.password.length < 5 ? "is-invalid" : "" 
                         }`}
                         value={user.password}
                         onChange={(e) => {
@@ -232,11 +233,11 @@ export const UserModal = ({
                           setIsFormValid(true);
                         }}
                       />
-                      {!isFormValid && (
+                      {!isFormValid && user.password.length < 5 ? (
                         <div className="invalid-feedback">
                           Password harus diisi dan minimal 5 karakter!
                         </div>
-                      )}
+                      ) : null}
                     </div>
                   </>
                 )}

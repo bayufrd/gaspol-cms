@@ -109,8 +109,7 @@ export const CustomPriceModal = ({
 
     try {
       if (selectedMenuId) {
-        console.log("Payload to send:", updatedCustomMenuPrice);
-        const response = await axios.patch(
+        await axios.patch(
           `${apiBaseUrl}/custom-menu-price/${selectedMenuId}`,
           {
             custom_prices: updatedCustomMenuPrice,

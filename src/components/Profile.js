@@ -42,7 +42,7 @@ const Profile = ({ userTokenData }) => {
     if (
       profile.name === "" ||
       profile.username === "" ||
-      profile.password.length < 8
+      profile.password.length < 5
     ) {
       setIsFormValid(false);
       return;
@@ -146,7 +146,7 @@ const Profile = ({ userTokenData }) => {
               type="text"
               placeholder="Password"
               class={`form-control ${
-                !isFormValid && profile.password.length < 8 ? "is-invalid" : ""
+                !isFormValid && profile.password.length < 5 ? "is-invalid" : ""
               }`}
               value={profile.password}
               onChange={(e) => {
@@ -154,7 +154,7 @@ const Profile = ({ userTokenData }) => {
                 setIsFormValid(true);
               }}
             />
-            {!isFormValid && profile.password.length < 8 ? (
+            {!isFormValid && profile.password.length < 5 ? (
               <div className="invalid-feedback">
                 Password harus diisi dan minimal 8 karakter
               </div>

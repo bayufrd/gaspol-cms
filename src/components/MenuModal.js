@@ -250,18 +250,18 @@ export const MenuModal = ({
                   <input
                     type="text"
                     placeholder="Nama Menu"
-                    class={`form-control ${isFormValid ? "" : "is-invalid"}`}
+                    class={`form-control ${!isFormValid && menu.name === "" ? "is-invalid" : ""}`}
                     value={menu.name}
                     onChange={(e) => {
                       handleInputChange("name", e.target.value);
                       setIsFormValid(true);
                     }}
                   />
-                  {!isFormValid && (
+                  {!isFormValid && menu.name === "" ? (
                     <div className="invalid-feedback">
                       Nama menu harus diisi
                     </div>
-                  )}
+                  ) : null}
                 </div>
                 <label>Tipe Menu: </label>
                 <div class="form-group">
@@ -291,7 +291,7 @@ export const MenuModal = ({
                         type="number"
                         placeholder="Harga Menu"
                         className={`form-control ${
-                          isFormValid ? "" : "is-invalid"
+                          !isFormValid && menu.price === "" ? "is-invalid" : ""
                         }`}
                         value={menu.price}
                         onChange={(e) => {
@@ -299,11 +299,11 @@ export const MenuModal = ({
                           setIsFormValid(true);
                         }}
                       />
-                      {!isFormValid && (
+                      {!isFormValid && menu.price === "" ? (
                         <div className="invalid-feedback">
                           Harga menu harus diisi
                         </div>
-                      )}
+                      ) : null}
                     </div>
                   </>
                 )}
@@ -346,7 +346,7 @@ export const MenuModal = ({
                           <input
                             type="text"
                             className={`form-control ${
-                              isFormValid ? "" : "is-invalid"
+                              !isFormValid && menuDetail.varian === "" ? "is-invalid" : ""
                             }`}
                             value={menuDetail.varian}
                             onChange={(e) =>
@@ -357,11 +357,11 @@ export const MenuModal = ({
                               )
                             }
                           />
-                          {!isFormValid && (
+                          {!isFormValid && menuDetail.varian === "" ? (
                             <div className="invalid-feedback">
                               Varian harus diisi.
                             </div>
-                          )}
+                          ) : null}
                         </div>
                         {(!selectedMenuId ||
                           (selectedMenuId &&
@@ -371,7 +371,7 @@ export const MenuModal = ({
                             <input
                               type="number"
                               className={`form-control ${
-                                isFormValid ? "" : "is-invalid"
+                                !isFormValid && menuDetail.price === "" ? "is-invalid" : ""
                               }`}
                               value={menuDetail.price}
                               onChange={(e) =>
@@ -382,11 +382,11 @@ export const MenuModal = ({
                                 )
                               }
                             />
-                            {!isFormValid && (
+                            {!isFormValid  && menuDetail.price === "" ? (
                               <div className="invalid-feedback">
                                 Harga harus diisi.
                               </div>
-                            )}
+                            ) : null}
                           </div>
                         )}
                         <div>
