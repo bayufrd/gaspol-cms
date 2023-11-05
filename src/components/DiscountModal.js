@@ -59,6 +59,7 @@ export const DiscountModal = ({
       fetchData();
     } else {
       setDiscount(initialDiscountState);
+      setIsFormValid(true);
       setStartDate(null);
       setEndDate(null);
     }
