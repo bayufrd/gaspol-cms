@@ -151,18 +151,18 @@ export const ServingTypeModal = ({
                   <input
                     type="text"
                     placeholder="Nama"
-                    class={`form-control ${isFormValid ? "" : "is-invalid"}`}
+                    class={`form-control ${!isFormValid && servingType.name === "" ? "is-invalid" : ""}`}
                     value={servingType.name}
                     onChange={(e) => {
                       handleInputChange("name", e.target.value);
                       setIsFormValid(true);
                     }}
                   />
-                  {!isFormValid && (
+                  {!isFormValid && servingType.name === "" ? (
                     <div className="invalid-feedback">
                       Nama harus diisi
                     </div>
-                  )}
+                  ) : null}
                 </div>
                 <label>Status Aktif: </label>
                 <div class="form-group">

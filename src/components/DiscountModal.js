@@ -207,18 +207,18 @@ export const DiscountModal = ({
                   <input
                     type="text"
                     placeholder="Code diskon"
-                    class={`form-control ${isFormValid ? "" : "is-invalid"}`}
+                    class={`form-control ${!isFormValid && discount.code === "" ? "is-invalid" : ""}`}
                     value={discount.code}
                     onChange={(e) => {
                       handleInputChange("code", e.target.value);
                       setIsFormValid(true);
                     }}
                   />
-                  {!isFormValid && (
+                  {!isFormValid && discount.code === "" ? (
                     <div className="invalid-feedback">
                       Code diskon harus diisi
                     </div>
-                  )}
+                  ) : null}
                 </div>
                 <label>Tanggal mulai diskon: </label>
                 <div className="form-group">
@@ -287,7 +287,7 @@ export const DiscountModal = ({
                   <input
                     type="number"
                     placeholder="Nilai discount"
-                    class={`form-control ${isFormValid ? "" : "is-invalid"}`}
+                    class={`form-control ${!isFormValid && discount.value === "" ? "is-invalid" : ""}`}
                     value={discount.value}
                     onChange={(e) => {
                       handleInputChange("value", e.target.value);
@@ -295,11 +295,11 @@ export const DiscountModal = ({
                     }}
                     max={discount.is_percent !== "0" ? 100 : undefined}
                   />
-                  {!isFormValid && (
+                  {!isFormValid && discount.value === "" ? (
                     <div className="invalid-feedback">
                       Nilai diskon harus diisi
                     </div>
-                  )}
+                  ) : null}
                 </div>
                 <label>Minimal pembelian: </label>
                 <div class="form-group">
