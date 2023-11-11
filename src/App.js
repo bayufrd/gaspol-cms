@@ -11,6 +11,7 @@ import Discount from "./components/Discount";
 import Profile from "./components/Profile";
 import Report from "./components/Report";
 import ServingType from "./components/ServingType";
+import Outlet from "./components/Outlet";
 import Swal from "sweetalert2";
 
 function App() {
@@ -73,11 +74,13 @@ function App() {
               <div id="main-content">
                 <Routes>
                   {userTokenData && userTokenData.menu_access.includes("1") && (
-                    <Route path="/" element={<User />} />
-                    // <Route
-                    //   path="/"
-                    //   element={<Outlet userTokenData={userTokenData} />}
-                    // />
+                    <>
+                      <Route path="/" element={<User />} />
+                      <Route
+                        path="/outlet"
+                        element={<Outlet />}
+                      />
+                    </>
                   )}
                   {userTokenData && userTokenData.menu_access.includes("2") && (
                     <Route
