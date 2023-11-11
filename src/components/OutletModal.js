@@ -41,7 +41,7 @@ export const OutletModal = ({
       fetchData();
     } else {
       setOutlet(initialOutletState);
-      setIsFormValid(true)
+      setIsFormValid(true);
     }
   }, [show, selectedOutletId, apiBaseUrl, initialOutletState]);
 
@@ -66,17 +66,15 @@ export const OutletModal = ({
 
     try {
       if (selectedOutletId) {
-        await axios.patch(
-          `${apiBaseUrl}/outlet/${selectedOutletId}`,
-          outlet
-        );
+        await axios.patch(`${apiBaseUrl}/outlet/${selectedOutletId}`, outlet);
         Swal.fire({
           icon: "success",
           title: "Success!",
           text: `Outlet berhasil diupdate: ${outlet.name}`,
         });
       } else {
-        const isOutletPinValid = outlet.pin.trim() !== "" && outlet.pin.length >= 5;
+        const isOutletPinValid =
+          outlet.pin.trim() !== "" && outlet.pin.length >= 5;
         if (!isOutletPinValid) {
           setIsFormValid(false);
           return;
@@ -112,6 +110,11 @@ export const OutletModal = ({
       await getOutlets();
       onClose();
     } catch (error) {
+      Swal.fire({
+        icon: "error",
+        title: "Gagal!",
+        text: error.response.data.message,
+      });
       console.error("Error deleting outlet:", error);
     }
   };
@@ -153,7 +156,9 @@ export const OutletModal = ({
                   <input
                     type="text"
                     placeholder="nama outlet"
-                    class={`form-control ${!isFormValid && outlet.name === "" ? "is-invalid" : ""}`}
+                    class={`form-control ${
+                      !isFormValid && outlet.name === "" ? "is-invalid" : ""
+                    }`}
                     value={outlet.name}
                     onChange={(e) => {
                       handleInputChange("name", e.target.value);
@@ -164,14 +169,16 @@ export const OutletModal = ({
                     <div className="invalid-feedback">
                       Nama outlet harus diisi
                     </div>
-                  ): null }
+                  ) : null}
                 </div>
                 <label>Alamat: </label>
                 <div class="form-group">
                   <input
                     type="text"
                     placeholder="address"
-                    class={`form-control ${!isFormValid && outlet.address === "" ? "is-invalid" : ""}`}
+                    class={`form-control ${
+                      !isFormValid && outlet.address === "" ? "is-invalid" : ""
+                    }`}
                     value={outlet.address}
                     onChange={(e) => {
                       handleInputChange("address", e.target.value);
@@ -184,23 +191,25 @@ export const OutletModal = ({
                 </div>
                 <label>Pin: </label>
                 <div class="form-group">
-                    <input
+                  <input
                     type="number"
                     placeholder="pin"
                     class={`form-control ${
-                        !isFormValid && outlet.pin.toString().length !== 5 ? "is-invalid" : "" 
+                      !isFormValid && outlet.pin.toString().length !== 5
+                        ? "is-invalid"
+                        : ""
                     }`}
                     value={outlet.pin}
                     onChange={(e) => {
-                        handleInputChange("pin", e.target.value);
-                        setIsFormValid(true);
+                      handleInputChange("pin", e.target.value);
+                      setIsFormValid(true);
                     }}
-                    />
-                    {!isFormValid && outlet.pin.toString().length !== 5 ? (
+                  />
+                  {!isFormValid && outlet.pin.toString().length !== 5 ? (
                     <div className="invalid-feedback">
-                        Pin harus diisi dan minimal 5 karakter!
+                      Pin harus diisi dan minimal 5 karakter!
                     </div>
-                    ) : null}
+                  ) : null}
                 </div>
               </div>
               {selectedOutletId && (
