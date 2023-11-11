@@ -116,6 +116,7 @@ export const UserModal = ({
           setIsFormValid(false);
           return;
         }
+        user.role = 2;
         await axios.post(`${apiBaseUrl}/user-management/`, user);
         Swal.fire({
           icon: "success",
