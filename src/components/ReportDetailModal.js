@@ -101,6 +101,18 @@ export const ReportDetailModal = ({ show, onClose, selectedTransactionId }) => {
                           {transaction.delivery_note || "-"}
                         </div>
                       </div>
+                      <div className="section-report">
+                        <div className="section-report-title">Subtotal:</div>
+                        <div className="section-report-data">
+                          {transaction.subtotal || "-"}
+                        </div>
+                      </div>
+                      <div className="section-report">
+                        <div className="section-report-title">Total:</div>
+                        <div className="section-report-data">
+                          {transaction.total || "-"}
+                        </div>
+                      </div>
                     </div>
                     <hr></hr>
                     <h4 style={{textAlign: "center", marginBottom: "3vh"}}>Cart</h4>
