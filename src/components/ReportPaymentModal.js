@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useReactToPrint } from "react-to-print";
+import Swal from "sweetalert2";
 
 export const ReportPaymentModal = ({
   show,
@@ -22,9 +23,9 @@ export const ReportPaymentModal = ({
   }
 
   const filePdfName =
-  startDate === endDate
-    ? `${userTokenData.outlet_name}-${startDate}`
-    : `${userTokenData.outlet_name}-${startDate}-${endDate}`;
+    startDate === endDate
+      ? `${userTokenData.outlet_name}-${startDate}`
+      : `${userTokenData.outlet_name}-${startDate}-${endDate}`;
 
   const handlePrintPDF = useReactToPrint({
     content: () => componentRef.current,
@@ -45,47 +46,56 @@ export const ReportPaymentModal = ({
           const paymentReportData = response.data.data;
           setPaymentReport(paymentReportData);
         } catch (error) {
+          if (error.response.data.code === 404) {
+            Swal.fire({
+              icon: "error",
+              title: "Data Tidak ditemukan!",
+              text: error.response.data.message,
+            });
+          }
           console.error("Error fetching payment report:", error);
         }
       };
       fetchData();
+    } else {
+      setPaymentReport(null);
     }
   }, [show, apiBaseUrl, userTokenData, startDate, endDate]);
 
   return (
     <>
-      <div
-        className={`modal fade text-left ${show ? "show" : ""}`}
-        id="inlineForm"
-        role="dialog"
-        aria-labelledby="myModalLabel33"
-        aria-modal={show ? "true" : undefined}
-        aria-hidden={show ? undefined : "true"}
-        style={show ? { display: "block" } : { display: "none" }}
-      >
-        <div
-          class="modal-report modal-dialog modal-dialog-centered modal-dialog-scrollable"
-          role="document"
-        >
-          <div class="modal-content">
-            <div class="modal-header">
-              <h4 class="modal-title" id="myModalLabel33">
-                "Laporan Kasir"
-              </h4>
-              <button
-                type="button"
-                class="close"
-                data-bs-dismiss="modal"
-                aria-label="Close"
-                onClick={onClose}
-              >
-                <i data-feather="x"></i>x
-              </button>
-            </div>
-            <div>
-              <div class="modal-body scrollable-content">
-                {paymentReport && (
-                  <>
+      {paymentReport && (
+        <>
+          <div
+            className={`modal fade text-left ${show ? "show" : ""}`}
+            id="inlineForm"
+            role="dialog"
+            aria-labelledby="myModalLabel33"
+            aria-modal={show ? "true" : undefined}
+            aria-hidden={show ? undefined : "true"}
+            style={show ? { display: "block" } : { display: "none" }}
+          >
+            <div
+              class="modal-report modal-dialog modal-dialog-centered modal-dialog-scrollable"
+              role="document"
+            >
+              <div class="modal-content">
+                <div class="modal-header">
+                  <h4 class="modal-title" id="myModalLabel33">
+                    "Laporan Kasir"
+                  </h4>
+                  <button
+                    type="button"
+                    class="close"
+                    data-bs-dismiss="modal"
+                    aria-label="Close"
+                    onClick={onClose}
+                  >
+                    <i data-feather="x"></i>x
+                  </button>
+                </div>
+                <div>
+                  <div class="modal-body scrollable-content">
                     <div ref={componentRef}>
                       <br></br>
                       <h4 style={{ textAlign: "center", marginBottom: "3vh" }}>
@@ -126,7 +136,12 @@ export const ReportPaymentModal = ({
                           <tr>
                             <th>Invoice Number</th>
                             <th>Payment Type</th>
-                            <th>Total Transaction</th>
+                            <th>Discount Code</th>
+                            <th>Discount Type</th>
+                            <th>Max Discount Value</th>
+                            <th>Discount Value</th>
+                            <th>Subtotal</th>
+                            <th>Total</th>
                             <th>Total Refund</th>
                             <th>Last Time For Refund</th>
                           </tr>
@@ -137,6 +152,17 @@ export const ReportPaymentModal = ({
                               <tr key={index}>
                                 <td>{transaction.invoice_number || "-"}</td>
                                 <td>{transaction.payment_type || "-"}</td>
+                                <td>{transaction.discount_code || "-"}</td>
+                                <td>
+                                  {transaction.discounts_is_percent === 0
+                                    ? "Potongan"
+                                    : transaction.discounts_is_percent === 1
+                                    ? "Persenan"
+                                    : "-"}
+                                </td>
+                                <td>{transaction.max_discount || "-"}</td>
+                                <td>{transaction.discounts_value || "-"}</td>
+                                <td>{transaction.subtotal || "-"}</td>
                                 <td>{transaction.total || "-"}</td>
                                 <td>{transaction.total_refund || "-"}</td>
                                 <td>{transaction.refund_updated_at || "-"}</td>
@@ -161,12 +187,12 @@ export const ReportPaymentModal = ({
                             <th>Serving Type Name</th>
                             <th>Menu Price</th>
                             <th>Quantity</th>
-                            <th>Total Price</th>
                             <th>Note Item</th>
                             <th>Discount Code</th>
                             <th>Discounts Value</th>
-                            <th>Discounted Price</th>
                             <th>Discounts Type</th>
+                            <th>Discounted Price</th>
+                            <th>Total Price</th>
                           </tr>
                         </thead>
                         <tbody>
@@ -179,18 +205,18 @@ export const ReportPaymentModal = ({
                                 <td>{cartDetail.serving_type_name || "-"}</td>
                                 <td>{cartDetail.price || "-"}</td>
                                 <td>{cartDetail.qty || "-"}</td>
-                                <td>{cartDetail.total_price || "-"}</td>
                                 <td>{cartDetail.note_item || "-"}</td>
                                 <td>{cartDetail.discount_code || "-"}</td>
                                 <td>{cartDetail.discounts_value || "-"}</td>
-                                <td>{cartDetail.discounted_price || "-"}</td>
                                 <td>
-                                  {cartDetail.discounts_is_percent
-                                    ? cartDetail.discounts_is_percent === 1
-                                      ? "Persen"
-                                      : "Bukan Persen"
+                                  {cartDetail.discounts_is_percent === 0
+                                    ? "Potongan"
+                                    : cartDetail.discounts_is_percent === 1
+                                    ? "Persen"
                                     : "-"}
                                 </td>
+                                <td>{cartDetail.discounted_price || "-"}</td>
+                                <td>{cartDetail.total_price || "-"}</td>
                               </tr>
                             )
                           )}
@@ -206,49 +232,51 @@ export const ReportPaymentModal = ({
                       {paymentReport.refund && paymentReport.refund[0] ? (
                         <>
                           <table className="table table-striped">
-                        <thead>
-                          <tr>
-                            <th>Menu Name</th>
-                            <th>Varian</th>
-                            <th>Menu Price</th>
-                            <th>Quantity Refund Item</th>
-                            <th>Total Refund Price</th>
-                            <th>Refund Reason Item</th>
-                            <th>Serving Type Name</th>
-                            <th>Note Item</th>
-                            <th>Discount Code</th>
-                            <th>Discounts Value</th>
-                            <th>Discounted Price</th>
-                            <th>Discounts Type</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {paymentReport.refund[0].map((refund, index) => (
-                            <tr key={index}>
-                              <td>{refund.menu_name || "-"}</td>
-                              <td>{refund.varian || "-"}</td>
-                              <td>{refund.menu_price || "-"}</td>
-                              <td>{refund.qty_refund_item || "-"}</td>
-                              <td>{refund.total_refund_price || "-"}</td>
-                              <td>{refund.refund_reason_item || "-"}</td>
-                              <td>{refund.serving_type_name || "-"}</td>
-                              <td>{refund.note_item || "-"}</td>
-                              <td>{refund.discount_code || "-"}</td>
-                              <td>{refund.discounts_value || "-"}</td>
-                              <td>{refund.discounted_price || "-"}</td>
-                              <td>
-                                {refund.discounts_is_percent
-                                  ? refund.discounts_is_percent === 1
-                                    ? "Persen"
-                                    : "Bukan Persen"
-                                  : "-"}
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
+                            <thead>
+                              <tr>
+                                <th>Menu Name</th>
+                                <th>Varian</th>
+                                <th>Menu Price</th>
+                                <th>Quantity Refund Item</th>
+                                <th>Refund Reason Item</th>
+                                <th>Serving Type Name</th>
+                                <th>Note Item</th>
+                                <th>Discount Code</th>
+                                <th>Discounts Value</th>
+                                <th>Discounts Type</th>
+                                <th>Discounted Price</th>
+                                <th>Total Refund Price</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {paymentReport.refund[0].map((refund, index) => (
+                                <tr key={index}>
+                                  <td>{refund.menu_name || "-"}</td>
+                                  <td>{refund.varian || "-"}</td>
+                                  <td>{refund.menu_price || "-"}</td>
+                                  <td>{refund.qty_refund_item || "-"}</td>
+                                  <td>{refund.refund_reason_item || "-"}</td>
+                                  <td>{refund.serving_type_name || "-"}</td>
+                                  <td>{refund.note_item || "-"}</td>
+                                  <td>{refund.discount_code || "-"}</td>
+                                  <td>{refund.discounts_value || "-"}</td>
+                                  <td>
+                                    {refund.discounts_is_percent === 0
+                                      ? "Potongan"
+                                      : refund.discounts_is_percent === 1
+                                      ? "Persen"
+                                      : "-"}
+                                  </td>
+                                  <td>{refund.discounted_price || "-"}</td>
+                                  <td>{refund.total_refund_price || "-"}</td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
                         </>
-                      ) : <h6 style={{textAlign:"center"}}>Data Kosong</h6>}
+                      ) : (
+                        <h6 style={{ textAlign: "center" }}>Data Kosong</h6>
+                      )}
                     </div>
                     <hr></hr>
                     <div className="login-button">
@@ -260,25 +288,25 @@ export const ReportPaymentModal = ({
                         Print PDF
                       </button>
                     </div>
-                  </>
-                )}
-              </div>
-              <div class="modal-footer">
-                <button
-                  type="button"
-                  class="btn btn-light-secondary"
-                  data-bs-dismiss="modal"
-                  onClick={onClose}
-                >
-                  <i class="bx bx-x d-block d-sm-none"></i>
-                  <span class="d-none d-sm-block">Close</span>
-                </button>
+                  </div>
+                  <div class="modal-footer">
+                    <button
+                      type="button"
+                      class="btn btn-light-secondary"
+                      data-bs-dismiss="modal"
+                      onClick={onClose}
+                    >
+                      <i class="bx bx-x d-block d-sm-none"></i>
+                      <span class="d-none d-sm-block">Close</span>
+                    </button>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
-        </div>
-      </div>
-      <div className={show && `modal-backdrop fade show`}></div>
+          <div className={show && `modal-backdrop fade show`}></div>
+        </>
+      )}
     </>
   );
 };
