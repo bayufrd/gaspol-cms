@@ -37,6 +37,7 @@ export const DiscountModal = ({
   const endDateInputRef = useRef(null);
   const [startDate, setStartDate] = useState(discount.start_date || null);
   const [endDate, setEndDate] = useState(discount.end_date || null);
+  const [isDiscountValueValid, setIsDiscountValueValid] = useState(true);
 
   useEffect(() => {
     if (show && selectedDiscountId) {
@@ -63,7 +64,13 @@ export const DiscountModal = ({
       setStartDate(null);
       setEndDate(null);
     }
-  }, [show, selectedDiscountId, apiBaseUrl, initialDiscountState, userTokenData]);
+  }, [
+    show,
+    selectedDiscountId,
+    apiBaseUrl,
+    initialDiscountState,
+    userTokenData,
+  ]);
 
   useEffect(() => {
     let startDatePicker, endDatePicker;
@@ -112,14 +119,14 @@ export const DiscountModal = ({
     e.preventDefault();
 
     const isDiscountCodeValid = discount.code === "";
-    const isDiscountValueValid = discount.value === "";
-
+    const isDiscountValueValidForm = discount.value === "";
     if (
       isDiscountCodeValid ||
-      isDiscountValueValid ||
+      isDiscountValueValidForm ||
       startDate == null ||
       endDate == null
     ) {
+      console.log(isDiscountCodeValid ," " + " ", isDiscountValueValidForm, " " + " ", isDiscountValueValid);
       setIsFormValid(false);
       return;
     }
@@ -208,7 +215,9 @@ export const DiscountModal = ({
                   <input
                     type="text"
                     placeholder="Code diskon"
-                    class={`form-control ${!isFormValid && discount.code === "" ? "is-invalid" : ""}`}
+                    class={`form-control ${
+                      !isFormValid && discount.code === "" ? "is-invalid" : ""
+                    }`}
                     value={discount.code}
                     onChange={(e) => {
                       handleInputChange("code", e.target.value);
@@ -288,17 +297,33 @@ export const DiscountModal = ({
                   <input
                     type="number"
                     placeholder="Nilai discount"
-                    class={`form-control ${!isFormValid && discount.value === "" ? "is-invalid" : ""}`}
+                    class={`form-control ${
+                      (!isFormValid && discount.value === "") ||
+                      !isDiscountValueValid
+                        ? "is-invalid"
+                        : ""
+                    }`}
                     value={discount.value}
                     onChange={(e) => {
                       handleInputChange("value", e.target.value);
                       setIsFormValid(true);
+                      setIsDiscountValueValid(true);
+                      if (
+                        discount.is_percent === "1" &&
+                        e.target.value > 100
+                      ) {
+                        setIsDiscountValueValid(false);
+                      }
                     }}
-                    max={discount.is_percent !== "0" ? 100 : undefined}
                   />
                   {!isFormValid && discount.value === "" ? (
                     <div className="invalid-feedback">
                       Nilai diskon harus diisi
+                    </div>
+                  ) : null}
+                  {!isFormValid && !isDiscountValueValid ? (
+                    <div className="invalid-feedback">
+                      Nilai diskon tidak boleh lebih dari 100
                     </div>
                   ) : null}
                 </div>
@@ -331,18 +356,18 @@ export const DiscountModal = ({
                 </div>
               </div>
               <div class="modal-footer">
-              {selectedDiscountId && (
-                <div className="delete-modal">
-                  <button
-                    type="button"
-                    class="btn btn-danger rounded-pill"
-                    data-bs-dismiss="modal"
-                    onClick={() => setShowDeleteConfirmation(true)}
-                  >
-                    <span class="d-none d-sm-block">Hapus Dikson!</span>
-                  </button>
-                </div>
-              )}
+                {selectedDiscountId && (
+                  <div className="delete-modal">
+                    <button
+                      type="button"
+                      class="btn btn-danger rounded-pill"
+                      data-bs-dismiss="modal"
+                      onClick={() => setShowDeleteConfirmation(true)}
+                    >
+                      <span class="d-none d-sm-block">Hapus Dikson!</span>
+                    </button>
+                  </div>
+                )}
                 <button
                   type="button"
                   class="btn btn-light-secondary"

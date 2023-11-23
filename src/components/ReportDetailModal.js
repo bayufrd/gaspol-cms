@@ -68,10 +68,18 @@ export const ReportDetailModal = ({ show, onClose, selectedTransactionId }) => {
                     <div className="report-container">
                       <div className="section-report">
                         <div className="section-report-title">
-                          Receipt Number:
+                          Invoice Number:
                         </div>
                         <div className="section-report-data">
-                          {transaction.receipt_number}
+                          {transaction.invoice_number}
+                        </div>
+                      </div>
+                      <div className="section-report">
+                        <div className="section-report-title">
+                          Invoice Due Date:
+                        </div>
+                        <div className="section-report-data">
+                          {transaction.invoice_due_date}
                         </div>
                       </div>
                       <div className="section-report">

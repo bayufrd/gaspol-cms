@@ -37,6 +37,7 @@ export const MenuModal = ({
   const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
   const [initialMenuDetailsLength, setInitialMenuDetailsLength] = useState(0);
   const [showCustomPriceModal, setShowCustomPriceModal] = useState(false);
+  const [isImageChanged, setIsImageChanged] = useState(false);
 
   useEffect(() => {
     if (show && selectedMenuId) {
@@ -123,7 +124,13 @@ export const MenuModal = ({
       }
 
       if (selectedMenuId) {
-        if (fileState && fileState !== `${apiBaseUrl}/${menu.image_url}`) {
+        if (
+          fileState &&
+          setIsImageChanged &&
+          fileState[0] &&
+          fileState[0] !== `${apiBaseUrl}/${menu.image_url}` &&
+          !fileState[0].name.endsWith(".blob")
+        ) {
           formData.append("image", fileState[0]);
         }
         const response = await axios.patch(
@@ -238,7 +245,8 @@ export const MenuModal = ({
                       if (fileItems.length > 0) {
                         setFileState(
                           fileItems.map((fileItem) => fileItem.file)
-                        );
+                          );
+                          setIsImageChanged(true);
                       } else {
                         setFileState(null);
                       }
@@ -250,7 +258,9 @@ export const MenuModal = ({
                   <input
                     type="text"
                     placeholder="Nama Menu"
-                    class={`form-control ${!isFormValid && menu.name === "" ? "is-invalid" : ""}`}
+                    class={`form-control ${
+                      !isFormValid && menu.name === "" ? "is-invalid" : ""
+                    }`}
                     value={menu.name}
                     onChange={(e) => {
                       handleInputChange("name", e.target.value);
@@ -346,7 +356,9 @@ export const MenuModal = ({
                           <input
                             type="text"
                             className={`form-control ${
-                              !isFormValid && menuDetail.varian === "" ? "is-invalid" : ""
+                              !isFormValid && menuDetail.varian === ""
+                                ? "is-invalid"
+                                : ""
                             }`}
                             value={menuDetail.varian}
                             onChange={(e) =>
@@ -371,7 +383,9 @@ export const MenuModal = ({
                             <input
                               type="number"
                               className={`form-control ${
-                                !isFormValid && menuDetail.price === "" ? "is-invalid" : ""
+                                !isFormValid && menuDetail.price === ""
+                                  ? "is-invalid"
+                                  : ""
                               }`}
                               value={menuDetail.price}
                               onChange={(e) =>
@@ -382,7 +396,7 @@ export const MenuModal = ({
                                 )
                               }
                             />
-                            {!isFormValid  && menuDetail.price === "" ? (
+                            {!isFormValid && menuDetail.price === "" ? (
                               <div className="invalid-feedback">
                                 Harga harus diisi.
                               </div>

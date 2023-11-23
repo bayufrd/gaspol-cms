@@ -4,7 +4,7 @@ const Footer = () => {
   return (
     <div className="footer clearfix mb-0 text-muted">
       <div className="float-start">
-        <p>2023 &copy; Akhari Tech</p>
+        <p>2023 © Akhari Tech x Dastrevas</p>
       </div>
       {/* <div className="float-end">
                     <p>
