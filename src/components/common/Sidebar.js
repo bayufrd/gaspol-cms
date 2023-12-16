@@ -65,6 +65,22 @@ const Sidebar = ({ onToggleSidebar, isOpen, userTokenData }) => {
                 </Link>
               </li>
             )}
+            {userTokenData.menu_access.includes("6") && (
+              <li class="sidebar-item">
+                <Link to="/ingredient-order" class="sidebar-link">
+                  <i className="bi bi-clipboard-check"></i>
+                  <span>Ingredients Order</span>
+                </Link>
+              </li>
+            )}
+            {userTokenData.role === "Warehouse" && (
+              <li class="sidebar-item">
+                <Link to="/ingredient" class="sidebar-link">
+                    <i className="bi bi-basket"></i>
+                  <span>Ingredients</span>
+                </Link>
+              </li>
+            )}
           </ul>
         </div>
       </div>

@@ -31,6 +31,7 @@ export const UserModal = ({
     discount: false,
     report: false,
     serving_type: false,
+    ingredients_order: false,
   });
 
   const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
@@ -50,6 +51,7 @@ export const UserModal = ({
             discount: menuAccessArray.includes("3"),
             report: menuAccessArray.includes("4"),
             serving_type: menuAccessArray.includes("5"),
+            ingredients_order: menuAccessArray.includes("6"),
           });
         } catch (error) {
           console.error("Error fetching user:", error);
@@ -63,6 +65,7 @@ export const UserModal = ({
         discount: false,
         report: false,
         serving_type: false,
+        ingredients_order: false,
       });
     }
   }, [show, selectedUserId, apiBaseUrl, initialUserState]);
@@ -97,6 +100,7 @@ export const UserModal = ({
     if (menuAccess.discount) selectedMenuAccess.push("3");
     if (menuAccess.report) selectedMenuAccess.push("4");
     if (menuAccess.serving_type) selectedMenuAccess.push("5");
+    if (menuAccess.ingredients_order) selectedMenuAccess.push("6");
     user.menu_access = selectedMenuAccess.join(",");
 
     try {
@@ -306,6 +310,18 @@ export const UserModal = ({
                   />
                   <label class="form-check-label" for="discountCheckbox">
                     Serving Type
+                  </label>
+                </div>
+                <div class="form-check">
+                  <input
+                    type="checkbox"
+                    class="form-check-input"
+                    id="discountCheckbox"
+                    checked={menuAccess.ingredients_order}
+                    onChange={() => handleCheckboxChange("ingredients_order")}
+                  />
+                  <label class="form-check-label" for="discountCheckbox">
+                    Ingredients Order
                   </label>
                 </div>
               </div>

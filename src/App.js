@@ -13,6 +13,7 @@ import Report from "./components/Report";
 import ServingType from "./components/ServingType";
 import Outlet from "./components/Outlet";
 import Swal from "sweetalert2";
+import Ingredient from "./components/Ingredient";
 
 function App() {
   const [isSidebarOpen, setSidebarOpen] = useState(false);
@@ -105,6 +106,18 @@ function App() {
                       path="/serving-type"
                       element={<ServingType userTokenData={userTokenData} />}
                     />
+                  )}
+                  {userTokenData && userTokenData.role === "Warehouse" && (
+                   <>
+                    <Route
+                      path="/ingredient"
+                      element={<Ingredient />}
+                    />
+                    <Route
+                      path="/"
+                      element={<Ingredient />}
+                    />
+                  </>
                   )}
                   <Route
                     path="/profile"
