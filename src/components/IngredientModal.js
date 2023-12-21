@@ -22,7 +22,9 @@ export const IngredientModal = ({
       ingredient_type_id: 1,
       ingredient_unit_type_id: 1,
       storage_location_warehouse_id: 1,
+      storage_location_outlet: 1,
       ingredient_access: "",
+      order_quantity: 0,
     }),
     []
   );
@@ -172,7 +174,7 @@ export const IngredientModal = ({
             </div>
             <div>
               <div class="modal-body scrollable-content">
-                <label>Nama: </label>
+                <label>Name: </label>
                 <div class="form-group">
                   <input
                     type="text"
@@ -206,6 +208,18 @@ export const IngredientModal = ({
                         </option>
                       ))}
                   </select>
+                </div>
+                <label>Order Quantity: </label>
+                <div class="form-group">
+                  <input
+                    type="number"
+                    placeholder="Order Quantity"
+                    class={'form-control'}
+                    value={ingredient.order_quantity}
+                    onChange={(e) => {
+                      handleInputChange("order_quantity", e.target.value);
+                    }}
+                  />
                 </div>
                 <label>Unit Type:</label>
                 <div className="form-group">
@@ -256,6 +270,19 @@ export const IngredientModal = ({
                     </label>
                   </div>
                 ))}
+                </div>
+                <label>Outlet Storage Location : </label>
+                <div class="form-group">
+                  <select
+                    class="choices form-select"
+                    value={ingredient.storage_location_outlet}
+                    onChange={(e) => {
+                      handleInputChange("storage_location_outlet", e.target.value);
+                    }}
+                  >
+                    <option value="1">Kitchen</option>
+                    <option value="0">Bar</option>
+                  </select>
                 </div>
               </div>
               <div class="modal-footer">

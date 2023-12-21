@@ -14,6 +14,7 @@ import ServingType from "./components/ServingType";
 import Outlet from "./components/Outlet";
 import Swal from "sweetalert2";
 import Ingredient from "./components/Ingredient";
+import IngredientOrderList from "./components/IngredientOrderList";
 
 function App() {
   const [isSidebarOpen, setSidebarOpen] = useState(false);
@@ -107,17 +108,23 @@ function App() {
                       element={<ServingType userTokenData={userTokenData} />}
                     />
                   )}
+                  {userTokenData && userTokenData.menu_access.includes("6") && (
+                    <Route
+                      path="/ingredient-order"
+                      element={<IngredientOrderList userTokenData={userTokenData} />}
+                    />
+                  )}
                   {userTokenData && userTokenData.role === "Warehouse" && (
-                   <>
-                    <Route
-                      path="/ingredient"
-                      element={<Ingredient />}
-                    />
-                    <Route
-                      path="/"
-                      element={<Ingredient />}
-                    />
-                  </>
+                    <>
+                      <Route
+                        path="/ingredient"
+                        element={<Ingredient />}
+                      />
+                      <Route
+                        path="/"
+                        element={<Ingredient />}
+                      />
+                    </>
                   )}
                   <Route
                     path="/profile"

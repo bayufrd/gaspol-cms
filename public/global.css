@@ -31,7 +31,8 @@
 }
 
 .card-body {
-    overflow-x: auto; /* Aktifkan scroll horizontal jika diperlukan */
+    overflow-x: auto;
+    /* Aktifkan scroll horizontal jika diperlukan */
 }
 
 .fade {
@@ -40,7 +41,8 @@
 
 @media (min-width: 981px) {
     img.w-100 {
-        max-width: 300px !important; /* New width for screens wider than 980px */
+        max-width: 300px !important;
+        /* New width for screens wider than 980px */
     }
 }
 
@@ -67,10 +69,10 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    border: 1px solid #ccc; 
-    border-radius: 10px; 
-    box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.2); 
-    background-color: #fff; 
+    border: 1px solid #ccc;
+    border-radius: 10px;
+    box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.2);
+    background-color: #fff;
     padding: 2rem;
 }
 
@@ -119,4 +121,31 @@
 
 .section-report-data {
     width: 50%;
+}
+
+.row-nav {
+    --bs-gutter-x: 0;
+}
+
+.card-nav {
+    margin-bottom: 0;
+    overflow: visible;
+    height: 60px;
+    width: 200px;
+    margin-right: 10px;
+}
+
+@media (max-width: 725px) {
+    .card-nav {
+        width: 100px;
+    }
+
+    .card-nav .card-header {
+        padding-left: 0;
+        padding-right: 0;
+    }
+}
+
+.full-height {
+    overflow: hidden;
 }
