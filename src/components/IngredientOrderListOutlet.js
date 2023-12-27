@@ -48,6 +48,7 @@ const IngredientOrderListOutlet = ({ userTokenData }) => {
                                         <th rowspan="1" colspan="2" class="px-2 text-center fw-bold">Nyah Tea</th>
                                     </tr>
                                     <tr>
+                                        {/* this cell show when order list have 2 object where have same outlet_id and then split by storage_location_outlet */}
                                         <th class="px-2 text-center">Kitchen</th>
                                         <th class="px-2 text-center">Bar</th>
                                         <th class="px-2 text-center">Kitchen</th>
@@ -165,6 +166,32 @@ const IngredientOrderListOutlet = ({ userTokenData }) => {
                                     <tr>
                                         <td class="px-2 text-center fw-bold">
                                             Rosemary
+                                        </td>
+                                        <td class="px-2 text-center bg-light">
+                                            
+                                        </td>
+                                        <td class="px-2 text-center bg-light">
+                                            
+                                        </td>
+                                        <td class="px-2 text-center bg-light">
+                                            
+                                        </td>
+                                        <td class="px-2 text-center">
+                                            3 PCS
+                                        </td>
+                                        <td class="px-2 text-center bg-light">
+                                            
+                                        </td>
+                                        <td class="px-2 text-center bg-light">
+                                            
+                                        </td>
+                                        <td class="px-2 text-center">
+                                            3 PCS
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="px-2 text-center fw-bold">
+                                            Robusta
                                         </td>
                                         <td class="px-2 text-center bg-light">
                                             
