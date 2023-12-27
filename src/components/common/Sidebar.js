@@ -74,12 +74,20 @@ const Sidebar = ({ onToggleSidebar, isOpen, userTokenData }) => {
               </li>
             )}
             {userTokenData.role === "Warehouse" && (
-              <li class="sidebar-item">
-                <Link to="/ingredient" class="sidebar-link">
-                    <i className="bi bi-basket"></i>
-                  <span>Ingredients</span>
-                </Link>
-              </li>
+              <>
+                <li class="sidebar-item">
+                  <Link to="/ingredient" class="sidebar-link">
+                      <i className="bi bi-basket"></i>
+                    <span>Ingredients</span>
+                  </Link>
+                </li>
+                <li class="sidebar-item">
+                  <Link to="/ingredient-order-outlet" class="sidebar-link">
+                      <i className="bi bi-basket"></i>
+                    <span>Ingredients Order Outlet</span>
+                  </Link>
+                </li>
+              </>
             )}
           </ul>
         </div>

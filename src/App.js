@@ -15,6 +15,7 @@ import Outlet from "./components/Outlet";
 import Swal from "sweetalert2";
 import Ingredient from "./components/Ingredient";
 import IngredientOrderList from "./components/IngredientOrderList";
+import IngredientOrderListOutlet from "./components/IngredientOrderListOutlet";
 
 function App() {
   const [isSidebarOpen, setSidebarOpen] = useState(false);
@@ -117,12 +118,16 @@ function App() {
                   {userTokenData && userTokenData.role === "Warehouse" && (
                     <>
                       <Route
+                        path="/"
+                        element={<Ingredient />}
+                      />
+                      <Route
                         path="/ingredient"
                         element={<Ingredient />}
                       />
                       <Route
-                        path="/"
-                        element={<Ingredient />}
+                        path="/ingredient-order-outlet"
+                        element={<IngredientOrderListOutlet />}
                       />
                     </>
                   )}
