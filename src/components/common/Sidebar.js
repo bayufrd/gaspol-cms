@@ -35,7 +35,7 @@ const Sidebar = ({ onToggleSidebar, isOpen, userTokenData }) => {
             )}
             {userTokenData.menu_access.includes("2") && (
               <li class="sidebar-item">
-                <Link to="/" class="sidebar-link">
+                <Link to="/menu" class="sidebar-link">
                   <i className="bi bi-cup-straw"></i>
                   <span>Management Menus</span>
                 </Link>

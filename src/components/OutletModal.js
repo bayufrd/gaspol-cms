@@ -17,6 +17,9 @@ export const OutletModal = ({
       name: "",
       address: "",
       pin: "",
+      footer: "",
+      is_kitchen_bar_merged: 1, 
+      phone_number: "",
     }),
     []
   );
@@ -189,6 +192,19 @@ export const OutletModal = ({
                     <div className="invalid-feedback">Alamat harus diisi</div>
                   ) : null}
                 </div>
+                <label>Phone Number: </label>
+                <div class="form-group">
+                  <input
+                    type="text"
+                    placeholder="phone number"
+                    className="form-control"
+                    value={outlet.phone_number}
+                    onChange={(e) => {
+                      handleInputChange("phone_number", e.target.value);
+                      setIsFormValid(true);
+                    }}
+                  />
+                </div>
                 <label>Pin: </label>
                 <div class="form-group">
                   <input
@@ -210,6 +226,28 @@ export const OutletModal = ({
                       Pin harus diisi dan minimal 5 karakter!
                     </div>
                   ) : null}
+                </div>
+                <label>Kitchen & Bar Gabung: </label>
+                <div class="form-group">
+                  <select
+                    class="choices form-select"
+                    value={outlet.is_kitchen_bar_merged}
+                    onChange={(e) => {
+                      handleInputChange("is_kitchen_bar_merged", e.target.value);
+                    }}
+                  >
+                    <option value="1">Ya</option>
+                    <option value="0">Tidak</option>
+                  </select>
+                </div>
+                <label>Footer: </label>
+                <div class="form-group">
+                  <textarea
+                    placeholder="footer"
+                    class="form-control"
+                    value={outlet.footer}
+                    onChange={(e) => handleInputChange("footer", e.target.value)}
+                  ></textarea>
                 </div>
               </div>
               {selectedOutletId && (

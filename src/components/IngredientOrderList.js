@@ -1,5 +1,6 @@
     import React, { useState, useEffect } from "react";
     import axios from "axios";
+    import Swal from "sweetalert2";
     const apiBaseUrl = process.env.REACT_APP_API_BASE_URL;
 
     const IngredientOrderList = ({ userTokenData }) => {
@@ -9,6 +10,7 @@
         const [ingredientOrderListDetails, setIngredientOrderListDetails] = useState([]);
         const [ingredientOrderBarListDetails, setIngredientOrderBarListDetails] = useState([]);
         const [displayStorageOutletType, setDisplayStorageOutletType] = useState(0);
+        const [dateTimeFormatNow, setDateTimeFormatNow] = useState("");
 
         useEffect(() => {
             getOrderList();
@@ -25,6 +27,7 @@
             setIngredientOrderBarListDetails(response.data.data.ingredient_order_bar_list_details);
             setIngredientTypes(response.data.data.ingredient_types);
             setIngredientUnitTypes(response.data.data.ingredient_unit_types);
+            setDateTimeFormatNow(response.data.data.date_time_now);
         };
 
         const handleDisplayStorageOutletTypeChange = (type) => {
@@ -86,9 +89,13 @@
                     })),
                 };
 
-                const response = await axios.patch(`${apiBaseUrl}/ingredient-order`, payload);
+               await axios.patch(`${apiBaseUrl}/ingredient-order`, payload);
 
-                console.log("Data saved successfully:", response.data);
+                Swal.fire({
+                    icon: "success",
+                    title: "Success!",
+                    text: "Laporan bahan baku berhasil diubah!",
+                  });
             } catch (error) {
                 console.error("Failed to save data:", error.message);
             }
@@ -98,6 +105,8 @@
 
         return (
             <>
+                <h3 class="text-center">Laporan Bahan Baku {userTokenData.outlet_name}</h3>
+                <h5 class="text-center mb-4">{dateTimeFormatNow}</h5>
                 <div class="row match-height justify-content-center">
                     {ingredientOrderLists !== 0 && (
                         <div class="col-8">

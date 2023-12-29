@@ -86,10 +86,16 @@ function App() {
                     </>
                   )}
                   {userTokenData && userTokenData.menu_access.includes("2") && (
-                    <Route
+                   <>
+                     <Route
                       path="/"
                       element={<Menu userTokenData={userTokenData} />}
-                    />
+                      />
+                      <Route
+                        path="/menu"
+                        element={<Menu userTokenData={userTokenData} />}
+                      />
+                   </>
                   )}
                   {userTokenData && userTokenData.menu_access.includes("3") && (
                     <Route
@@ -110,10 +116,16 @@ function App() {
                     />
                   )}
                   {userTokenData && userTokenData.menu_access.includes("6") && (
-                    <Route
-                      path="/ingredient-order"
+                     <>
+                      <Route
+                      path="/"
                       element={<IngredientOrderList userTokenData={userTokenData} />}
-                    />
+                      />
+                      <Route
+                        path="/ingredient-order"
+                        element={<IngredientOrderList userTokenData={userTokenData} />}
+                      />
+                     </>
                   )}
                   {userTokenData && userTokenData.role === "Warehouse" && (
                     <>
