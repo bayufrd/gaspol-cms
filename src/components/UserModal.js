@@ -66,6 +66,7 @@ export const UserModal = ({
         report: false,
         serving_type: false,
         ingredients_order: false,
+        ingredients_report: false,
       });
     }
   }, [show, selectedUserId, apiBaseUrl, initialUserState]);
@@ -101,6 +102,7 @@ export const UserModal = ({
     if (menuAccess.report) selectedMenuAccess.push("4");
     if (menuAccess.serving_type) selectedMenuAccess.push("5");
     if (menuAccess.ingredients_order) selectedMenuAccess.push("6");
+    if (menuAccess.ingredients_report) selectedMenuAccess.push("7");
     user.menu_access = selectedMenuAccess.join(",");
 
     try {
@@ -322,6 +324,18 @@ export const UserModal = ({
                   />
                   <label class="form-check-label" for="discountCheckbox">
                     Ingredients Order
+                  </label>
+                </div>
+                <div class="form-check">
+                  <input
+                    type="checkbox"
+                    class="form-check-input"
+                    id="discountCheckbox"
+                    checked={menuAccess.ingredients_report}
+                    onChange={() => handleCheckboxChange("ingredients_report")}
+                  />
+                  <label class="form-check-label" for="discountCheckbox">
+                    Ingredients Report
                   </label>
                 </div>
               </div>
