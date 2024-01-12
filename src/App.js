@@ -16,6 +16,7 @@ import Swal from "sweetalert2";
 import Ingredient from "./components/Ingredient";
 import IngredientOrderList from "./components/IngredientOrderList";
 import IngredientOrderListOutlet from "./components/IngredientOrderListOutlet";
+import IngredientReport from "./components/IngredientReport";
 
 function App() {
   const [isSidebarOpen, setSidebarOpen] = useState(false);
@@ -126,6 +127,13 @@ function App() {
                         element={<IngredientOrderList userTokenData={userTokenData} />}
                       />
                      </>
+                  )}
+                  {userTokenData && userTokenData.menu_access.includes("7") && (
+                     
+                      <Route
+                        path="/ingredient-report"
+                        element={<IngredientReport userTokenData={userTokenData} />}
+                      />
                   )}
                   {userTokenData && userTokenData.role === "Warehouse" && (
                     <>
