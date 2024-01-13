@@ -4,7 +4,7 @@ import Swal from "sweetalert2";
 const apiBaseUrl = process.env.REACT_APP_API_BASE_URL;
 
 const IngredientReport = ({ userTokenData }) => {
-    const [ingredientOrderLists, setIngredientOrderLists] = useState([]);
+    const [ingredientOrderLists, setIngredientOrderLists] = useState({});
     const [ingredientOrderListDetails, setIngredientOrderListDetails] = useState([]);
     const [dateTimeFormatNow, setDateTimeFormatNow] = useState("");
     const [isEditing, setIsEditing] = useState(false);
@@ -32,37 +32,39 @@ const IngredientReport = ({ userTokenData }) => {
         setIsEditing(false);
     };
 
-    const handleChange = (field, value) => {
+    const handleChange = (updatedValues) => {
         setIngredientOrderLists(prevLists => ({
-          ...prevLists,
-          [field]: value,
+            ...prevLists,
+            ...updatedValues,
         }));
-      };
-      
-      const handleDetailChange = (detailId, field, value) => {
+    };
+
+    const handleDetailChange = (detailId, field, value) => {
+        const numericValue = parseFloat(value);
         setIngredientOrderListDetails(prevDetails =>
-          prevDetails.map(detail => {
-            if (detail.ingredient_order_list_detail_id === detailId) {
-              return {
-                ...detail,
-                [field]: value,
-              };
-            }
-            return detail;
-          })
+            prevDetails.map(detail => {
+                if (detail.ingredient_order_list_detail_id === detailId) {
+                    return {
+                        ...detail,
+                        [field]: numericValue,
+                    };
+                }
+                return detail;
+            })
         );
-      };
+    };
 
     const handleSaveButton = async () => {
         try {
+            const ingredientReportList = {
+                id: ingredientOrderLists.id,
+                kordinator_shift_pertama: ingredientOrderLists.kordinator_shift_pertama || '',
+                kordinator_shift_kedua: ingredientOrderLists.kordinator_shift_kedua || '',
+                checker_shift_pertama: ingredientOrderLists.checker_shift_pertama || '',
+                checker_shift_kedua: ingredientOrderLists.checker_shift_kedua || '',
+            }
             const payload = {
-                ingredient_order_lists: ingredientOrderLists.map(orderList => ({
-                    id: orderList.id,
-                    kordinator_shift_pertama: orderList.kordinator_shift_pertama || '',
-                    kordinator_shift_kedua: orderList.kordinator_shift_kedua || '',
-                    checker_shift_pertama: orderList.checker_shift_pertama || '',
-                    checker_shift_kedua: orderList.checker_shift_kedua || '',
-                })),
+                ingredient_order_lists: ingredientReportList,
                 ingredient_order_list_details: ingredientOrderListDetails.map(detail => ({
                     ingredient_order_list_detail_id: detail.ingredient_order_list_detail_id,
                     current_shift_pertama: detail.current_shift_pertama || 0,
@@ -70,12 +72,15 @@ const IngredientReport = ({ userTokenData }) => {
                     akhir_shift_pertama: detail.akhir_shift_pertama || 0,
                     tambahan_shift_kedua: detail.tambahan_shift_kedua || 0,
                     akhir_shift_kedua: detail.akhir_shift_kedua || 0,
+                    penjualan_shift_pertama: detail.penjualan_shift_pertama || 0,
+                    penjualan_shift_kedua: detail.penjualan_shift_kedua || 0,
                 })),
+                is_report: true,
             };
 
             await axios.patch(`${apiBaseUrl}/ingredient-order`, payload);
             setIsEditing(false);
-
+            getIngredientReport();
             Swal.fire({
                 icon: "success",
                 title: "Success!",
@@ -220,55 +225,55 @@ const IngredientReport = ({ userTokenData }) => {
                                             </tbody>
                                         </table>
                                         <table className="table">
-                                        <thead>
-                                            <tr>
-                                                <th class="col-3 text-center">KORDINATOR SHIFT 1</th>
-                                                <th class="col-3 text-center border-end">DICEK OLEH</th>
-                                                <th class="col-3 text-center">KORDINATOR SHIFT 2</th>
-                                                <th class="col-3 text-center">DICEK OLEH</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            <tr>
-                                                <td>
-                                                    <input
-                                                        type="text"
-                                                        value={ingredientOrderLists?.kordinator_shift_pertama || ""}
-                                                        class="form-control text-center"
-                                                        disabled={!isEditing}
-                                                        onChange={(e) => handleChange("kordinator_shift_pertama", e.target.value)}
-                                                    />
-                                                </td>
-                                                <td className="border-end">
-                                                    <input
-                                                        type="text"
-                                                        value={ingredientOrderLists?.checker_shift_pertama || ""}
-                                                        class="form-control text-center"
-                                                        disabled={!isEditing}
-                                                        onChange={(e) => handleChange("checker_shift_pertama", e.target.value)}
-                                                    />
-                                                </td>
-                                                <td>
-                                                    <input
-                                                        type="text"
-                                                        value={ingredientOrderLists?.kordinator_shift_kedua || ""}
-                                                        class="form-control text-center"
-                                                        disabled={!isEditing}
-                                                        onChange={(e) => handleChange("kordinator_shift_kedua", e.target.value)}
-                                                    />
-                                                </td>
-                                                <td>
-                                                    <input
-                                                        type="text"
-                                                        value={ingredientOrderLists?.checker_shift_kedua || ""}
-                                                        class="form-control text-center"
-                                                        disabled={!isEditing}
-                                                        onChange={(e) => handleChange("checker_shift_kedua", e.target.value)}
-                                                    />
-                                                </td>
-                                            </tr>
-                                        </tbody>
-                                    </table>
+                                            <thead>
+                                                <tr>
+                                                    <th class="col-3 text-center">KORDINATOR SHIFT 1</th>
+                                                    <th class="col-3 text-center border-end">DICEK OLEH</th>
+                                                    <th class="col-3 text-center">KORDINATOR SHIFT 2</th>
+                                                    <th class="col-3 text-center">DICEK OLEH</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr>
+                                                    <td>
+                                                        <input
+                                                            type="text"
+                                                            value={ingredientOrderLists?.kordinator_shift_pertama || ""}
+                                                            class="form-control text-center"
+                                                            disabled={!isEditing}
+                                                            onChange={(e) => handleChange({ kordinator_shift_pertama: e.target.value })}
+                                                        />
+                                                    </td>
+                                                    <td className="border-end">
+                                                        <input
+                                                            type="text"
+                                                            value={ingredientOrderLists?.checker_shift_pertama || ""}
+                                                            class="form-control text-center"
+                                                            disabled={!isEditing}
+                                                            onChange={(e) => handleChange({ checker_shift_pertama: e.target.value })}
+                                                        />
+                                                    </td>
+                                                    <td>
+                                                        <input
+                                                            type="text"
+                                                            value={ingredientOrderLists?.kordinator_shift_kedua || ""}
+                                                            class="form-control text-center"
+                                                            disabled={!isEditing}
+                                                            onChange={(e) => handleChange({ kordinator_shift_kedua: e.target.value })}
+                                                        />
+                                                    </td>
+                                                    <td>
+                                                        <input
+                                                            type="text"
+                                                            value={ingredientOrderLists?.checker_shift_kedua || ""}
+                                                            class="form-control text-center"
+                                                            disabled={!isEditing}
+                                                            onChange={(e) => handleChange({ checker_shift_kedua: e.target.value })}
+                                                        />
+                                                    </td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
                                     </div>
                                 </div>
                                 <div class="mb-3 d-flex justify-content-center">
@@ -284,7 +289,7 @@ const IngredientReport = ({ userTokenData }) => {
                                             <button
                                                 type="button"
                                                 className="btn btn-primary mb-1"
-                                            // onClick={handleSaveButton}
+                                                onClick={handleSaveButton}
                                             >
                                                 Simpan
                                             </button>
