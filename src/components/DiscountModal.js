@@ -266,7 +266,7 @@ export const DiscountModal = ({
                     </div>
                   )}
                 </div>
-                <label>Diskon Persen: </label>
+                <label>Tipe Diskon: </label>
                 <div class="form-group">
                   <select
                     class="choices form-select"
@@ -275,11 +275,11 @@ export const DiscountModal = ({
                       handleInputChange("is_percent", e.target.value);
                     }}
                   >
-                    <option value="1">Ya</option>
-                    <option value="0">Tidak</option>
+                    <option value="1">Persen</option>
+                    <option value="0">Nominal</option>
                   </select>
                 </div>
-                <label>Diskon untuk keranjang: </label>
+                <label>Diskon untuk: </label>
                 <div class="form-group">
                   <select
                     class="choices form-select"
@@ -288,8 +288,8 @@ export const DiscountModal = ({
                       handleInputChange("is_discount_cart", e.target.value);
                     }}
                   >
-                    <option value="1">Ya</option>
-                    <option value="0">Tidak</option>
+                    <option value="1">Keranjang</option>
+                    <option value="0">Peritem</option>
                   </select>
                 </div>
                 <label>Nilai discount: </label>
