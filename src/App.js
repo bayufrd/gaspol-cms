@@ -17,6 +17,7 @@ import Ingredient from "./components/Ingredient";
 import IngredientOrderList from "./components/IngredientOrderList";
 import IngredientOrderListOutlet from "./components/IngredientOrderListOutlet";
 import IngredientReport from "./components/IngredientReport";
+import PaymentType from "./components/PaymentType";
 
 function App() {
   const [isSidebarOpen, setSidebarOpen] = useState(false);
@@ -135,6 +136,13 @@ function App() {
                         element={<IngredientReport userTokenData={userTokenData} />}
                       />
                   )}
+                  {userTokenData && userTokenData.menu_access.includes("8") && (
+                     
+                     <Route
+                       path="/payment-type"
+                       element={<PaymentType userTokenData={userTokenData} />}
+                     />
+                 )}
                   {userTokenData && userTokenData.role === "Warehouse" && (
                     <>
                       <Route

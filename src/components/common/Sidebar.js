@@ -57,6 +57,22 @@ const Sidebar = ({ onToggleSidebar, isOpen, userTokenData }) => {
                 </Link>
               </li>
             )}
+            {userTokenData.menu_access.includes("8") && (
+              <li class="sidebar-item">
+                <Link to="/payment-type" class="sidebar-link">
+                  <i className="bi bi-bank"></i>
+                  <span>Payment Types</span>
+                </Link>
+              </li>
+            )}
+            {userTokenData.menu_access.includes("9") && (
+              <li class="sidebar-item">
+                <Link to="/payment-category" class="sidebar-link">
+                  <i className="bi bi-bank"></i>
+                  <span>Payment Categories</span>
+                </Link>
+              </li>
+            )}
             {userTokenData.menu_access.includes("4") && (
               <li class="sidebar-item">
                 <Link to="/report" class="sidebar-link">

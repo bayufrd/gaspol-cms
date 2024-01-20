@@ -32,6 +32,8 @@ export const UserModal = ({
     report: false,
     serving_type: false,
     ingredients_order: false,
+    ingredients_report: false,
+    payment_type: false,
   });
 
   const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
@@ -52,6 +54,8 @@ export const UserModal = ({
             report: menuAccessArray.includes("4"),
             serving_type: menuAccessArray.includes("5"),
             ingredients_order: menuAccessArray.includes("6"),
+            ingredients_report: menuAccessArray.includes("7"),
+            payment_type: menuAccessArray.includes("8"),
           });
         } catch (error) {
           console.error("Error fetching user:", error);
@@ -67,6 +71,7 @@ export const UserModal = ({
         serving_type: false,
         ingredients_order: false,
         ingredients_report: false,
+        payment_type: false,
       });
     }
   }, [show, selectedUserId, apiBaseUrl, initialUserState]);
@@ -103,6 +108,7 @@ export const UserModal = ({
     if (menuAccess.serving_type) selectedMenuAccess.push("5");
     if (menuAccess.ingredients_order) selectedMenuAccess.push("6");
     if (menuAccess.ingredients_report) selectedMenuAccess.push("7");
+    if (menuAccess.payment_type) selectedMenuAccess.push("8");
     user.menu_access = selectedMenuAccess.join(",");
 
     try {
@@ -312,6 +318,18 @@ export const UserModal = ({
                   />
                   <label class="form-check-label" for="discountCheckbox">
                     Serving Type
+                  </label>
+                </div>
+                <div class="form-check">
+                  <input
+                    type="checkbox"
+                    class="form-check-input"
+                    id="discountCheckbox"
+                    checked={menuAccess.payment_type}
+                    onChange={() => handleCheckboxChange("payment_type")}
+                  />
+                  <label class="form-check-label" for="discountCheckbox">
+                    Payment Type
                   </label>
                 </div>
                 <div class="form-check">
