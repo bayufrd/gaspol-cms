@@ -5,9 +5,13 @@ import { ReportPaymentModal } from "./ReportPaymentModal";
 import flatpickr from "flatpickr";
 import Swal from "sweetalert2";
 import "flatpickr/dist/flatpickr.min.css";
+import { Bar } from 'react-chartjs-2';
+import { CategoryScale, LinearScale } from 'chart.js';
+import Chart from 'chart.js/auto';
 const apiBaseUrl = process.env.REACT_APP_API_BASE_URL;
 
 const Report = ({ userTokenData }) => {
+  Chart.register(CategoryScale, LinearScale);
   const [reports, setReports] = useState([]);
   const [startDate, setStartDate] = useState(null);
   const [endDate, setEndDate] = useState(null);
@@ -19,6 +23,18 @@ const Report = ({ userTokenData }) => {
   const [selectedTransactionId, setSelectedTransactionId] = useState(null);
   const [isCashierReportEnabled, setIsCashierReportEnabled] = useState(false);
   const [showReportPaymentModal, setShowReportPaymentModal] = useState(false);
+  const [chartData, setChartData] = useState({
+    labels: [],
+    datasets: [
+      {
+        label: "Total Omset",
+        data: [],
+        backgroundColor: [" rgba(75, 192, 192, 1)"],
+        borderColor: ["rgba(53, 162, 235, 0.5)"],
+        borderWidth: 1,
+      },
+    ],
+  });
 
   useEffect(() => {
     getReports();
@@ -120,11 +136,44 @@ const Report = ({ userTokenData }) => {
           is_pending,
         },
       });
+      // Destroy existing chart if it exists
+      if (chartData.chartInstance) {
+        chartData.chartInstance.destroy();
+      }
 
       setReports(response.data.data);
+      setChartData(generateChartData(response.data.chart));
     } catch (error) {
       console.error("Gagal mengambil data laporan:", error);
     }
+  };
+
+  const generateChartData = (chartData) => {
+    const labels = chartData.map((entry) => entry.invoice_due_date);
+    const totalTurnoverData = chartData.map((entry) => entry.total_turnover);
+  
+    return {
+      labels: labels,
+      datasets: [
+        {
+          label: "Total Omset",
+          data: totalTurnoverData,
+          backgroundColor: ["rgba(75, 192, 192, 0.2)"],
+          borderColor: ["rgba(75, 192, 192, 1)"],
+          borderWidth: 1,
+        },
+      ],
+      scales: {
+        x: {
+          type: 'linear',
+          position: 'bottom',
+          title: {
+            display: true,
+            text: 'Invoice Due Date',
+          },
+        },
+      },
+    };
   };
 
   return (
@@ -205,6 +254,14 @@ const Report = ({ userTokenData }) => {
               </div>
             </div>
             <div class="card-body">
+
+              {/* Chart.js Bar Chart */}
+              <div className="container mb-4">
+                <div className="d-flex justify-content-center align-center" style={{ height: "30vh" }}>
+                  <Bar data={chartData} />
+                </div>
+              </div>
+
               <table class="table table-striped" id="table1">
                 <thead>
                   <tr>
