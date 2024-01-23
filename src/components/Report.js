@@ -150,16 +150,18 @@ const Report = ({ userTokenData }) => {
 
   const generateChartData = (chartData) => {
     const labels = chartData.map((entry) => entry.invoice_due_date);
-    const totalTurnoverData = chartData.map((entry) => entry.total_turnover);
-  
+    const totalTurnoverData = chartData.map((entry, index) => {
+      return index % 2 === 0
+        ? { totalTurnover: entry.total_turnover, color: 'rgba(53, 162, 235, 0.5)' }
+        : { totalTurnover: entry.total_turnover, color: 'rgba(255, 99, 132, 0.5)' };
+    });
     return {
       labels: labels,
       datasets: [
         {
           label: "Total Omset",
-          data: totalTurnoverData,
-          backgroundColor: ["rgba(75, 192, 192, 0.2)"],
-          borderColor: ["rgba(75, 192, 192, 1)"],
+          data: totalTurnoverData.map((entry) => entry.totalTurnover),
+          backgroundColor: totalTurnoverData.map((entry) => entry.color),
           borderWidth: 1,
         },
       ],
