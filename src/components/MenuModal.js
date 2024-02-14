@@ -96,7 +96,7 @@ export const MenuModal = ({
     });
   };
 
-  const handleSave = async (e) => {
+  const handleSaveMenuModal = async (e) => {
     e.preventDefault();
 
     // Validate input
@@ -457,7 +457,7 @@ export const MenuModal = ({
                   type="button"
                   class="btn btn-primary ml-1"
                   data-bs-dismiss="modal"
-                  onClick={handleSave}
+                  onClick={handleSaveMenuModal}
                 >
                   <i class="bx bx-check d-block d-sm-none"></i>
                   <span class="d-none d-sm-block">Submit</span>

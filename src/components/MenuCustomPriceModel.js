@@ -104,7 +104,7 @@ export const CustomPriceModal = ({
     setUpdatedCustomMenuPrice(updatedPrice);
   };
 
-  const handleSave = async (e) => {
+  const handleSaveCustomPrice = async (e) => {
     e.preventDefault();
 
     try {
@@ -225,7 +225,7 @@ export const CustomPriceModal = ({
                   type="button"
                   class="btn btn-primary ml-1"
                   data-bs-dismiss="modal"
-                  onClick={handleSave}
+                  onClick={handleSaveCustomPrice}
                 >
                   <i class="bx bx-check d-block d-sm-none"></i>
                   <span class="d-none d-sm-block">Submit</span>
