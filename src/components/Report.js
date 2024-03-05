@@ -13,12 +13,15 @@ const apiBaseUrl = process.env.REACT_APP_API_BASE_URL;
 const Report = ({ userTokenData }) => {
   Chart.register(CategoryScale, LinearScale);
   const [reports, setReports] = useState([]);
+  const [shifts, setShifts] = useState([]);
   const [startDate, setStartDate] = useState(null);
   const [endDate, setEndDate] = useState(null);
   const startDateInputRef = useRef(null);
   const endDateInputRef = useRef(null);
   const [isSuccess, setIsSuccess] = useState(false);
   const [isPending, setIsPending] = useState(false);
+  const [isShift, setIsShift] = useState(0);
+  const [selectedShift, setSelectedShift] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const [selectedTransactionId, setSelectedTransactionId] = useState(null);
   const [isCashierReportEnabled, setIsCashierReportEnabled] = useState(false);
@@ -94,6 +97,7 @@ const Report = ({ userTokenData }) => {
       },
     });
     setReports(response.data.data);
+    setShifts(response.data.list_shift);
   };
 
   const openModal = (transactionId) => {
@@ -106,6 +110,11 @@ const Report = ({ userTokenData }) => {
   };
 
   const openReportPaymentModal = () => {
+    if (isShift === 0 || isShift === "0" ) {
+      setSelectedShift(shifts.map(shift => shift.shift_number).join());
+    } else {
+      setSelectedShift(isShift);
+    }
     setShowReportPaymentModal(true);
   };
 
@@ -143,6 +152,7 @@ const Report = ({ userTokenData }) => {
 
       setReports(response.data.data);
       setChartData(generateChartData(response.data.chart));
+      setShifts(response.data.list_shift);
     } catch (error) {
       console.error("Gagal mengambil data laporan:", error);
     }
@@ -244,6 +254,26 @@ const Report = ({ userTokenData }) => {
                       <label for="checkbox2">Transaksi Pending </label>
                     </div>
                   </div>
+                  <div className="d-flex align-items-center ms-2">
+                    <div className="me-2">Shift:</div>
+                    <div>
+                      <select
+                        class="form-select"
+                        id="basicSelect"
+                        value={isShift}
+                        onChange={(e) => {
+                          setIsShift(e.target.value);
+                        }}
+                      >
+                        <option value="0">Semua</option>
+                        {shifts.map((shift) => (
+                          <option key={shift.shift_number} value={shift.shift_number}>
+                            {shift.shift_number}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
                 </div>
               </div>
               <div className="float-lg-end">
@@ -328,6 +358,8 @@ const Report = ({ userTokenData }) => {
         userTokenData={userTokenData}
         startDate={startDate}
         endDate={endDate}
+        shiftNumber={isShift}
+        selectedShift={selectedShift}
       />
     </div>
   );
