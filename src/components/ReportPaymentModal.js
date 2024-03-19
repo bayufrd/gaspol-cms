@@ -128,51 +128,58 @@ export const ReportPaymentModal = ({
                           : `"${startDateShift}" -- s/d -- "${endDateShift}"`}
                       </h5>
                       <hr></hr> 
-                      <h5 style={{ textAlign: "center", marginBottom: "3vh" }}>Rincian Shift</h5>
-
-                      <table className="table table-striped text-center">
-                        <thead>
-                          <th >Casher Name</th>
-                          <th>Actual Ending Cash</th>
-                          <th>Cash Difference</th>
-                          <th>Expected Ending Cash</th>
-                          <th>Total Discount</th>
-                          <th>Total Amount Shift</th>
-                          <th>Total Expense</th>
-                        </thead>
-                        <tbody>
-                          <td>{shiftDetails.casher_name || "-"}</td>
-                          <td>{shiftDetails.actual_ending_cash || "-"}</td>
-                          <td>{shiftDetails.cash_difference || "-"}</td>
-                          <td>{shiftDetails.expected_ending_cash || "-"}</td>
-                          <td>{shiftDetails.total_discount || "-"}</td>
-                          <td>{shiftDetails.total_amount || "-"}</td>
-                          <td>{expenditures.totalExpense ? expenditures.totalExpense : "-"}</td>
-                        </tbody>
-                      </table>
-                      <br></br>
-                      <hr></hr>
-                      <h5 style={{ textAlign: "center" }}>Rincian Expenditures</h5>
-                      <table className="table table-striped">
-                        <thead>
-                          <tr>
-                            <th>Description</th>
-                            <th>Nominal</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {expenditures.lists.map(
-                            (expense, index) => (
-                              <tr key={index}>
-                                <td>{expense.description || "-"}</td>
-                                <td>{expense.nominal || "-"}</td>
-                              </tr>
-                            )
+                      {shiftDetails && (
+                        <>
+                          <h5 style={{ textAlign: "center", marginBottom: "3vh" }}>Rincian Shift</h5>
+                          <table className="table table-striped text-center">
+                            <thead>
+                              <th >Casher Name</th>
+                              <th>Actual Ending Cash</th>
+                              <th>Cash Difference</th>
+                              <th>Expected Ending Cash</th>
+                              <th>Total Discount</th>
+                              <th>Total Amount Shift</th>
+                              <th>Total Expense</th>
+                            </thead>
+                            <tbody>
+                              <td>{shiftDetails.casher_name || "-"}</td>
+                              <td>{shiftDetails.actual_ending_cash || "-"}</td>
+                              <td>{shiftDetails.cash_difference || "-"}</td>
+                              <td>{shiftDetails.expected_ending_cash || "-"}</td>
+                              <td>{shiftDetails.total_discount || "-"}</td>
+                              <td>{shiftDetails.total_amount || "-"}</td>
+                              <td>{expenditures && expenditures.totalExpense ? expenditures.totalExpense : "-"}</td>
+                            </tbody>
+                          </table>
+                          {expenditures && (
+                            <>
+                              <br></br>
+                              <hr></hr>
+                              <h5 style={{ textAlign: "center" }}>Rincian Expenditures</h5>
+                              <table className="table table-striped">
+                                <thead>
+                                  <tr>
+                                    <th>Description</th>
+                                    <th>Nominal</th>
+                                  </tr>
+                                </thead>
+                                <tbody>
+                                  {expenditures.lists.map(
+                                    (expense, index) => (
+                                      <tr key={index}>
+                                        <td>{expense.description || "-"}</td>
+                                        <td>{expense.nominal || "-"}</td>
+                                      </tr>
+                                    )
+                                  )}
+                                </tbody>
+                              </table>
+                            </>
                           )}
-                        </tbody>
-                      </table>
-                      <br></br>
-                      <hr></hr>
+                          <br></br>
+                          <hr></hr>
+                        </>
+                      )}
                       <h5 style={{ textAlign: "center" }}>Rincian Laporan</h5>
                       <table className="table table-striped">
                         <thead>
