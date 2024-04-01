@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useReactToPrint } from "react-to-print";
+import { ReportDetailModal } from "./ReportDetailModal";
 import Swal from "sweetalert2";
 
 export const ReportPaymentModal = ({
@@ -10,7 +11,7 @@ export const ReportPaymentModal = ({
   startDate,
   endDate,
   shiftNumber,
-  selectedShift
+  selectedShift,
 }) => {
   const apiBaseUrl = process.env.REACT_APP_API_BASE_URL;
 
@@ -19,6 +20,12 @@ export const ReportPaymentModal = ({
   const [endDateShift, setEndDateShift] = useState(null);
   const [shiftDetails, setShiftDetails] = useState(null);
   const [expenditures, setExpenditures] = useState(null);
+  const [withOutDiscount, setWithOutDiscount] = useState(false);
+  const [withDiscountCart, setWithDiscountCart] = useState(false);
+  const [withDiscountPerItem, setWithDiscountPerItem] = useState(false);
+  const [discountType, setDiscountType] = useState(0);
+  const [selectedTransactionId, setSelectedTransactionId] = useState(null);
+  const [showDetailPaymentModal, setShowDetailPaymentModal] = useState(false);
   const componentRef = React.useRef();
 
   function toPascalCaseWithSpaces(text) {
@@ -77,8 +84,82 @@ export const ReportPaymentModal = ({
       fetchData();
     } else {
       setPaymentReport(null);
+      setShiftDetails(null);
+      setExpenditures(null);
+      setWithOutDiscount(false);
+      setWithDiscountCart(false);
+      setWithDiscountPerItem(false);
+      setDiscountType(0);
     }
-  }, [show, apiBaseUrl, userTokenData, startDate, endDate, shiftNumber, onClose]);
+  }, [
+    show,
+    apiBaseUrl,
+    userTokenData,
+    startDate,
+    endDate,
+    shiftNumber,
+    onClose,
+  ]);
+
+  const handleDiscountType = (
+    withOutDiscountCheck,
+    cartDiscountCheck,
+    perItemDiscountCheck
+  ) => {
+    let discountTypeShow = 0;
+    if (
+      (withOutDiscountCheck === false &&
+        cartDiscountCheck === false &&
+        perItemDiscountCheck === false) ||
+      (withOutDiscountCheck === true &&
+        cartDiscountCheck === true &&
+        perItemDiscountCheck === true)
+    ) {
+      discountTypeShow = 0;
+    } else if (
+      withOutDiscountCheck === true &&
+      cartDiscountCheck === false &&
+      perItemDiscountCheck === false
+    ) {
+      discountTypeShow = 1;
+    } else if (
+      withOutDiscountCheck === false &&
+      cartDiscountCheck === true &&
+      perItemDiscountCheck === false
+    ) {
+      discountTypeShow = 2;
+    } else if (
+      withOutDiscountCheck === false &&
+      cartDiscountCheck === false &&
+      perItemDiscountCheck === true
+    ) {
+      discountTypeShow = 3;
+    } else if (
+      withOutDiscountCheck === true &&
+      cartDiscountCheck === true &&
+      perItemDiscountCheck === false
+    ) {
+      discountTypeShow = 4;
+    } else if (
+      withOutDiscountCheck === true &&
+      cartDiscountCheck === false &&
+      perItemDiscountCheck === true
+    ) {
+      discountTypeShow = 5;
+    } else if (
+      withOutDiscountCheck === false &&
+      cartDiscountCheck === true &&
+      perItemDiscountCheck === true
+    ) {
+      discountTypeShow = 6;
+    }
+    setDiscountType(discountTypeShow);
+  };
+
+  const openReportPaymentDetail = (transactionId) => {
+    setSelectedTransactionId(transactionId);
+    setShowDetailPaymentModal(true);
+  };
 
   return (
     <>
@@ -91,7 +172,10 @@ export const ReportPaymentModal = ({
             aria-labelledby="myModalLabel33"
             aria-modal={show ? "true" : undefined}
             aria-hidden={show ? undefined : "true"}
-            style={show ? { display: "block" } : { display: "none" }}
+            style={{
+              display: show ? "block" : "none",
+              ...(showDetailPaymentModal ? { zIndex: "1039" } : {}),
+            }}
           >
             <div
               class="modal-report modal-dialog modal-dialog-centered modal-dialog-scrollable"
@@ -127,13 +211,17 @@ export const ReportPaymentModal = ({
                           ? `"${startDateShift}"`
                           : `"${startDateShift}" -- s/d -- "${endDateShift}"`}
                       </h5>
-                      <hr></hr> 
+                      <hr></hr>
                       {shiftDetails && (
                         <>
-                          <h5 style={{ textAlign: "center", marginBottom: "3vh" }}>Rincian Shift</h5>
+                          <h5
+                            style={{ textAlign: "center", marginBottom: "3vh" }}
+                          >
+                            Rincian Shift
+                          </h5>
                           <table className="table table-striped text-center">
                             <thead>
-                              <th >Casher Name</th>
+                              <th>Casher Name</th>
                               <th>Actual Ending Cash</th>
                               <th>Cash Difference</th>
                               <th>Expected Ending Cash</th>
@@ -145,17 +233,25 @@ export const ReportPaymentModal = ({
                               <td>{shiftDetails.casher_name || "-"}</td>
                               <td>{shiftDetails.actual_ending_cash || "-"}</td>
                               <td>{shiftDetails.cash_difference || "-"}</td>
-                              <td>{shiftDetails.expected_ending_cash || "-"}</td>
+                              <td>
+                                {shiftDetails.expected_ending_cash || "-"}
+                              </td>
                               <td>{shiftDetails.total_discount || "-"}</td>
                               <td>{shiftDetails.total_amount || "-"}</td>
-                              <td>{expenditures && expenditures.totalExpense ? expenditures.totalExpense : "-"}</td>
+                              <td>
+                                {expenditures && expenditures.totalExpense
+                                  ? expenditures.totalExpense
+                                  : "-"}
+                              </td>
                             </tbody>
                           </table>
                           {expenditures && (
                             <>
                               <br></br>
                               <hr></hr>
-                              <h5 style={{ textAlign: "center" }}>Rincian Expenditures</h5>
+                              <h5 style={{ textAlign: "center" }}>
+                                Rincian Expenditures
+                              </h5>
                               <table className="table table-striped">
                                 <thead>
                                   <tr>
@@ -164,14 +260,12 @@ export const ReportPaymentModal = ({
                                   </tr>
                                 </thead>
                                 <tbody>
-                                  {expenditures.lists.map(
-                                    (expense, index) => (
-                                      <tr key={index}>
-                                        <td>{expense.description || "-"}</td>
-                                        <td>{expense.nominal || "-"}</td>
-                                      </tr>
-                                    )
-                                  )}
+                                  {expenditures.lists.map((expense, index) => (
+                                    <tr key={index}>
+                                      <td>{expense.description || "-"}</td>
+                                      <td>{expense.nominal || "-"}</td>
+                                    </tr>
+                                  ))}
                                 </tbody>
                               </table>
                             </>
@@ -206,29 +300,106 @@ export const ReportPaymentModal = ({
                       <h4 style={{ textAlign: "center", marginBottom: "3vh" }}>
                         Semua Transaksi
                       </h4>
+                      <div className="d-flex justify-content-center gap-5">
+                        <div class="form-check">
+                          <div class="checkbox">
+                            <input
+                              type="checkbox"
+                              class="form-check-input"
+                              checked={withOutDiscount}
+                              onChange={() => {
+                                setWithOutDiscount(!withOutDiscount);
+                                handleDiscountType(!withOutDiscount, withDiscountCart, withDiscountPerItem);
+                              }}
+                            />
+                            <label for="checkbox2">Tanpa Diskon </label>
+                          </div>
+                        </div>
+                        <div class="form-check">
+                          <div class="checkbox">
+                            <input
+                              type="checkbox"
+                              class="form-check-input"
+                              checked={withDiscountCart}
+                              onChange={() => {
+                                setWithDiscountCart(!withDiscountCart);
+                                handleDiscountType(withOutDiscount, !withDiscountCart, withDiscountPerItem);
+                              }}
+                            />
+                            <label for="checkbox2">Diskon Keranjang</label>
+                          </div>
+                        </div>
+                        <div class="form-check">
+                          <div class="checkbox">
+                            <input
+                              type="checkbox"
+                              class="form-check-input"
+                              checked={withDiscountPerItem}
+                              onChange={() => {
+                                setWithDiscountPerItem(!withDiscountPerItem);
+                                handleDiscountType(withOutDiscount, withDiscountCart, !withDiscountPerItem);
+                              }}
+                            />
+                            <label for="checkbox2">Diskon Per-Item</label>
+                          </div>
+                        </div>
+                      </div>
                       <table className="table table-striped">
                         <thead>
                           <tr>
                             <th>Invoice Number</th>
                             <th>Payment Type</th>
+                            <th>Time to Make Payment</th>
                             <th>Discount Code</th>
                             <th>Discount Type</th>
+                            {/* <th>Discount Type</th>
                             <th>Max Discount Value</th>
-                            <th>Discount Value</th>
+                            <th>Discount Value</th> */}
                             <th>Subtotal</th>
                             <th>Total</th>
                             <th>Total Refund</th>
                             <th>Last Time For Refund</th>
+                            <th>Actions</th>
                           </tr>
                         </thead>
                         <tbody>
-                          {paymentReport.transactions.map(
+                          {paymentReport.transactions
+                          .filter(transaction => {
+                            if (discountType === 0) {
+                              return true;
+                            } else if (discountType === 1) {
+                              return transaction.discount_type === 0;
+                            } else if (discountType === 2) {
+                              return transaction.discount_type === 1;
+                            } else if (discountType === 3) {
+                              return transaction.discount_type === 2;
+                            } else if (discountType === 4) {
+                              return transaction.discount_type === 0 || transaction.discount_type === 1;
+                            } else if (discountType === 5) {
+                              return transaction.discount_type === 0 || transaction.discount_type === 2;
+                            } else if (discountType === 6) {
+                              return transaction.discount_type === 1 || transaction.discount_type === 2;
+                            } else {
+                              return false;
+                            }
+                          })
+                          .map(
                             (transaction, index) => (
                               <tr key={index}>
                                 <td>{transaction.invoice_number || "-"}</td>
                                 <td>{transaction.payment_type || "-"}</td>
-                                <td>{transaction.discount_code || "-"}</td>
+                                <td>{transaction.invoice_due_date || "-"}</td>
                                 <td>
+                                  {transaction.transaction_discount_code || "-"}
+                                </td>
+                                <td>
+                                  {transaction.discount_type === 1
+                                    ? "Discount Cart"
+                                    : transaction.discount_type === 2
+                                    ? "Discount Per-Item"
+                                    : "-"}
+                                </td>
+                                {/* <td>
                                   {transaction.discounts_is_percent === 0
                                     ? "Potongan"
                                     : transaction.discounts_is_percent === 1
@@ -236,11 +407,21 @@ export const ReportPaymentModal = ({
                                     : "-"}
                                 </td>
                                 <td>{transaction.max_discount || "-"}</td>
-                                <td>{transaction.discounts_value || "-"}</td>
+                                <td>{transaction.discounts_value || "-"}</td> */}
                                 <td>{transaction.subtotal || "-"}</td>
                                 <td>{transaction.total || "-"}</td>
                                 <td>{transaction.total_refund || "-"}</td>
                                 <td>{transaction.refund_updated_at || "-"}</td>
+                                <td>
+                                  <div className="action-buttons">
+                                    <div
+                                      className="buttons btn info btn-primary"
+                                      onClick={() => openReportPaymentDetail(transaction.transaction_id)}
+                                    >
+                                      <i className="bi bi-eye"></i>
+                                    </div>
+                                  </div>
+                                </td>
                               </tr>
                             )
                           )}
@@ -380,6 +561,11 @@ export const ReportPaymentModal = ({
             </div>
           </div>
           <div className={show && `modal-backdrop fade show`}></div>
+          <ReportDetailModal
+            show={showDetailPaymentModal}
+            onClose={() => setShowDetailPaymentModal(false)}
+            selectedTransactionId={selectedTransactionId}
+          />
         </>
       )}
     </>

@@ -110,8 +110,15 @@ const Report = ({ userTokenData }) => {
   };
 
   const openReportPaymentModal = () => {
-    if (isShift === 0 || isShift === "0" ) {
-      setSelectedShift(shifts.map(shift => shift.shift_number).join());
+    const shiftNumber = parseInt(isShift);
+    if (shiftNumber === 0) {
+      if(shifts.length > 0) {
+        setSelectedShift(shifts.map(shift => shift.shift_number).join(", "));
+      } else {
+        setSelectedShift(`"Belum ada shift"`);
+      }
+    } else if (shiftNumber > 0) {
+      setSelectedShift(shiftNumber);
     } else {
       setSelectedShift(isShift);
     }
@@ -124,6 +131,36 @@ const Report = ({ userTokenData }) => {
         icon: "error",
         title: "Gagal",
         text: "Silakan pilih kedua tanggal (mulai dan akhir) untuk melakukan pencarian.",
+      });
+      return;
+    }
+
+    // Convert the input dates to Date objects
+    const startDateObj = new Date(startDate);
+    const endDateObj = new Date(endDate);
+
+    // Check if startDate is greater than endDate
+    if (startDateObj > endDateObj) {
+      Swal.fire({
+        icon: "error",
+        title: "Gagal",
+        text: "Tanggal mulai tidak boleh lebih besar dari tanggal akhir!",
+      });
+      return;
+    }
+
+    // Calculate the difference in milliseconds between the two dates
+    const diffMilliseconds = endDateObj - startDateObj;
+
+    // Convert the difference to days
+    const diffDays = Math.ceil(diffMilliseconds / (1000 * 60 * 60 * 24));
+
+    // Check if the difference between the two dates is more than 10 days
+    if (diffDays > 10) {
+      Swal.fire({
+        icon: "error",
+        title: "Gagal",
+        text: "Pemilihan tanggal tidak bisa melebihi 10 hari!",
       });
       return;
     }
@@ -149,7 +186,7 @@ const Report = ({ userTokenData }) => {
       if (chartData.chartInstance) {
         chartData.chartInstance.destroy();
       }
-
+      setIsShift(0);
       setReports(response.data.data);
       setChartData(generateChartData(response.data.chart));
       setShifts(response.data.list_shift);
@@ -298,17 +335,18 @@ const Report = ({ userTokenData }) => {
                 <thead>
                   <tr>
                     <th>No</th>
+                    <th>Status</th>
                     <th>Receipt Number</th>
                     <th>Customer Name</th>
                     <th>Customer Seat</th>
+                    <th>Total Transaction</th>
                     <th>Customer Cash</th>
                     <th>Customer Change</th>
                     <th>Payment Type</th>
-                    <th>Delivery Type</th>
-                    <th>Delivery Note</th>
+                    {/* <th>Delivery Type</th>
+                    <th>Delivery Note</th> */}
                     <th>Invoice Number</th>
-                    <th>Invoice Due Date</th>
-                    <th>Last Data Changed</th>
+                    <th>Last Data Changed At</th>
                     <th>Actions</th>
                   </tr>
                 </thead>
@@ -316,17 +354,20 @@ const Report = ({ userTokenData }) => {
                   {reports.map((report, index) => (
                     <tr key={report.id}>
                       <td>{index + 1}</td>
+                      <td style={{ color: report.status === 'Paid' ? '#198754' : report.status === 'Pending' ? '#6f42c1' : report.status === 'Canceled' ? '#dc3545' : report.status === 'Refunded' ? '#fd7e14' : '#000000' }}>
+                        {report.status || "-"}
+                      </td>
                       <td>{report.receipt_number || "-"}</td>
                       <td>{report.customer_name || "-"}</td>
                       <td>{report.customer_seat || "-"}</td>
+                      <td>{report.total || "-"}</td>
                       <td>{report.customer_cash || "-"}</td>
                       <td>{report.customer_change || "-"}</td>
                       <td>{report.payment_type || "-"}</td>
-                      <td>{report.delivery_type || "-"}</td>
-                      <td>{report.delivery_note || "-"}</td>
+                      {/* <td>{report.delivery_type || "-"}</td>
+                      <td>{report.delivery_note || "-"}</td> */}
                       <td>{report.invoice_number || "-"}</td>
-                      <td>{report.invoice_due_date || "-"}</td>
-                      <td>{report.updated_at || "-"}</td>
+                      <td>{report.invoice_due_date ? report.invoice_due_date : report.updated_at}</td>
                       <td>
                         <div className="action-buttons">
                           <div

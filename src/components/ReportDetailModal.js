@@ -5,28 +5,36 @@ export const ReportDetailModal = ({ show, onClose, selectedTransactionId }) => {
   const apiBaseUrl = process.env.REACT_APP_API_BASE_URL;
 
   const [transaction, setTransaction] = useState(null);
+  const [showRefund, setShowRefund] = useState(false);
 
   useEffect(() => {
     if (show && selectedTransactionId) {
       const fetchData = async () => {
         try {
           const response = await axios.get(
-            `${apiBaseUrl}/transaction/${selectedTransactionId}`
+            `${apiBaseUrl}/transaction/${selectedTransactionId}`, {
+              params: {
+                is_report: true,
+              },
+            }
           );
           const transactionsData = response.data.data;
           setTransaction(transactionsData);
+          if(transactionsData.total_refund > 0) {
+            setShowRefund(true);
+          }
         } catch (error) {
           console.error("Error fetching transaction:", error);
         }
       };
       fetchData();
+    } else {
+      setShowRefund(false);
     }
   }, [show, selectedTransactionId, apiBaseUrl]);
 
   const showRefundDetails =
     transaction?.refund_details && transaction.refund_details.length > 0;
-  const showRefund =
-    transaction?.total_refund !== 0 && transaction?.total_refund !== undefined;
 
   return (
     <>
@@ -65,21 +73,24 @@ export const ReportDetailModal = ({ show, onClose, selectedTransactionId }) => {
                     <h4 style={{ textAlign: "center", marginBottom: "3vh" }}>
                       Transaction
                     </h4>
+                    <h5 style={{ textAlign: "center", marginBottom: "3vh", color: transaction.status === 'Paid' ? '#198754' : transaction.status === 'Pending' ? '#6f42c1' : transaction.status === 'Canceled' ? '#dc3545' : transaction.status === 'Refunded' ? '#fd7e14' : '#000000'  }}>
+                      "{transaction.status}"
+                    </h5>
                     <div className="report-container">
                       <div className="section-report">
                         <div className="section-report-title">
                           Invoice Number:
                         </div>
                         <div className="section-report-data">
-                          {transaction.invoice_number}
+                          {transaction.invoice_number || "-"}
                         </div>
                       </div>
                       <div className="section-report">
                         <div className="section-report-title">
-                          Invoice Due Date:
+                          Transaction Updated At:
                         </div>
                         <div className="section-report-data">
-                          {transaction.invoice_due_date}
+                          {transaction.transaction_date_show}
                         </div>
                       </div>
                       <div className="section-report">
@@ -103,10 +114,10 @@ export const ReportDetailModal = ({ show, onClose, selectedTransactionId }) => {
                           Payment Type:
                         </div>
                         <div className="section-report-data">
-                          {transaction.payment_type}
+                          {transaction.payment_type || "-"}
                         </div>
                       </div>
-                      <div className="section-report">
+                      {/* <div className="section-report">
                         <div className="section-report-title">
                           Delivery Type:
                         </div>
@@ -121,10 +132,10 @@ export const ReportDetailModal = ({ show, onClose, selectedTransactionId }) => {
                         <div className="section-report-data">
                           {transaction.delivery_note || "-"}
                         </div>
-                      </div>
+                      </div> */}
                       <div className="section-report">
                         <div className="section-report-title">
-                          Discount Code:
+                          Discount Code Cart:
                         </div>
                         <div className="section-report-data">
                           {transaction.discount_code || "-"}
@@ -132,7 +143,7 @@ export const ReportDetailModal = ({ show, onClose, selectedTransactionId }) => {
                       </div>
                       <div className="section-report">
                         <div className="section-report-title">
-                          Discount Type:
+                          Discount Type Cart:
                         </div>
                         <div className="section-report-data">
                           {transaction.discounts_is_percent === 0
@@ -144,10 +155,10 @@ export const ReportDetailModal = ({ show, onClose, selectedTransactionId }) => {
                       </div>
                       <div className="section-report">
                         <div className="section-report-title">
-                          Discount Value:
+                          Discount Value Cart:
                         </div>
                         <div className="section-report-data">
-                          {transaction.discounts_value || "-"}
+                          {transaction.discounts_value ? transaction.discounts_value + (transaction.discounts_is_percent === 1 ? " %" : "") : "-"}
                         </div>
                       </div>
                       <div className="section-report">
@@ -163,52 +174,58 @@ export const ReportDetailModal = ({ show, onClose, selectedTransactionId }) => {
                         </div>
                       </div>
                     </div>
-                    <hr></hr>
-                    <h4 style={{ textAlign: "center", marginBottom: "3vh" }}>
-                      Cart
-                    </h4>
-                    <table className="table table-striped">
-                      <thead>
-                        <tr>
-                          <th>Menu Name</th>
-                          <th>Menu Type</th>
-                          <th>Menu Varian</th>
-                          <th>Menu Price</th>
-                          <th>Serving Type</th>
-                          <th>Discount Code</th>
-                          <th>Discount Value</th>
-                          <th>Discount Type</th>
-                          <th>Discounted Price</th>
-                          <th>Qty</th>
-                          <th>Note Item</th>
-                          <th>Total Price</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {transaction.cart_details.map((item, index) => (
-                          <tr key={index}>
-                            <td>{item.menu_name}</td>
-                            <td>{item.menu_type}</td>
-                            <td>{item.varian || "-"}</td>
-                            <td>{item.price}</td>
-                            <td>{item.serving_type_name}</td>
-                            <td>{item.discount_code || "-"}</td>
-                            <td>{item.discounts_value || "-"}</td>
-                            <td>
-                              {item.discounts_is_percent === 0
-                                ? "Potongan"
-                                : item.discounts_is_percent === 1
-                                ? "Persenan"
-                                : "-"}
-                            </td>
-                            <td>{item.discounted_price || "-"}</td>
-                            <td>{item.qty}</td>
-                            <td>{item.note_item || "-"}</td>
-                            <td>{item.total_price}</td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
+                    {transaction.cart_details.length > 0 && (
+                      <>
+                        <hr></hr>
+                        <h4 style={{ textAlign: "center", marginBottom: "3vh" }}>
+                          Cart
+                        </h4>
+                        <table className="table table-striped">
+                          <thead>
+                            <tr>
+                              <th>Paid Time</th>
+                              <th>Menu Type</th>
+                              <th>Menu Name</th>
+                              <th>Menu Varian</th>
+                              <th>Serving Type</th>
+                              <th>Note Item</th>
+                              <th>Qty</th>
+                              <th>Menu Price</th>
+                              <th>Discount Code</th>
+                              <th>Discount Value</th>
+                              <th>Discount Type</th>
+                              {/* <th>Discounted Price</th> */}
+                              <th>Total Price</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {transaction.cart_details.map((item, index) => (
+                              <tr key={index}>
+                                <td>{item.updated_at}</td>
+                                <td>{item.menu_type}</td>
+                                <td>{item.menu_name}</td>
+                                <td>{item.varian || "-"}</td>
+                                <td>{item.serving_type_name}</td>
+                                <td>{item.note_item || "-"}</td>
+                                <td>{item.qty}</td>
+                                <td>{item.price}</td>
+                                <td>{item.discount_code || "-"}</td>
+                                <td>{item.discounts_value || "-"}</td>
+                                <td>
+                                  {item.discounts_is_percent === 0
+                                    ? "Potongan"
+                                    : item.discounts_is_percent === 1
+                                    ? "Persenan"
+                                    : "-"}
+                                </td>
+                                {/* <td>{item.discounted_price || "-"}</td> */}
+                                <td>{item.total_price}</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </>
+                    )}
                     {showRefund && (
                       <>
                         <hr></hr>
@@ -220,18 +237,28 @@ export const ReportDetailModal = ({ show, onClose, selectedTransactionId }) => {
                         <div className="report-container">
                           <div className="section-report">
                             <div className="section-report-title">
-                              Is Refund All:
+                              Status:
                             </div>
-                            <div className="section-report-data">
-                              {transaction.is_refund_all ? "Yes" : "No"}
+                            <div className="section-report-data"
+                              style={{ color: transaction.is_refund_all ? '#fd7e14' : 'initial' }}
+                            >
+                              {transaction.is_refund_all ? "Refunded" : "-"}
                             </div>
                           </div>
                           <div className="section-report">
                             <div className="section-report-title">
-                              Refund Reason:
+                              Refund All Reason:
                             </div>
                             <div className="section-report-data">
-                              {transaction.refund_reason || "-"}
+                              {transaction.refund_all_reason || "-"}
+                            </div>
+                          </div>
+                          <div className="section-report">
+                            <div className="section-report-title">
+                              Refund Payment Type All:
+                            </div>
+                            <div className="section-report-data">
+                              {transaction.refund_payment_type_all_name || "-"}
                             </div>
                           </div>
                           <div className="section-report">
@@ -256,25 +283,33 @@ export const ReportDetailModal = ({ show, onClose, selectedTransactionId }) => {
                         <table className="table table-striped">
                           <thead>
                             <tr>
+                              <th>Refund Time</th>
+                              <th>Menu Type</th>
                               <th>Menu Name</th>
                               <th>Menu Varian</th>
-                              <th>Menu Price</th>
                               <th>Serving Type</th>
+                              <th>Note Item</th>
+                              <th>Qty Refund Item</th>
+                              <th>Menu Price</th>
                               <th>Discount Code</th>
                               <th>Discount Value</th>
                               <th>Discount Type</th>
-                              <th>Qty Refund Item</th>
                               <th>Refund Reason Item</th>
+                              <th>Payment Type Refund</th>
                               <th>Total Refund Price</th>
                             </tr>
                           </thead>
                           <tbody>
                             {transaction.refund_details.map((item, index) => (
                               <tr key={index}>
+                                <td>{item.updated_at}</td>
+                                <td>{item.menu_type}</td>
                                 <td>{item.menu_name}</td>
                                 <td>{item.varian || "-"}</td>
-                                <td>{item.menu_price}</td>
                                 <td>{item.serving_type_name}</td>
+                                <td>{item.note_item || "-"}</td>
+                                <td>{item.qty_refund_item}</td>
+                                <td>{item.menu_price}</td>
                                 <td>{item.discount_code || "-"}</td>
                                 <td>{item.discounts_value || "-"}</td>
                                 <td>
@@ -284,8 +319,8 @@ export const ReportDetailModal = ({ show, onClose, selectedTransactionId }) => {
                                       : "Bukan Persen"
                                     : "-"}
                                 </td>
-                                <td>{item.qty_refund_item}</td>
                                 <td>{item.refund_reason_item || "-"}</td>
+                                <td>{item.payment_type_name || "-"}</td>
                                 <td>{item.total_refund_price}</td>
                               </tr>
                             ))}
