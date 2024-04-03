@@ -226,6 +226,60 @@ export const ReportDetailModal = ({ show, onClose, selectedTransactionId }) => {
                         </table>
                       </>
                     )}
+                    {transaction.canceled_items.length > 0 && (
+                      <>
+                        <hr></hr>
+                        <h4 style={{ textAlign: "center", marginBottom: "3vh" }}>
+                          Canceled Items
+                        </h4>
+                        <table className="table table-striped">
+                          <thead>
+                            <tr>
+                              <th>Cancel At</th>
+                              <th>Cancel Reason</th>
+                              <th>Menu Type</th>
+                              <th>Menu Name</th>
+                              <th>Menu Varian</th>
+                              <th>Serving Type</th>
+                              <th>Note Item</th>
+                              <th>Qty</th>
+                              <th>Menu Price</th>
+                              <th>Discount Code</th>
+                              <th>Discount Value</th>
+                              <th>Discount Type</th>
+                              {/* <th>Discounted Price</th> */}
+                              <th>Total Price</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {transaction.canceled_items.map((item, index) => (
+                              <tr key={index}>
+                                <td>{item.updated_at}</td>
+                                <td>{item.cancel_reason}</td>
+                                <td>{item.menu_type}</td>
+                                <td>{item.menu_name}</td>
+                                <td>{item.varian || "-"}</td>
+                                <td>{item.serving_type_name}</td>
+                                <td>{item.note_item || "-"}</td>
+                                <td>{item.qty}</td>
+                                <td>{item.price}</td>
+                                <td>{item.discount_code || "-"}</td>
+                                <td>{item.discounts_value || "-"}</td>
+                                <td>
+                                  {item.discounts_is_percent === 0
+                                    ? "Potongan"
+                                    : item.discounts_is_percent === 1
+                                    ? "Persenan"
+                                    : "-"}
+                                </td>
+                                {/* <td>{item.discounted_price || "-"}</td> */}
+                                <td>{item.total_price}</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </>
+                    )}
                     {showRefund && (
                       <>
                         <hr></hr>
