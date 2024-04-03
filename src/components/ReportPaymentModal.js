@@ -437,13 +437,13 @@ export const ReportPaymentModal = ({
                       <table className="table table-striped">
                         <thead>
                           <tr>
-                            <th>Menu Name</th>
                             <th>Menu Type</th>
+                            <th>Menu Name</th>
                             <th>Varian</th>
-                            <th>Serving Type Name</th>
-                            <th>Menu Price</th>
-                            <th>Quantity</th>
+                            <th>Serving Type</th>
                             <th>Note Item</th>
+                            <th>Quantity</th>
+                            <th>Menu Price</th>
                             <th>Discount Code</th>
                             <th>Discounts Value</th>
                             <th>Discounts Type</th>
@@ -455,13 +455,13 @@ export const ReportPaymentModal = ({
                           {paymentReport.cart_details.map(
                             (cartDetail, index) => (
                               <tr key={index}>
-                                <td>{cartDetail.menu_name || "-"}</td>
                                 <td>{cartDetail.menu_type || "-"}</td>
+                                <td>{cartDetail.menu_name || "-"}</td>
                                 <td>{cartDetail.varian || "-"}</td>
                                 <td>{cartDetail.serving_type_name || "-"}</td>
-                                <td>{cartDetail.price || "-"}</td>
-                                <td>{cartDetail.qty || "-"}</td>
                                 <td>{cartDetail.note_item || "-"}</td>
+                                <td>{cartDetail.qty || "-"}</td>
+                                <td>{cartDetail.price || "-"}</td>
                                 <td>{cartDetail.discount_code || "-"}</td>
                                 <td>{cartDetail.discounts_value || "-"}</td>
                                 <td>
@@ -490,30 +490,32 @@ export const ReportPaymentModal = ({
                           <table className="table table-striped">
                             <thead>
                               <tr>
+                                <th>Menu Type</th>
                                 <th>Menu Name</th>
                                 <th>Varian</th>
-                                <th>Menu Price</th>
-                                <th>Quantity Refund Item</th>
-                                <th>Refund Reason Item</th>
-                                <th>Serving Type Name</th>
+                                <th>Serving Type</th>
                                 <th>Note Item</th>
+                                <th>Quantity Refund Item</th>
+                                <th>Menu Price</th>
                                 <th>Discount Code</th>
                                 <th>Discounts Value</th>
                                 <th>Discounts Type</th>
                                 <th>Discounted Price</th>
+                                <th>Refund Reason Item</th>
+                                <th>Payment Type Refund</th>
                                 <th>Total Refund Price</th>
                               </tr>
                             </thead>
                             <tbody>
                               {paymentReport.refund[0].map((refund, index) => (
                                 <tr key={index}>
+                                  <td>{refund.menu_type || "-"}</td>
                                   <td>{refund.menu_name || "-"}</td>
                                   <td>{refund.varian || "-"}</td>
-                                  <td>{refund.menu_price || "-"}</td>
-                                  <td>{refund.qty_refund_item || "-"}</td>
-                                  <td>{refund.refund_reason_item || "-"}</td>
                                   <td>{refund.serving_type_name || "-"}</td>
                                   <td>{refund.note_item || "-"}</td>
+                                  <td>{refund.qty_refund_item || "-"}</td>
+                                  <td>{refund.menu_price || "-"}</td>
                                   <td>{refund.discount_code || "-"}</td>
                                   <td>{refund.discounts_value || "-"}</td>
                                   <td>
@@ -524,6 +526,8 @@ export const ReportPaymentModal = ({
                                       : "-"}
                                   </td>
                                   <td>{refund.discounted_price || "-"}</td>
+                                  <td>{refund.refund_reason_item || "-"}</td>
+                                  <td>{refund.payment_type_name || "-"}</td>
                                   <td>{refund.total_refund_price || "-"}</td>
                                 </tr>
                               ))}
