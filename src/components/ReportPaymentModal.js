@@ -44,6 +44,44 @@ export const ReportPaymentModal = ({
     content: () => componentRef.current,
     documentTitle: filePdfName,
   });
+  
+  const groupCartDetails = (cartDetails) => {
+    const grouped = cartDetails.reduce((acc, item) => {
+      const key = `${item.menu_id}-${item.menu_varian_id}`;
+      if (!acc[key]) {
+        acc[key] = {
+          ...item,
+          total_quantity: 0,
+          total_price: 0,
+        };
+      }
+      acc[key].total_quantity += item.qty;
+      acc[key].total_price += item.total_price;
+      return acc;
+    }, {});
+    return Object.values(grouped);
+  };
+
+  const groupedCartDetails = paymentReport && paymentReport.cart_details ? groupCartDetails(paymentReport.cart_details) : [];
+
+  // const groupRefunds = (refunds) => {
+  //   const grouped = refunds.reduce((acc, item) => {
+  //     const key = `${item.menu_id}-${item.menu_varian_id}`;
+  //     if (!acc[key]) {
+  //       acc[key] = {
+  //         ...item,
+  //         total_quantity: 0,
+  //         total_price: 0,
+  //       };
+  //     }
+  //     acc[key].total_quantity += item.qty;
+  //     acc[key].total_price += item.total_price;
+  //     return acc;
+  //   }, {});
+  //   return Object.values(grouped);
+  // };
+
+  // const groupedRefunds = paymentReport.refund ? groupRefunds(paymentReport.refund[0]) : [];
 
   useEffect(() => {
     if (show && startDate && endDate) {
@@ -434,6 +472,36 @@ export const ReportPaymentModal = ({
                       <h4 style={{ textAlign: "center", marginBottom: "3vh" }}>
                         Pemasukan
                       </h4>
+                      
+                      <div className="table-responsive">
+                        <table className="table table-striped text-center">
+                          <thead>
+                            <tr>
+                              <th>Menu Type</th>
+                              <th>Menu Name</th>
+                              <th>Varian</th>
+                              <th>Total Sold Quantity</th>
+                              <th>Total Amount</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {groupedCartDetails.map((item, index) => (
+                              <tr key={index}>
+                                <td>{item.menu_type}</td>
+                                <td>{item.menu_name}</td>
+                                <td>{item.varian || "-"}</td>
+                                <td>{item.total_quantity}</td>
+                                <td>{item.total_price}</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+
+                      <h5 style={{ textAlign: "center", marginBottom: "3vh" }}>
+                        Detail Pemasukan
+                      </h5>
+
                       <table className="table table-striped">
                         <thead>
                           <tr>
