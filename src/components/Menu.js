@@ -79,51 +79,35 @@ const Menu = ({userTokenData}) => {
               </div>
             </div>
             <div class="card-body">
-              <table class="table table-striped" id="table1">
-                <thead>
-                  <tr>
-                    <th>No</th>
-                    <th>Gambar</th>
-                    <th>Name</th>
-                    <th>Menu Type</th>
-                    <th>Price</th>
-                    <th>Status Active</th>
-                    <th>Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {menus.map((menu, index) => (
-                    <tr key={menu.id}>
-                      <td>{index + 1}</td>
-                      <td>
-                        <img
-                          className="w-100"
-                          src={
-                            menu.image_url
-                              ? `${apiBaseUrl}/${menu.image_url}`
-                              : "/assets/images/menu-template.svg"
-                          }
-                          alt="Menu"
-                        />
-                      </td>
-                      <td>{menu.name}</td>
-                      <td>{menu.menu_type}</td>
-                      <td>{menu.price}</td>
-                      <td>{menu.is_active === 1 ? "Aktif" : "Tidak Aktif"}</td>
-                      <td>
-                        <div className="action-buttons">
-                          <div
-                            className="buttons btn info btn-primary"
-                            onClick={() => openModal(menu.id)}
-                          >
-                            <i className="bi bi-pencil"></i>
-                          </div>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+              <div class="grid-container">
+                {menus.map((menu, index) => (
+                  <div className="grid-card" key={menu.id}>
+                    <img
+                      className="card-image"
+                      src={
+                        menu.image_url
+                          ? `${apiBaseUrl}/${menu.image_url}`
+                          : "/assets/images/menu-template.svg"
+                      }
+                      alt="Menu"
+                    />
+                    <div className="card-content">
+                      <h7 style={{ fontWeight: 'bold', color: menu.is_active === 1 ? 'green' : 'red' }}>{menu.is_active === 1 ? "Aktif" : "Tidak Aktif"}</h7>
+                      <h4>{menu.name}</h4>
+                      <h6 className="mb-3">- {menu.menu_type} -</h6>
+                      <h6 style={{fontWeight: 'bold'}}>Rp. {menu.price}</h6>
+                      <div className="action-buttons">
+                        <button
+                          className="btn info btn-primary"
+                          onClick={() => openModal(menu.id)}
+                        >
+                          <i className="bi bi-pencil"></i> Edit
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         </section>
