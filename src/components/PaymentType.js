@@ -1,42 +1,40 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { PaymentTypeModal } from "./PaymentTypeModal";
+import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
+
 const apiBaseUrl = process.env.REACT_APP_API_BASE_URL;
 
-const PaymentType= ({ userTokenData }) => {
+const PaymentType = ({ userTokenData }) => {
   const [paymentTypes, setPaymentTypes] = useState([]);
   const [paymentCategories, setPaymentCategories] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [selectedPaymentTypeId, setSelectedPaymentTypeId] = useState(null);
+  const [isOrderChanged, setIsOrderChanged] = useState(false); // Track order change
 
   useEffect(() => {
     getPaymentTypes();
   }, []);
 
-  useEffect(() => {
-    if (showModal) {
-      document.body.classList.add("modal-open");
-      document.body.style.overflow = "hidden";
-      document.body.style.paddingRight = "0px";
-    } else {
-      document.body.classList.remove("modal-open");
-      document.body.style.removeProperty("overflow", "padding-right");
-    }
-
-    return () => {
-      document.body.classList.remove("modal-open");
-    };
-  }, [showModal]);
-
   const getPaymentTypes = async () => {
-    const response = await axios.get(`${apiBaseUrl}/payment-management`, {
-      params: {
-        outlet_id: userTokenData.outlet_id,
-      },
-    });
-    setPaymentTypes(response.data.data.payment_type);
-    setPaymentCategories(response.data.data.payment_categories);
+    try {
+      const response = await axios.get(`${apiBaseUrl}/payment-management`, {
+        params: {
+          outlet_id: userTokenData.outlet_id,
+        },
+      });
+      // Sort the payment types based on the 'order' field from the API response
+      const sortedPaymentTypes = response.data.data.payment_type.sort(
+        (a, b) => a.order - b.order
+      );
+  
+      setPaymentTypes(sortedPaymentTypes);
+      setPaymentCategories(response.data.data.payment_categories);
+    } catch (error) {
+      console.error("Error fetching payment types:", error);
+    }
   };
+  
 
   const openModal = (paymentType) => {
     setSelectedPaymentTypeId(paymentType);
@@ -58,6 +56,37 @@ const PaymentType= ({ userTokenData }) => {
     }
   };
 
+  const handleDragEnd = (result) => {
+    const { source, destination } = result;
+    if (!destination) return; // If dropped outside the list, do nothing
+
+    // Reorder the list
+    const reorderedPaymentTypes = Array.from(paymentTypes);
+    const [removed] = reorderedPaymentTypes.splice(source.index, 1);
+    reorderedPaymentTypes.splice(destination.index, 0, removed);
+
+    setPaymentTypes(reorderedPaymentTypes);
+    setIsOrderChanged(true); // Mark that the order has changed
+  };
+
+  const saveOrderChanges = async () => {
+    try {
+      const updatedOrder = paymentTypes.map((paymentType, index) => ({
+        id: paymentType.id,
+        order: index + 1, // 1-based index for order
+      }));
+
+      // Make an API request to update the order in the database
+      await axios.put(`${apiBaseUrl}/update-payment-order`, {
+        paymentTypesOrder: updatedOrder,
+      });
+
+      setIsOrderChanged(false); // Reset the order change state after saving
+    } catch (error) {
+      console.error("Error saving order changes:", error);
+    }
+  };
+
   return (
     <div>
       <div className="page-heading">
@@ -68,54 +97,103 @@ const PaymentType= ({ userTokenData }) => {
             </div>
           </div>
         </div>
-        <section class="section">
-          <div class="card">
-            <div class="card-header">
-              <div class="float-lg-end">
-                <div
-                  className="button btn btn-primary rounded-pill"
-                  onClick={() => openModal(null)}
-                >
-                  <i class="bi bi-plus"></i> Tambah Data
-                </div>
+      </div>
+      <section className="section">
+        <div className="card">
+          <div className="card-header">
+            <div className="float-lg-end">
+              <div
+                className="button btn btn-primary rounded-pill"
+                onClick={() => openModal(null)}
+              >
+                <i className="bi bi-plus"></i> Tambah Data
               </div>
             </div>
-            <div class="card-body">
-              <table class="table table-striped" id="table1">
-                <thead>
-                  <tr>
-                    <th>No</th>
-                    <th>Name</th>
-                    <th>Category</th>
-                    <th>Active</th>
-                    <th>Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {paymentTypes.map((paymentType, index) => (
-                    <tr key={paymentType.id}>
-                      <td>{index + 1}</td>
-                      <td>{paymentType.name}</td>
-                      <td>{paymentType.payment_category_name}</td>
-                      <td>{paymentType.is_active === 1 ? "Ya" : "Tidak"}</td>
-                      <td>
-                        <div className="action-buttons">
-                          <div
-                            className="buttons btn info btn-primary"
-                            onClick={() => openModal(paymentType.id)}
-                          >
-                            <i className="bi bi-pencil"></i>
-                          </div>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
           </div>
-        </section>
-      </div>
+          <div className="card-body">
+            {/* Ensure the Droppable component is rendered only if paymentTypes has data */}
+            {paymentTypes.length > 0 && (
+              <DragDropContext onDragEnd={handleDragEnd}>
+                <Droppable droppableId="paymentTypes">
+                  {(provided) => (
+                    <table
+                      className="table table-striped"
+                      ref={provided.innerRef} // Apply ref to the table element
+                      {...provided.droppableProps} // Spread droppableProps to the table
+                    >
+                      <thead>
+                        <tr>
+                          <th>No</th>
+                          <th>Name</th>
+                          <th>Category</th>
+                          <th>Active</th>
+                          <th>Actions</th>
+                          <th>Drag</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {paymentTypes.map((paymentType, index) => (
+                          <Draggable
+                            key={paymentType.id}
+                            draggableId={paymentType.id.toString()}
+                            index={index}
+                          >
+                            {(provided) => (
+                              <tr
+                                ref={provided.innerRef} // Apply ref to row
+                                {...provided.draggableProps} // Spread draggableProps to row
+                                {...provided.dragHandleProps} // Spread dragHandleProps to drag handle
+                              >
+                                <td>{index + 1}</td>
+                                <td>{paymentType.name}</td>
+                                <td>{paymentType.payment_category_name}</td>
+                                <td>
+                                  {paymentType.is_active === 1 ? "Ya" : "Tidak"}
+                                </td>
+                                <td>
+                                  <div className="action-buttons">
+                                    <div
+                                      className="buttons btn info btn-primary"
+                                      onClick={() => openModal(paymentType.id)}
+                                    >
+                                      <i className="bi bi-pencil"></i>
+                                    </div>
+                                  </div>
+                                </td>
+                                <td
+                                  {...provided.dragHandleProps}
+                                  className="drag-handle"
+                                  style={{
+                                    cursor: "grab",
+                                    padding: "0 10px",
+                                    textAlign: "center",
+                                  }}
+                                >
+                                  <i className="bi bi-list" />
+                                </td>
+                              </tr>
+                            )}
+                          </Draggable>
+                        ))}
+                      </tbody>
+                    </table>
+                  )}
+                </Droppable>
+              </DragDropContext>
+            )}
+            {isOrderChanged && (
+              <div className="text-end mt-3">
+                <button
+                  className="btn btn-success"
+                  onClick={saveOrderChanges}
+                >
+                  Save Changes
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      </section>
 
       <PaymentTypeModal
         show={showModal}
