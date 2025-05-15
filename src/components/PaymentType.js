@@ -11,6 +11,7 @@ const PaymentType = ({ userTokenData }) => {
   const [showModal, setShowModal] = useState(false);
   const [selectedPaymentTypeId, setSelectedPaymentTypeId] = useState(null);
   const [isOrderChanged, setIsOrderChanged] = useState(false); // Track order change
+  const [dragMode, setDragMode] = useState(false); // Track if drag mode is active
 
   useEffect(() => {
     getPaymentTypes();
@@ -34,7 +35,6 @@ const PaymentType = ({ userTokenData }) => {
       console.error("Error fetching payment types:", error);
     }
   };
-  
 
   const openModal = (paymentType) => {
     setSelectedPaymentTypeId(paymentType);
@@ -82,6 +82,7 @@ const PaymentType = ({ userTokenData }) => {
       });
 
       setIsOrderChanged(false); // Reset the order change state after saving
+      setDragMode(false); // Disable drag mode after saving
     } catch (error) {
       console.error("Error saving order changes:", error);
     }
@@ -109,78 +110,124 @@ const PaymentType = ({ userTokenData }) => {
                 <i className="bi bi-plus"></i> Tambah Data
               </div>
             </div>
+            {/* Button to activate drag mode */}
+            <div className="float-lg-end">
+              <button
+                className="btn btn-secondary rounded-pill"
+                onClick={() => setDragMode(!dragMode)}
+              >
+                {dragMode ? "Cancel Ubah Urutan" : "Ubah Urutan"}
+              </button>
+            </div>
           </div>
           <div className="card-body">
-            {/* Ensure the Droppable component is rendered only if paymentTypes has data */}
+            {/* Render table with or without drag-and-drop functionality */}
             {paymentTypes.length > 0 && (
               <DragDropContext onDragEnd={handleDragEnd}>
-                <Droppable droppableId="paymentTypes">
-                  {(provided) => (
-                    <table
-                      className="table table-striped"
-                      ref={provided.innerRef} // Apply ref to the table element
-                      {...provided.droppableProps} // Spread droppableProps to the table
-                    >
-                      <thead>
-                        <tr>
-                          <th>No</th>
-                          <th>Name</th>
-                          <th>Category</th>
-                          <th>Active</th>
-                          <th>Actions</th>
-                          <th>Drag</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {paymentTypes.map((paymentType, index) => (
-                          <Draggable
-                            key={paymentType.id}
-                            draggableId={paymentType.id.toString()}
-                            index={index}
-                          >
-                            {(provided) => (
-                              <tr
-                                ref={provided.innerRef} // Apply ref to row
-                                {...provided.draggableProps} // Spread draggableProps to row
-                                {...provided.dragHandleProps} // Spread dragHandleProps to drag handle
-                              >
-                                <td>{index + 1}</td>
-                                <td>{paymentType.name}</td>
-                                <td>{paymentType.payment_category_name}</td>
-                                <td>
-                                  {paymentType.is_active === 1 ? "Ya" : "Tidak"}
-                                </td>
-                                <td>
-                                  <div className="action-buttons">
-                                    <div
-                                      className="buttons btn info btn-primary"
-                                      onClick={() => openModal(paymentType.id)}
-                                    >
-                                      <i className="bi bi-pencil"></i>
-                                    </div>
-                                  </div>
-                                </td>
-                                <td
+                {dragMode ? (
+                  <Droppable droppableId="paymentTypes">
+                    {(provided) => (
+                      <table
+                        className="table table-striped"
+                        ref={provided.innerRef} // Apply ref to the table element
+                        {...provided.droppableProps} // Spread droppableProps to the table
+                      >
+                        <thead>
+                          <tr>
+                            <th>No</th>
+                            <th>Name</th>
+                            <th>Category</th>
+                            <th>Active</th>
+                            <th>Actions</th>
+                            <th>Drag</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {paymentTypes.map((paymentType, index) => (
+                            <Draggable
+                              key={paymentType.id}
+                              draggableId={paymentType.id.toString()}
+                              index={index}
+                            >
+                              {(provided) => (
+                                <tr
+                                  ref={provided.innerRef}
+                                  {...provided.draggableProps}
                                   {...provided.dragHandleProps}
-                                  className="drag-handle"
-                                  style={{
-                                    cursor: "grab",
-                                    padding: "0 10px",
-                                    textAlign: "center",
-                                  }}
                                 >
-                                  <i className="bi bi-list" />
-                                </td>
-                              </tr>
-                            )}
-                          </Draggable>
-                        ))}
-                      </tbody>
-                    </table>
-                  )}
-                </Droppable>
+                                  <td>{index + 1}</td>
+                                  <td>{paymentType.name}</td>
+                                  <td>{paymentType.payment_category_name}</td>
+                                  <td>
+                                    {paymentType.is_active === 1 ? "Ya" : "Tidak"}
+                                  </td>
+                                  <td>
+                                    <div className="action-buttons">
+                                      <div
+                                        className="buttons btn info btn-primary"
+                                        onClick={() => openModal(paymentType.id)}
+                                      >
+                                        <i className="bi bi-pencil"></i>
+                                      </div>
+                                    </div>
+                                  </td>
+                                  <td
+                                    {...provided.dragHandleProps}
+                                    className="drag-handle"
+                                    style={{
+                                      cursor: "grab",
+                                      padding: "0 10px",
+                                      textAlign: "center",
+                                    }}
+                                  >
+                                    <i className="bi bi-list" />
+                                  </td>
+                                </tr>
+                              )}
+                            </Draggable>
+                          ))}
+                        </tbody>
+                      </table>
+                    )}
+                  </Droppable>
+                ) : (
+                  <table className="table table-striped">
+                    <thead>
+                      <tr>
+                        <th>No</th>
+                        <th>Name</th>
+                        <th>Category</th>
+                        <th>Active</th>
+                        <th>Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {paymentTypes.map((paymentType, index) => (
+                        <tr key={paymentType.id}>
+                          <td>{index + 1}</td>
+                          <td>{paymentType.name}</td>
+                          <td>{paymentType.payment_category_name}</td>
+                          <td>
+                            {paymentType.is_active === 1 ? "Ya" : "Tidak"}
+                          </td>
+                          <td>
+                            <div className="action-buttons">
+                              <div
+                                className="buttons btn info btn-primary"
+                                onClick={() => openModal(paymentType.id)}
+                              >
+                                <i className="bi bi-pencil"></i>
+                              </div>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                )}
               </DragDropContext>
             )}
+            {/* Show save button when the order is changed */}
             {isOrderChanged && (
               <div className="text-end mt-3">
                 <button
