@@ -24,12 +24,8 @@ const PaymentType = ({ userTokenData }) => {
           outlet_id: userTokenData.outlet_id,
         },
       });
-      // Sort the payment types based on the 'order' field from the API response
-      const sortedPaymentTypes = response.data.data.payment_type.sort(
-        (a, b) => a.order - b.order
-      );
-  
-      setPaymentTypes(sortedPaymentTypes);
+      // Set payment types exactly as received from API, no sorting applied
+      setPaymentTypes(response.data.data.payment_type);
       setPaymentCategories(response.data.data.payment_categories);
     } catch (error) {
       console.error("Error fetching payment types:", error);
@@ -65,6 +61,7 @@ const PaymentType = ({ userTokenData }) => {
     const [removed] = reorderedPaymentTypes.splice(source.index, 1);
     reorderedPaymentTypes.splice(destination.index, 0, removed);
 
+    // Update state with the reordered list
     setPaymentTypes(reorderedPaymentTypes);
     setIsOrderChanged(true); // Mark that the order has changed
   };
@@ -83,8 +80,21 @@ const PaymentType = ({ userTokenData }) => {
 
       setIsOrderChanged(false); // Reset the order change state after saving
       setDragMode(false); // Disable drag mode after saving
+      // When cancelling drag mode, reload the page
+      window.location.reload();
     } catch (error) {
       console.error("Error saving order changes:", error);
+    }
+  };
+
+  // New handler for drag mode toggle button
+  const handleDragModeToggle = () => {
+    if (dragMode) {
+      // When cancelling drag mode, reload the page
+      window.location.reload();
+    } else {
+      // Enable drag mode
+      setDragMode(true);
     }
   };
 
@@ -114,7 +124,7 @@ const PaymentType = ({ userTokenData }) => {
             <div className="float-lg-end">
               <button
                 className="btn btn-secondary rounded-pill"
-                onClick={() => setDragMode(!dragMode)}
+                onClick={handleDragModeToggle}
               >
                 {dragMode ? "Cancel Ubah Urutan" : "Ubah Urutan"}
               </button>
@@ -256,3 +266,4 @@ const PaymentType = ({ userTokenData }) => {
 };
 
 export default PaymentType;
+

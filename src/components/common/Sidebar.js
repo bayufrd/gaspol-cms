@@ -8,7 +8,7 @@ const Sidebar = ({ onToggleSidebar, isOpen, userTokenData }) => {
         <div className="sidebar-header position-relative">
           <div className="d-flex justify-content-between align-items-center">
             <div className="logo">
-              <Link to="/">GASPOL CMS</Link>
+              <Link to="/">GASPOLL CMS</Link>
             </div>
             <div className="sidebar-toggler" onClick={onToggleSidebar}>
               <div className="sidebar-hide d-xl-none d-block">
