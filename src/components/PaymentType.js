@@ -19,12 +19,7 @@ const PaymentType = ({ userTokenData }) => {
 
   const getPaymentTypes = async () => {
     try {
-      const response = await axios.get(`${apiBaseUrl}/payment-management`, {
-        params: {
-          outlet_id: userTokenData.outlet_id,
-        },
-      });
-      // Set payment types exactly as received from API, no sorting applied
+      const response = await axios.get(`${apiBaseUrl}/payment-management`);
       setPaymentTypes(response.data.data.payment_type);
       setPaymentCategories(response.data.data.payment_categories);
     } catch (error) {
@@ -54,7 +49,7 @@ const PaymentType = ({ userTokenData }) => {
 
   const handleDragEnd = (result) => {
     const { source, destination } = result;
-    if (!destination) return; // If dropped outside the list, do nothing
+    if (!destination || source.index === destination.index) return; // If dropped outside the list, do nothing
 
     // Reorder the list
     const reorderedPaymentTypes = Array.from(paymentTypes);
@@ -77,11 +72,12 @@ const PaymentType = ({ userTokenData }) => {
       await axios.put(`${apiBaseUrl}/update-payment-order`, {
         paymentTypesOrder: updatedOrder,
       });
+      alert("Urutan pembayaran berhasil diperbarui!");
 
       setIsOrderChanged(false); // Reset the order change state after saving
       setDragMode(false); // Disable drag mode after saving
       // When cancelling drag mode, reload the page
-      window.location.reload();
+      getPaymentTypes();
     } catch (error) {
       console.error("Error saving order changes:", error);
     }
@@ -91,7 +87,9 @@ const PaymentType = ({ userTokenData }) => {
   const handleDragModeToggle = () => {
     if (dragMode) {
       // When cancelling drag mode, reload the page
-      window.location.reload();
+      setIsOrderChanged(false); // Reset the order change state after saving
+      setDragMode(false); 
+      getPaymentTypes();
     } else {
       // Enable drag mode
       setDragMode(true);
@@ -143,7 +141,7 @@ const PaymentType = ({ userTokenData }) => {
                         {...provided.droppableProps} // Spread droppableProps to the table
                       >
                         <thead>
-                          <tr>
+                          <tr >
                             <th>No</th>
                             <th>Name</th>
                             <th>Category</th>
@@ -151,6 +149,7 @@ const PaymentType = ({ userTokenData }) => {
                             <th>Actions</th>
                             <th>Drag</th>
                           </tr>
+                          {provided.placeholder}
                         </thead>
                         <tbody>
                           {paymentTypes.map((paymentType, index) => (
@@ -168,9 +167,7 @@ const PaymentType = ({ userTokenData }) => {
                                   <td>{index + 1}</td>
                                   <td>{paymentType.name}</td>
                                   <td>{paymentType.payment_category_name}</td>
-                                  <td>
-                                    {paymentType.is_active === 1 ? "Ya" : "Tidak"}
-                                  </td>
+                                  <td>{paymentType.is_active === 1 ? "Ya" : "Tidak"}</td>
                                   <td>
                                     <div className="action-buttons">
                                       <div
@@ -182,7 +179,6 @@ const PaymentType = ({ userTokenData }) => {
                                     </div>
                                   </td>
                                   <td
-                                    {...provided.dragHandleProps}
                                     className="drag-handle"
                                     style={{
                                       cursor: "grab",
@@ -196,6 +192,7 @@ const PaymentType = ({ userTokenData }) => {
                               )}
                             </Draggable>
                           ))}
+                          {provided.placeholder}
                         </tbody>
                       </table>
                     )}

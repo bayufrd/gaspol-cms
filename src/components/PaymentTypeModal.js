@@ -98,21 +98,21 @@ export const PaymentTypeModal = ({
         }
     };
 
-    const handleDeletePaymentType = async () => {
-        try {
-            await axios.delete(`${apiBaseUrl}/payment-management/${selectedPaymentTypeId}`);
-            Swal.fire({
-                icon: "success",
-                title: "Success!",
-                text: `${paymentType.name} berhasil dihapus!`,
-            });
-            setShowDeleteConfirmation(false);
-            await getPaymentTypes();
-            onClose();
-        } catch (error) {
-            console.error("Error deleting payment type:", error);
-        }
-    };
+    // const handleDeletePaymentType = async () => {
+    //     try {
+    //         await axios.delete(`${apiBaseUrl}/payment-management/${selectedPaymentTypeId}`);
+    //         Swal.fire({
+    //             icon: "success",
+    //             title: "Success!",
+    //             text: `${paymentType.name} berhasil dihapus!`,
+    //         });
+    //         setShowDeleteConfirmation(false);
+    //         await getPaymentTypes();
+    //         onClose();
+    //     } catch (error) {
+    //         console.error("Error deleting payment type:", error);
+    //     }
+    // };
 
     return (
         <>
@@ -200,7 +200,7 @@ export const PaymentTypeModal = ({
                                 </div>
                             </div>
                             <div class="modal-footer">
-                                {selectedPaymentTypeId && (
+                                {/* {selectedPaymentTypeId && (
                                     <div className="delete-modal">
                                         <button
                                             type="button"
@@ -211,7 +211,7 @@ export const PaymentTypeModal = ({
                                             <span class="d-none d-sm-block">Hapus Payment Type!</span>
                                         </button>
                                     </div>
-                                )}
+                                )} */}
                                 <button
                                     type="button"
                                     class="btn btn-light-secondary"
@@ -238,7 +238,7 @@ export const PaymentTypeModal = ({
             <div className={show && `modal-backdrop fade show`}></div>
             <DeleteConfirmationModal
                 showDeleteConfirmation={showDeleteConfirmation}
-                onConfirmDelete={handleDeletePaymentType}
+                // onConfirmDelete={handleDeletePaymentType}
                 onCancelDelete={() => setShowDeleteConfirmation(false)}
                 purposeDialog={"serving type"}
             />
