@@ -18,6 +18,7 @@ import IngredientOrderList from "./components/IngredientOrderList";
 import IngredientOrderListOutlet from "./components/IngredientOrderListOutlet";
 import IngredientReport from "./components/IngredientReport";
 import PaymentType from "./components/PaymentType";
+import Members from "./components/Member";
 
 function App() {
   const [isSidebarOpen, setSidebarOpen] = useState(false);
@@ -142,7 +143,13 @@ function App() {
                        path="/payment-type"
                        element={<PaymentType userTokenData={userTokenData} />}
                      />
-                 )}
+                 )}{userTokenData && userTokenData.menu_access.includes("10") && (
+                     
+                  <Route
+                    path="/member"
+                    element={<Members userTokenData={userTokenData} />}
+                  />
+              )}
                   {userTokenData && userTokenData.role === "Warehouse" && (
                     <>
                       <Route

@@ -33,6 +33,14 @@ const Sidebar = ({ onToggleSidebar, isOpen, userTokenData }) => {
                   </Link>
                 </li></>
             )}
+            {userTokenData.menu_access.includes("10") && (
+              <li className="sidebar-item">
+                <Link to="/member" className="sidebar-link">
+                  <i className="bi bi-people-fill"></i>
+                  <span>Management Membership</span>
+                </Link>
+              </li>
+            )}
             {userTokenData.menu_access.includes("2") && (
               <li class="sidebar-item">
                 <Link to="/menu" class="sidebar-link">

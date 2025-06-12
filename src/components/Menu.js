@@ -56,6 +56,45 @@ const Menu = ({userTokenData}) => {
     }
   };
 
+  const renderMenuImage = (menu) => {
+    const imageUrl = menu.image_url 
+      ? `${apiBaseUrl}/${menu.image_url}` 
+      : "/assets/images/menu-template.svg";
+
+    return (
+      <div 
+        className="menu-image-container position-relative" 
+        style={{
+          height: '250px',
+          backgroundColor: 'white',
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          overflow: 'hidden'
+        }}
+      >
+        <img
+          src={imageUrl}
+          alt={menu.name}
+          style={{
+            maxWidth: '100%',
+            maxHeight: '100%',
+            objectFit: 'contain'
+          }}
+        />
+        <span 
+          className={`position-absolute top-0 end-0 m-2 badge ${
+            menu.is_active === 1 
+              ? 'bg-success' 
+              : 'bg-danger'
+          }`}
+        >
+          {menu.is_active === 1 ? "Aktif" : "Tidak Aktif"}
+        </span>
+      </div>
+    );
+  };
+
   return (
     <div>
       <div className="page-heading">
@@ -66,43 +105,40 @@ const Menu = ({userTokenData}) => {
             </div>
           </div>
         </div>
-        <section class="section">
-          <div class="card">
-            <div class="card-header">
-              <div class="float-lg-end">
+        <section className="section">
+          <div className="card">
+            <div className="card-header">
+              <div className="float-lg-end">
                 <div
                   className="button btn btn-primary rounded-pill"
                   onClick={() => openModal(null)}
                 >
-                  <i class="bi bi-plus"></i> Tambah Data
+                  <i className="bi bi-plus"></i> Tambah Data
                 </div>
               </div>
             </div>
-            <div class="card-body">
-              <div class="grid-container">
-                {menus.map((menu, index) => (
-                  <div className="grid-card" key={menu.id}>
-                    <img
-                      className="card-image"
-                      src={
-                        menu.image_url
-                          ? `${apiBaseUrl}/${menu.image_url}`
-                          : "/assets/images/menu-template.svg"
-                      }
-                      alt="Menu"
-                    />
-                    <div className="card-content">
-                      <h7 style={{ fontWeight: 'bold', color: menu.is_active === 1 ? 'green' : 'red' }}>{menu.is_active === 1 ? "Aktif" : "Tidak Aktif"}</h7>
-                      <h4>{menu.name}</h4>
-                      <h6 className="mb-3">- {menu.menu_type} -</h6>
-                      <h6 style={{fontWeight: 'bold'}}>Rp. {menu.price}</h6>
-                      <div className="action-buttons">
-                        <button
-                          className="btn info btn-primary"
-                          onClick={() => openModal(menu.id)}
-                        >
-                          <i className="bi bi-pencil"></i> Edit
-                        </button>
+            <div className="card-body">
+              <div className="row row-cols-1 row-cols-md-2 row-cols-lg-4 g-4">
+                {menus.map((menu) => (
+                  <div className="col" key={menu.id}>
+                    <div className="card h-100 shadow-sm">
+                      {renderMenuImage(menu)}
+                      <div className="card-body text-center">
+                        <h5 className="card-title">{menu.name}</h5>
+                        <p className="card-text text-muted mb-1">
+                          {menu.menu_type}
+                        </p>
+                        <h6 className="card-subtitle mb-3 text-success">
+                          Rp. {menu.price.toLocaleString()}
+                        </h6>
+                        <div className="action-buttons">
+                          <button
+                            className="btn btn-primary"
+                            onClick={() => openModal(menu.id)}
+                          >
+                            <i className="bi bi-pencil me-2"></i>Edit
+                          </button>
+                        </div>
                       </div>
                     </div>
                   </div>
