@@ -2,6 +2,23 @@ import React from "react";
 import { Link } from "react-router-dom";
 
 const Sidebar = ({ onToggleSidebar, isOpen, userTokenData }) => {
+  const hasAccess = (accessCode) => {
+    const menuAccess = userTokenData.menu_access;
+    console.log('Menu Access Type:', typeof userTokenData.menu_access);
+    console.log('Menu Access Value:', userTokenData.menu_access);
+    // Multiple type-safe checks
+    if (Array.isArray(menuAccess)) {
+      return menuAccess.includes(accessCode) ||
+        menuAccess.includes(Number(accessCode)) ||
+        menuAccess.includes(String(accessCode));
+    }
+
+    if (typeof menuAccess === 'string') {
+      return menuAccess.split(',').includes(String(accessCode));
+    }
+
+    return false;
+  };
   return (
     <div id="sidebar" className={`sidebar ${isOpen ? "active" : ""}`}>
       <div className="sidebar-wrapper active">
@@ -32,14 +49,6 @@ const Sidebar = ({ onToggleSidebar, isOpen, userTokenData }) => {
                     <span>Management Outlet</span>
                   </Link>
                 </li></>
-            )}
-            {userTokenData.menu_access.includes("10") && (
-              <li className="sidebar-item">
-                <Link to="/member" className="sidebar-link">
-                  <i className="bi bi-people-fill"></i>
-                  <span>Management Membership</span>
-                </Link>
-              </li>
             )}
             {userTokenData.menu_access.includes("2") && (
               <li class="sidebar-item">
@@ -81,6 +90,14 @@ const Sidebar = ({ onToggleSidebar, isOpen, userTokenData }) => {
                 </Link>
               </li>
             )}
+            {userTokenData.menu_access.includes("9") && (
+              <li className="sidebar-item">
+                <Link to="/member" className="sidebar-link">
+                  <i className="bi bi-people-fill"></i>
+                  <span>Management Membership</span>
+                </Link>
+              </li>
+            )}
             {userTokenData.menu_access.includes("4") && (
               <li class="sidebar-item">
                 <Link to="/report" class="sidebar-link">
@@ -101,7 +118,7 @@ const Sidebar = ({ onToggleSidebar, isOpen, userTokenData }) => {
               <li class="sidebar-item">
                 <Link to="/ingredient-report" class="sidebar-link">
                   <i className="bi bi-box-seam"></i>
-                    <span>Ingredients Report</span>
+                  <span>Ingredients Report</span>
                 </Link>
               </li>
             )}
@@ -109,13 +126,13 @@ const Sidebar = ({ onToggleSidebar, isOpen, userTokenData }) => {
               <>
                 <li class="sidebar-item">
                   <Link to="/ingredient" class="sidebar-link">
-                      <i className="bi bi-basket"></i>
+                    <i className="bi bi-basket"></i>
                     <span>Ingredients</span>
                   </Link>
                 </li>
                 <li class="sidebar-item">
                   <Link to="/ingredient-order-outlet" class="sidebar-link">
-                      <i className="bi bi-basket"></i>
+                    <i className="bi bi-basket"></i>
                     <span>Ingredients Order Outlet</span>
                   </Link>
                 </li>

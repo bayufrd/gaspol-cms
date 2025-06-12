@@ -57,7 +57,7 @@ export const UserModal = ({
             ingredients_order: menuAccessArray.includes("6"),
             ingredients_report: menuAccessArray.includes("7"),
             payment_type: menuAccessArray.includes("8"),
-            member: menuAccessArray.includes("10"),
+            member: menuAccessArray.includes("9"),
           });
         } catch (error) {
           console.error("Error fetching user:", error);

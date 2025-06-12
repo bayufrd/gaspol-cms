@@ -143,7 +143,7 @@ function App() {
                        path="/payment-type"
                        element={<PaymentType userTokenData={userTokenData} />}
                      />
-                 )}{userTokenData && userTokenData.menu_access.includes("10") && (
+                 )}{userTokenData && userTokenData.menu_access.includes("9") && (
                      
                   <Route
                     path="/member"
