@@ -141,6 +141,43 @@ export const MembersModal = ({
     }
   };
 
+  // Handle delete member
+  const handleDelete = async () => {
+    const result = await Swal.fire({
+      title: 'Are you sure?',
+      text: `You are about to delete member ${member.name}. This action cannot be undone.`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Yes, delete it!',
+      cancelButtonText: 'No, cancel!'
+    });
+
+    if (result.isConfirmed) {
+      try {
+        await axios.delete(`${apiBaseUrl}/membership/${selectedMemberId}`);
+        
+        Swal.fire({
+          icon: "success",
+          title: "Deleted!",
+          text: `Member ${member.name} deleted successfully`
+        });
+
+        // Refresh members list
+        if (getMembers) await getMembers();
+        
+        // Close modal and reset
+        onClose();
+      } catch (error) {
+        console.error("Error deleting member:", error);
+        Swal.fire({
+          icon: "error",
+          title: "Delete Error",
+          text: error.response?.data?.message || "Failed to delete member"
+        });
+      }
+    }
+  };
+
   if (!show) return null;
 
   return (
@@ -191,6 +228,15 @@ export const MembersModal = ({
               </div>
             </div>
             <div className="modal-footer">
+              {selectedMemberId && ( // Display delete button only if editing an existing member
+                <button 
+                  type="button" 
+                  className="btn btn-danger" 
+                  onClick={handleDelete}
+                >
+                  Delete
+                </button>
+              )}
               <button 
                 type="button" 
                 className="btn btn-secondary" 

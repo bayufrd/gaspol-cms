@@ -105,6 +105,7 @@ const Member = ({ userTokenData }) => {
                     <th>Name</th>
                     <th>Email</th>
                     <th>Phone Number</th>
+                    <th>Point</th> {/* New Column Header */}
                     <th>WhatsApp</th>
                     <th>Actions</th>
                   </tr>
@@ -116,6 +117,7 @@ const Member = ({ userTokenData }) => {
                       <td>{member.member_name}</td>
                       <td>{member.member_email}</td>
                       <td>{member.member_phone_number}</td>
+                      <td>0</td> {/* Default value for Point */}
                       <td>
                         {member.member_phone_number && (
                           <a 
