@@ -14,7 +14,7 @@ const MembersSettingsModal = ({ show, onClose, onSave }) => {
   useEffect(() => {
     // Reset values when modal opens
     if (show) {
-      setPointPercentage(1);
+      setPointPercentage(1); // Default to 1, will update if there is history
       setUpdatedBy("");
       setIsFormValid(true);
       fetchHistory();
@@ -27,7 +27,14 @@ const MembersSettingsModal = ({ show, onClose, onSave }) => {
     try {
       const response = await axios.get(`${apiBaseUrl}/membership-bonus-getall`);
       if (response.data.code === 200) {
-        setHistory(response.data.data);
+        const fetchedHistory = response.data.data;
+        setHistory(fetchedHistory);
+
+        // If history exists, set the latest point percentage
+        if (fetchedHistory.length > 0) {
+          const latestEntry = fetchedHistory[0]; // Assuming the first entry is the latest
+          setPointPercentage(latestEntry.point_percentage);
+        }
       } else {
         Swal.fire({
           icon: "error",

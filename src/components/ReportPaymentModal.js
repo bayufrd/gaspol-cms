@@ -3,6 +3,7 @@ import axios from "axios";
 import { useReactToPrint } from "react-to-print";
 import { ReportDetailModal } from "./ReportDetailModal";
 import Swal from "sweetalert2";
+import * as XLSX from 'xlsx'; // Mengimpor library xlsx
 
 export const ReportPaymentModal = ({
   show,
@@ -27,6 +28,8 @@ export const ReportPaymentModal = ({
   const [selectedTransactionId, setSelectedTransactionId] = useState(null);
   const [showDetailPaymentModal, setShowDetailPaymentModal] = useState(false);
   const componentRef = React.useRef();
+  const [loading, setLoading] = useState(false);
+  const [progress, setProgress] = useState(0);
 
   function toPascalCaseWithSpaces(text) {
     return text
@@ -34,6 +37,63 @@ export const ReportPaymentModal = ({
       .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
       .join(" ");
   }
+
+  useEffect(() => {
+    // Reset progress when opening the modal
+    if (show) {
+      setProgress(0);
+      setLoading(true);
+      const interval = setInterval(() => {
+        setProgress((oldProgress) => {
+          const newProgress = oldProgress + 10;
+          if (newProgress === 100) {
+            clearInterval(interval);
+            return 100; // Stop at 100%
+          }
+          return newProgress;
+        });
+      }, 150); // Adjust interval timing as desired
+
+      const fetchData = async () => {
+        try {
+          const response = await axios.get(`${apiBaseUrl}/payment-report`, {
+            params: {
+              outlet_id: userTokenData.outlet_id,
+              start_date: startDate,
+              end_date: endDate,
+              is_shift: shiftNumber,
+            },
+          });
+
+          const paymentReportData = response.data.data;
+          setPaymentReport(paymentReportData);
+          if (paymentReportData) {
+            setShiftDetails(paymentReportData.shift_details);
+            setExpenditures(paymentReportData.expenditures);
+          }
+
+          // Set progress to 100 when done
+          setProgress(100);
+        } catch (error) {
+          if (error.response.data.code === 404) {
+            Swal.fire({
+              icon: "error",
+              title: "Data Tidak ditemukan!",
+              text: error.response.data.message,
+            });
+          }
+          console.error("Error fetching payment report:", error);
+          onClose();
+        } finally {
+          // Stop loading
+          setLoading(false);
+          clearInterval(interval); // Clear interval if not done
+        }
+      };
+
+      fetchData();
+    }
+  }, [show, apiBaseUrl, userTokenData, startDate, endDate, shiftNumber, onClose]);
 
   const filePdfName =
     startDate === endDate
@@ -44,10 +104,10 @@ export const ReportPaymentModal = ({
     content: () => componentRef.current,
     documentTitle: filePdfName,
   });
-  
+
   const groupCartDetails = (cartDetails) => {
     const grouped = cartDetails.reduce((acc, item) => {
-      if(item.menu_varian_id == null) {
+      if (item.menu_varian_id == null) {
         item.menu_varian_id = 0;
       }
       const key = `${item.menu_id}-${item.menu_varian_id}`;
@@ -68,7 +128,7 @@ export const ReportPaymentModal = ({
 
     // Sort the grouped array by menu_name in ascending order
     groupedArray.sort((a, b) => a.menu_name.localeCompare(b.menu_name));
-    
+
     return groupedArray;
   };
 
@@ -151,6 +211,167 @@ export const ReportPaymentModal = ({
     shiftNumber,
     onClose,
   ]);
+  const handleExportExcel = () => {
+    if (!paymentReport) return;
+
+    // Buat workbook baru
+    const workbook = XLSX.utils.book_new();
+
+    // Tambah worksheet untuk Rincian Shift
+    const shiftDetailsData = [
+      {
+        'Cashier Name': shiftDetails.casher_name || "-",
+        'Actual Ending Cash': shiftDetails.actual_ending_cash || "-",
+        'Cash Difference': shiftDetails.cash_difference || "-",
+        'Expected Ending Cash': shiftDetails.expected_ending_cash || "-",
+        'Total Discount': shiftDetails.total_discount || "-",
+        'Total Amount Shift': shiftDetails.total_amount || "-",
+        'Total Expense': expenditures?.totalExpense || "-",
+      },
+    ];
+
+    const shiftWorksheet = XLSX.utils.json_to_sheet(shiftDetailsData);
+    XLSX.utils.book_append_sheet(workbook, shiftWorksheet, "Shift Details");
+
+    // Tambah worksheet untuk Rincian Expenditures
+    if (expenditures) {
+      const expendituresData = expenditures.lists.map(expense => ({
+        'Description': expense.description || "-",
+        'Nominal': expense.nominal || "-",
+      }));
+
+      const expendituresWorksheet = XLSX.utils.json_to_sheet(expendituresData);
+      XLSX.utils.book_append_sheet(workbook, expendituresWorksheet, "Expenditures");
+    }
+
+    // Tambah worksheet untuk Rincian Laporan
+    const paymentReportsData = Object.entries(paymentReport.payment_reports).map(([jenisLaporan, totalLaporan]) => ({
+      'Jenis Laporan': toPascalCaseWithSpaces(jenisLaporan),
+      'Total Laporan': totalLaporan,
+    }));
+
+    const paymentReportsWorksheet = XLSX.utils.json_to_sheet(paymentReportsData);
+    XLSX.utils.book_append_sheet(workbook, paymentReportsWorksheet, "Payment Reports");
+
+    // Tambah worksheet untuk Pemasukan
+    const incomeData = groupedCartDetails.map(item => ({
+      'Menu Type': item.menu_type,
+      'Menu Name': item.menu_name,
+      'Varian': item.varian || "-",
+      'Total Sold Quantity': item.total_quantity,
+      'Total Amount': item.total_price,
+    }));
+
+    const incomeWorksheet = XLSX.utils.json_to_sheet(incomeData);
+    XLSX.utils.book_append_sheet(workbook, incomeWorksheet, "Income");
+
+    // Tambah worksheet untuk Detail Income Marged
+    const detailIncomeMargedData = paymentReport.cart_details.reduce((acc, cartDetail) => {
+      const key = `${cartDetail.menu_name}-${cartDetail.varian || ""}`;
+
+      if (!acc[key]) {
+        acc[key] = {
+          'Menu Type': cartDetail.menu_type || "-",
+          'Menu Name': cartDetail.menu_name || "-",
+          'Varian': cartDetail.varian || "-",
+          'qtyTot': 0,               // Kunci unik untuk quantity
+          'Menu Price': cartDetail.price || 0,
+          'total_priceTot': 0,       // Kunci unik untuk total price
+        };
+      }
+
+      acc[key]['qtyTot'] += cartDetail.qty || 0;             // Menjumlahkan quantity
+      acc[key]['total_priceTot'] += cartDetail.total_price || 0; // Menjumlahkan total price
+
+      return acc;
+    }, {});
+
+    // Mengubah objek menjadi array untuk worksheet
+    const detailIncomeMargedArray = Object.values(detailIncomeMargedData).map(item => ({
+      'Menu Type': item['Menu Type'],
+      'Menu Name': item['Menu Name'],
+      'Varian': item['Varian'],
+      'Total Quantity': item['qtyTot'],         // Mengambil dari kunci unik
+      'Menu Price': item['Menu Price'],
+      'Total Price': item['total_priceTot'],    // Mengambil dari kunci unik
+    }));
+
+    const detailIncomeMargedWorksheet = XLSX.utils.json_to_sheet(detailIncomeMargedArray);
+    XLSX.utils.book_append_sheet(workbook, detailIncomeMargedWorksheet, "Detail Income Marged");
+
+    // Tambah worksheet untuk Semua Transaksi
+    const transactionData = paymentReport.transactions.map(transaction => ({
+      'Invoice Number': transaction.invoice_number || "-",
+      'Payment Type': transaction.payment_type || "-",
+      'Time to Make Payment': transaction.invoice_due_date || "-",
+      'Discount Code': transaction.transaction_discount_code || "-",
+      'Discount Type': transaction.discount_type === 1
+        ? "Discount Cart"
+        : transaction.discount_type === 2
+          ? "Discount Per-Item"
+          : "-",
+      'Subtotal': transaction.subtotal || "-",
+      'Total': transaction.total || "-",
+      'Total Refund': transaction.total_refund || "-",
+      'Last Time For Refund': transaction.refund_updated_at || "-"
+    }));
+
+    const transactionWorksheet = XLSX.utils.json_to_sheet(transactionData);
+    XLSX.utils.book_append_sheet(workbook, transactionWorksheet, "All Transactions");
+
+    // Tambah worksheet untuk Detail Income
+    const detailIncomeData = paymentReport.cart_details.map(cartDetail => ({
+      'Menu Type': cartDetail.menu_type || "-",
+      'Menu Name': cartDetail.menu_name || "-",
+      'Varian': cartDetail.varian || "-",
+      'Serving Type': cartDetail.serving_type_name || "-",
+      'Note Item': cartDetail.note_item || "-",
+      'Quantity': cartDetail.qty || "-",
+      'Menu Price': cartDetail.price || "-",
+      'Discount Code': cartDetail.discount_code || "-",
+      'Discounts Value': cartDetail.discounts_value || "-",
+      'Discounts Type': cartDetail.discounts_is_percent === 0
+        ? "Potongan"
+        : cartDetail.discounts_is_percent === 1
+          ? "Persen"
+          : "-",
+      'Discounted Price': cartDetail.discounted_price || "-",
+      'Total Price': cartDetail.total_price || "-",
+    }));
+
+    const detailIncomeWorksheet = XLSX.utils.json_to_sheet(detailIncomeData);
+    XLSX.utils.book_append_sheet(workbook, detailIncomeWorksheet, "Detail Income");
+
+    // Tambah worksheet untuk Pengeluaran
+    if (paymentReport.refund && paymentReport.refund[0]) {
+      const refundsData = paymentReport.refund[0].map(refund => ({
+        'Menu Type': refund.menu_type || "-",
+        'Menu Name': refund.menu_name || "-",
+        'Varian': refund.varian || "-",
+        'Serving Type': refund.serving_type_name || "-",
+        'Note Item': refund.note_item || "-",
+        'Quantity Refund Item': refund.qty_refund_item || "-",
+        'Menu Price': refund.menu_price || "-",
+        'Discount Code': refund.discount_code || "-",
+        'Discounts Value': refund.discounts_value || "-",
+        'Discounts Type': refund.discounts_is_percent === 0
+          ? "Potongan"
+          : refund.discounts_is_percent === 1
+            ? "Persen"
+            : "-",
+        'Discounted Price': refund.discounted_price || "-",
+        'Refund Reason Item': refund.refund_reason_item || "-",
+        'Payment Type Refund': refund.payment_type_name || "-",
+        'Total Refund Price': refund.total_refund_price || "-",
+      }));
+
+      const refundsWorksheet = XLSX.utils.json_to_sheet(refundsData);
+      XLSX.utils.book_append_sheet(workbook, refundsWorksheet, "Refunds");
+    }
+
+    // Buat file Excel dan unduh
+    XLSX.writeFile(workbook, `${filePdfName}.xlsx`);
+  };
 
   const handleDiscountType = (
     withOutDiscountCheck,
@@ -214,6 +435,23 @@ export const ReportPaymentModal = ({
 
   return (
     <>
+    {/* Show loading progress even if paymentReport is null initially */}
+    {loading && (
+      <div className="loading-container text-center">
+        <div className="progress" style={{ height: '30px' }}>
+          <div
+            className="progress-bar bg-success"
+            role="progressbar"
+            style={{ width: `${progress}%` }}
+            aria-valuenow={progress}
+            aria-valuemin="0"
+            aria-valuemax="100"
+          >
+            {progress}%
+          </div>
+        </div>
+      </div>
+    )}
       {paymentReport && (
         <>
           <div
@@ -233,19 +471,38 @@ export const ReportPaymentModal = ({
               role="document"
             >
               <div class="modal-content">
-                <div class="modal-header">
-                  <h4 class="modal-title" id="myModalLabel33">
+                <div className="modal-header d-flex justify-content-between align-items-center">
+                  <h4 className="modal-title" id="myModalLabel33">
                     "Laporan Kasir"
                   </h4>
-                  <button
-                    type="button"
-                    class="close"
-                    data-bs-dismiss="modal"
-                    aria-label="Close"
-                    onClick={onClose}
-                  >
-                    <i data-feather="x"></i>x
-                  </button>
+
+                  <div className="d-flex align-items-center">
+                    <button
+                      type="button"
+                      className="btn btn-primary me-2"
+                      onClick={handlePrintPDF}
+                    >
+                      Print PDF
+                    </button>
+
+                    <button
+                      type="button"
+                      className="btn btn-success me-2" // tambahkan kelas untuk tombol export
+                      onClick={handleExportExcel}
+                    >
+                      Export Excel
+                    </button>
+
+                    <button
+                      type="button"
+                      className="btn btn-secondary"
+                      data-bs-dismiss="modal"
+                      aria-label="Close"
+                      onClick={onClose}
+                    >
+                      Close
+                    </button>
+                  </div>
                 </div>
                 <div>
                   <div class="modal-body scrollable-content">
@@ -351,7 +608,7 @@ export const ReportPaymentModal = ({
                       <h4 style={{ textAlign: "center", marginBottom: "3vh" }}>
                         Pemasukan
                       </h4>
-                      
+
                       <div className="table-responsive">
                         <table className="table table-striped text-center">
                           <thead>
@@ -447,42 +704,42 @@ export const ReportPaymentModal = ({
                         </thead>
                         <tbody>
                           {paymentReport.transactions
-                          .filter(transaction => {
-                            if (discountType === 0) {
-                              return true;
-                            } else if (discountType === 1) {
-                              return transaction.discount_type === 0;
-                            } else if (discountType === 2) {
-                              return transaction.discount_type === 1;
-                            } else if (discountType === 3) {
-                              return transaction.discount_type === 2;
-                            } else if (discountType === 4) {
-                              return transaction.discount_type === 0 || transaction.discount_type === 1;
-                            } else if (discountType === 5) {
-                              return transaction.discount_type === 0 || transaction.discount_type === 2;
-                            } else if (discountType === 6) {
-                              return transaction.discount_type === 1 || transaction.discount_type === 2;
-                            } else {
-                              return false;
-                            }
-                          })
-                          .map(
-                            (transaction, index) => (
-                              <tr key={index}>
-                                <td>{transaction.invoice_number || "-"}</td>
-                                <td>{transaction.payment_type || "-"}</td>
-                                <td>{transaction.invoice_due_date || "-"}</td>
-                                <td>
-                                  {transaction.transaction_discount_code || "-"}
-                                </td>
-                                <td>
-                                  {transaction.discount_type === 1
-                                    ? "Discount Cart"
-                                    : transaction.discount_type === 2
-                                    ? "Discount Per-Item"
-                                    : "-"}
-                                </td>
-                                {/* <td>
+                            .filter(transaction => {
+                              if (discountType === 0) {
+                                return true;
+                              } else if (discountType === 1) {
+                                return transaction.discount_type === 0;
+                              } else if (discountType === 2) {
+                                return transaction.discount_type === 1;
+                              } else if (discountType === 3) {
+                                return transaction.discount_type === 2;
+                              } else if (discountType === 4) {
+                                return transaction.discount_type === 0 || transaction.discount_type === 1;
+                              } else if (discountType === 5) {
+                                return transaction.discount_type === 0 || transaction.discount_type === 2;
+                              } else if (discountType === 6) {
+                                return transaction.discount_type === 1 || transaction.discount_type === 2;
+                              } else {
+                                return false;
+                              }
+                            })
+                            .map(
+                              (transaction, index) => (
+                                <tr key={index}>
+                                  <td>{transaction.invoice_number || "-"}</td>
+                                  <td>{transaction.payment_type || "-"}</td>
+                                  <td>{transaction.invoice_due_date || "-"}</td>
+                                  <td>
+                                    {transaction.transaction_discount_code || "-"}
+                                  </td>
+                                  <td>
+                                    {transaction.discount_type === 1
+                                      ? "Discount Cart"
+                                      : transaction.discount_type === 2
+                                        ? "Discount Per-Item"
+                                        : "-"}
+                                  </td>
+                                  {/* <td>
                                   {transaction.discounts_is_percent === 0
                                     ? "Potongan"
                                     : transaction.discounts_is_percent === 1
@@ -491,23 +748,23 @@ export const ReportPaymentModal = ({
                                 </td>
                                 <td>{transaction.max_discount || "-"}</td>
                                 <td>{transaction.discounts_value || "-"}</td> */}
-                                <td>{transaction.subtotal || "-"}</td>
-                                <td>{transaction.total || "-"}</td>
-                                <td>{transaction.total_refund || "-"}</td>
-                                <td>{transaction.refund_updated_at || "-"}</td>
-                                <td>
-                                  <div className="action-buttons">
-                                    <div
-                                      className="buttons btn info btn-primary"
-                                      onClick={() => openReportPaymentDetail(transaction.transaction_id)}
-                                    >
-                                      <i className="bi bi-eye"></i>
+                                  <td>{transaction.subtotal || "-"}</td>
+                                  <td>{transaction.total || "-"}</td>
+                                  <td>{transaction.total_refund || "-"}</td>
+                                  <td>{transaction.refund_updated_at || "-"}</td>
+                                  <td>
+                                    <div className="action-buttons">
+                                      <div
+                                        className="buttons btn info btn-primary"
+                                        onClick={() => openReportPaymentDetail(transaction.transaction_id)}
+                                      >
+                                        <i className="bi bi-eye"></i>
+                                      </div>
                                     </div>
-                                  </div>
-                                </td>
-                              </tr>
-                            )
-                          )}
+                                  </td>
+                                </tr>
+                              )
+                            )}
                         </tbody>
                       </table>
 
@@ -552,8 +809,8 @@ export const ReportPaymentModal = ({
                                   {cartDetail.discounts_is_percent === 0
                                     ? "Potongan"
                                     : cartDetail.discounts_is_percent === 1
-                                    ? "Persen"
-                                    : "-"}
+                                      ? "Persen"
+                                      : "-"}
                                 </td>
                                 <td>{cartDetail.discounted_price || "-"}</td>
                                 <td>{cartDetail.total_price || "-"}</td>
@@ -603,8 +860,8 @@ export const ReportPaymentModal = ({
                                     {refund.discounts_is_percent === 0
                                       ? "Potongan"
                                       : refund.discounts_is_percent === 1
-                                      ? "Persen"
-                                      : "-"}
+                                        ? "Persen"
+                                        : "-"}
                                   </td>
                                   <td>{refund.discounted_price || "-"}</td>
                                   <td>{refund.refund_reason_item || "-"}</td>
@@ -618,16 +875,6 @@ export const ReportPaymentModal = ({
                       ) : (
                         <h6 style={{ textAlign: "center" }}>Data Kosong</h6>
                       )}
-                    </div>
-                    <hr></hr>
-                    <div className="login-button">
-                      <button
-                        type="button"
-                        className="btn btn-primary"
-                        onClick={handlePrintPDF}
-                      >
-                        Print PDF
-                      </button>
                     </div>
                   </div>
                   <div class="modal-footer">

@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from "react";
 import Swal from "sweetalert2";
 import axios from "axios";
-import EditPointsModal from "./MembersEditPointModal"; // Import the new modal
+import EditPointsModal from "./MembersEditPointModal";
 
 export const MembersModal = ({
   show,
@@ -13,21 +13,18 @@ export const MembersModal = ({
 }) => {
   const apiBaseUrl = process.env.REACT_APP_API_BASE_URL;
 
-  const initialMemberState = useMemo(
-    () => ({
-      member_id: null,
-      name: "",
-      email: "",
-      phone_number: "",
-      outlet_id: userTokenData.outlet_id,
-    }),
-    [userTokenData]
-  );
+  const initialMemberState = useMemo(() => ({
+    member_id: null,
+    name: "",
+    email: "",
+    phone_number: "",
+    outlet_id: (typeof userTokenData.outlet_id === 'number' ? userTokenData.outlet_id : 1),
+  }), [userTokenData]);
 
   const [member, setMember] = useState(initialMemberState);
   const [isLoading, setIsLoading] = useState(false);
   const [isFormValid, setIsFormValid] = useState(true);
-  const [showEditPointsModal, setShowEditPointsModal] = useState(false); // Manage edit points modal state
+  const [showEditPointsModal, setShowEditPointsModal] = useState(false);
 
   useEffect(() => {
     const fetchMemberDetails = async () => {
@@ -35,15 +32,11 @@ export const MembersModal = ({
         setIsLoading(true);
         try {
           const response = await axios.get(`${apiBaseUrl}/membership`, {
-            params: {
-              outlet_id: userTokenData.outlet_id,
-            },
+            params: { outlet_id: userTokenData.outlet_id }
           });
           const members = response.data.data || [];
-          const selectedMember = members.find(
-            (m) => m.member_id === selectedMemberId
-          );
-
+          const selectedMember = members.find(m => m.member_id === selectedMemberId);
+          
           if (selectedMember) {
             setMember({
               member_id: selectedMember.member_id,
@@ -91,47 +84,34 @@ export const MembersModal = ({
       return;
     }
 
+    // Prepare the payload
     const submitData = {
       name: member.name,
       email: member.email,
       phone_number: member.phone_number,
-      outlet_id: member.outlet_id
+      outlet_id: parseInt(member.outlet_id) || 1,
     };
 
+    console.log("Submitting Member Data:", submitData);
+
+    // Check if selectedMemberId is a valid number, otherwise treat as new member
+    const isEditing = selectedMemberId && typeof selectedMemberId === 'number' && !isNaN(selectedMemberId);
+    
     try {
-      if (selectedMemberId) {
-        await axios.patch(
-          `${apiBaseUrl}/membership/${selectedMemberId}`, 
-          submitData
-        );
-        
-        Swal.fire({
-          icon: "success",
-          title: "Updated!",
-          text: `Member ${member.name} updated successfully`
-        });
-      } else {
+      if (isEditing) { // Update existing member
+        await axios.patch(`${apiBaseUrl}/membership/${selectedMemberId}`, submitData);
+        Swal.fire({ icon: "success", title: "Updated!", text: `Member ${member.name} updated successfully` });
+      } else { // Add new member if selectedMemberId is invalid
         await axios.post(`${apiBaseUrl}/membership`, submitData);
-        
-        Swal.fire({
-          icon: "success",
-          title: "Created!",
-          text: `Member ${member.name} created successfully`
-        });
+        Swal.fire({ icon: "success", title: "Created!", text: `Member ${member.name} created successfully` });
       }
 
-      if (getMembers) await getMembers();
-      
-      onClose();
-      onSave(member);
+      await getMembers(); // Refresh member list
+      onClose(); // Close modal
+      onSave(member); // Inform of the new or updated member
     } catch (error) {
       console.error("Error saving member:", error);
-      
-      Swal.fire({
-        icon: "error",
-        title: "Save Error",
-        text: error.response?.data?.message || "Failed to save member"
-      });
+      Swal.fire({ icon: "error", title: "Save Error", text: error.response?.data?.message || "Failed to save member" });
     }
   };
 
@@ -148,23 +128,12 @@ export const MembersModal = ({
     if (result.isConfirmed) {
       try {
         await axios.delete(`${apiBaseUrl}/membership/${selectedMemberId}`);
-        
-        Swal.fire({
-          icon: "success",
-          title: "Deleted!",
-          text: `Member ${member.name} deleted successfully`
-        });
-
-        if (getMembers) await getMembers();
-        
+        Swal.fire({ icon: "success", title: "Deleted!", text: `Member ${member.name} deleted successfully` });
+        await getMembers();
         onClose();
       } catch (error) {
         console.error("Error deleting member:", error);
-        Swal.fire({
-          icon: "error",
-          title: "Delete Error",
-          text: error.response?.data?.message || "Failed to delete member"
-        });
+        Swal.fire({ icon: "error", title: "Delete Error", text: error.response?.data?.message || "Failed to delete member" });
       }
     }
   };
@@ -173,7 +142,7 @@ export const MembersModal = ({
     setShowEditPointsModal(true); // Open edit points modal
   };
 
-  if (!show) return null;
+  if (!show) return null; // Return null if not showing
 
   return (
     <div className="modal show" tabIndex="-1" style={{ display: 'block' }}>
@@ -182,13 +151,9 @@ export const MembersModal = ({
           <form onSubmit={handleSubmit}>
             <div className="modal-header">
               <h5 className="modal-title">
-                {selectedMemberId ? 'Edit Member' : 'Add Member'}
+                {selectedMemberId ? 'Edit Member' : 'Add Member'}  {/* Change title based on member ID */}
               </h5>
-              <button 
-                type="button" 
-                className="btn-close" 
-                onClick={onClose}
-              ></button>
+              <button type="button" className="btn-close" onClick={onClose}></button>
             </div>
             <div className="modal-body">
               <div className="mb-3">
@@ -223,34 +188,15 @@ export const MembersModal = ({
               </div>
             </div>
             <div className="modal-footer">
-              {selectedMemberId && ( // Display delete button only if editing an existing member
-                <button 
-                  type="button" 
-                  className="btn btn-danger" 
-                  onClick={handleDelete}
-                >
+              {selectedMemberId && (  // Only show Delete button if editing
+                <button type="button" className="btn btn-danger" onClick={handleDelete}>
                   Delete
                 </button>
               )}
-              <button 
-                type="button" 
-                className="btn btn-secondary" 
-                onClick={onClose}
-              >
-                Cancel
-              </button>
-              <button 
-                type="submit" 
-                className="btn btn-primary"
-              >
-                Save
-              </button>
-              {selectedMemberId && ( // Add Edit Point button
-                <button 
-                  type="button" 
-                  className="btn btn-warning" 
-                  onClick={handleEditPoints}
-                >
+              <button type="button" className="btn btn-secondary" onClick={onClose}>Cancel</button>
+              <button type="submit" className="btn btn-primary">Save</button>
+              {selectedMemberId && (  // Remove Edit Points button for adding new member
+                <button type="button" className="btn btn-warning" onClick={handleEditPoints}>
                   Edit Point
                 </button>
               )}
@@ -258,13 +204,13 @@ export const MembersModal = ({
           </form>
         </div>
       </div>
-      {showEditPointsModal && ( // Conditionally render EditPointsModal
-        <EditPointsModal 
+      {showEditPointsModal && (
+        <EditPointsModal
           show={showEditPointsModal}
           onClose={() => setShowEditPointsModal(false)}
           selectedMemberId={selectedMemberId}
           userTokenData={userTokenData}
-          refreshHistory={getMembers} // Function to refresh history after points are added
+          refreshHistory={getMembers}
         />
       )}
     </div>

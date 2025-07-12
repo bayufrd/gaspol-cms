@@ -21,7 +21,8 @@
     "react-scripts": "5.0.1",
     "react-to-print": "^2.14.15",
     "sweetalert2": "^11.7.27",
-    "web-vitals": "^2.1.4"
+    "web-vitals": "^2.1.4",
+    "xlsx": "^0.18.5"
   },
   "scripts": {
     "start": "react-scripts start",

@@ -55,7 +55,11 @@ const Member = ({ userTokenData }) => {
 
   // Modal open/close handlers
   const openModal = (memberId = null) => {
-    setSelectedMemberId(memberId);
+    if (memberId === null) {
+      setSelectedMemberId(null); // Ensure it's null for adding a new member
+    } else {
+      setSelectedMemberId(memberId); // Use the ID for editing
+    }
     setShowModal(true);
   };
 
@@ -131,7 +135,7 @@ const Member = ({ userTokenData }) => {
                 </button>
                 <button
                   className="btn btn-primary rounded-pill ms-4"
-                  onClick={openModal}
+                  onClick={() => openModal(null)} // Ensure selectedMemberId is null
                 >
                   <i className="bi bi-plus"></i> Tambah Data
                 </button>
@@ -169,7 +173,7 @@ const Member = ({ userTokenData }) => {
                       <td>
                         <button
                           className="btn btn-primary btn-sm"
-                          onClick={() => openModal(member.member_id)}
+                          onClick={() => openModal(member.member_id)} // Edit member
                         >
                           <i className="bi bi-pencil"></i>
                         </button>

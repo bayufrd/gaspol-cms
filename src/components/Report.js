@@ -5,13 +5,15 @@ import { ReportPaymentModal } from "./ReportPaymentModal";
 import flatpickr from "flatpickr";
 import Swal from "sweetalert2";
 import "flatpickr/dist/flatpickr.min.css";
-import { Bar } from 'react-chartjs-2';
+import { Bar, Line, Pie } from 'react-chartjs-2'; // Import Line and Pie chart
 import { CategoryScale, LinearScale } from 'chart.js';
 import Chart from 'chart.js/auto';
+
 const apiBaseUrl = process.env.REACT_APP_API_BASE_URL;
 
 const Report = ({ userTokenData }) => {
   Chart.register(CategoryScale, LinearScale);
+
   const [reports, setReports] = useState([]);
   const [shifts, setShifts] = useState([]);
   const [startDate, setStartDate] = useState(null);
@@ -26,22 +28,39 @@ const Report = ({ userTokenData }) => {
   const [selectedTransactionId, setSelectedTransactionId] = useState(null);
   const [isCashierReportEnabled, setIsCashierReportEnabled] = useState(false);
   const [showReportPaymentModal, setShowReportPaymentModal] = useState(false);
+  const [selectedChart, setSelectedChart] = useState('bar'); // Default to bar chart
+
+
   const [chartData, setChartData] = useState({
     labels: [],
     datasets: [
       {
         label: "Total Omset",
         data: [],
-        backgroundColor: [" rgba(75, 192, 192, 1)"],
+        backgroundColor: ["rgba(75, 192, 192, 1)"],
         borderColor: ["rgba(53, 162, 235, 0.5)"],
         borderWidth: 1,
       },
     ],
   });
 
+  // Loader states
+  const [loading, setLoading] = useState(false);
+  const [loadingProgress, setLoadingProgress] = useState(0);
+  const loadingIntervalRef = useRef(null);
+
   useEffect(() => {
     getReports();
   }, []);
+  useEffect(() => {
+    const triggerSearch = () => {
+      if (startDate && endDate) {
+        handleSearch();
+      }
+    };
+
+    triggerSearch();
+  }, [startDate, endDate, isSuccess, isPending, isShift]); // Trigger search on changes
 
   useEffect(() => {
     if (showModal) {
@@ -98,6 +117,9 @@ const Report = ({ userTokenData }) => {
     });
     setReports(response.data.data);
     setShifts(response.data.list_shift);
+
+    // Enable cashier report if there are reports
+    setIsCashierReportEnabled(response.data.data && response.data.data.length > 0);
   };
 
   const openModal = (transactionId) => {
@@ -109,61 +131,87 @@ const Report = ({ userTokenData }) => {
     setShowModal(false);
   };
 
-  const openReportPaymentModal = () => {
-    const shiftNumber = parseInt(isShift);
-    if (shiftNumber === 0) {
-      if(shifts.length > 0) {
-        setSelectedShift(shifts.map(shift => shift.shift_number).join(", "));
+  const openReportPaymentModal = async () => {
+    try {
+      // Set loading state to true
+      setLoading(true);
+      setLoadingProgress(0); // Reset progress when starting
+      setLoadingInterval(); // Start loading progress increment
+
+      const shiftNumber = parseInt(isShift);
+
+      // Prepare the selected shift value
+      if (shiftNumber === 0) {
+        if (shifts.length > 0) {
+          setSelectedShift(shifts.map(shift => shift.shift_number).join(", "));
+        } else {
+          setSelectedShift(`"Belum ada shift"`);
+        }
+      } else if (shiftNumber > 0) {
+        setSelectedShift(shiftNumber);
       } else {
-        setSelectedShift(`"Belum ada shift"`);
+        setSelectedShift(isShift);
       }
-    } else if (shiftNumber > 0) {
-      setSelectedShift(shiftNumber);
-    } else {
-      setSelectedShift(isShift);
+
+      // Show the ReportPaymentModal
+      setShowReportPaymentModal(true);
+
+      // Simulate fetching or loading report payments
+      await new Promise(resolve => setTimeout(resolve, 5000));  // Simulate a delay for testing
+    } catch (error) {
+      console.error("Error while opening report payment modal:", error);
+      // Handle error as needed, potentially using Swal to alert the error
+    } finally {
+      clearInterval(loadingIntervalRef.current); // Clear loading interval
+      setLoadingProgress(0); // Reset progress once loading is done
+      setLoading(false); // End loading
     }
-    setShowReportPaymentModal(true);
   };
 
+
   const handleSearch = async () => {
+    setLoading(true);
+    setLoadingProgress(0);
+    setLoadingInterval(); // Start loading progress interval
+
     if ((startDate && !endDate) || (!startDate && endDate)) {
       Swal.fire({
         icon: "error",
         title: "Gagal",
         text: "Silakan pilih kedua tanggal (mulai dan akhir) untuk melakukan pencarian.",
       });
+      clearInterval(loadingIntervalRef.current); // Clear loading interval if error
+      setLoading(false);
       return;
     }
 
-    // Convert the input dates to Date objects
     const startDateObj = new Date(startDate);
     const endDateObj = new Date(endDate);
 
-    // Check if startDate is greater than endDate
     if (startDateObj > endDateObj) {
       Swal.fire({
         icon: "error",
         title: "Gagal",
         text: "Tanggal mulai tidak boleh lebih besar dari tanggal akhir!",
       });
+      clearInterval(loadingIntervalRef.current); // Clear loading interval if error
+      setLoading(false);
       return;
     }
 
-    // Calculate the difference in milliseconds between the two dates
     const diffMilliseconds = endDateObj - startDateObj;
-
-    // Convert the difference to days
     const diffDays = Math.ceil(diffMilliseconds / (1000 * 60 * 60 * 24));
 
-    // Check if the difference between the two dates is more than 10 days
-    if (diffDays > 10) {
-      Swal.fire({
-        icon: "error",
-        title: "Gagal",
-        text: "Pemilihan tanggal tidak bisa melebihi 10 hari!",
-      });
-      return;
-    }
+    // if (diffDays > 10) {
+    //   Swal.fire({
+    //     icon: "error",
+    //     title: "Gagal",
+    //     text: "Pemilihan tanggal tidak bisa melebihi 10 hari!",
+    //   });
+    //   clearInterval(loadingIntervalRef.current); // Clear loading interval if error
+    //   setLoading(false);
+    //   return;
+    // }
 
     const outlet_id = userTokenData.outlet_id;
     const start_date = startDate;
@@ -182,46 +230,75 @@ const Report = ({ userTokenData }) => {
           is_pending,
         },
       });
-      // Destroy existing chart if it exists
+
       if (chartData.chartInstance) {
         chartData.chartInstance.destroy();
       }
-      setIsShift(0);
       setReports(response.data.data);
       setChartData(generateChartData(response.data.chart));
       setShifts(response.data.list_shift);
+
+      // Enable cashier report if there are reports
+      setIsCashierReportEnabled(response.data.data && response.data.data.length > 0);
     } catch (error) {
       console.error("Gagal mengambil data laporan:", error);
+      Swal.fire({
+        icon: "error",
+        title: "Gagal",
+        text: "Terjadi kesalahan saat mengambil laporan.",
+      });
+    } finally {
+      clearInterval(loadingIntervalRef.current); // Clear loading interval
+      setLoading(false); // End loading
+      setLoadingProgress(0); // Reset loading progress
     }
+  };
+  const colors = [
+    'rgba(255, 99, 132, 1)',  // Red
+    'rgba(54, 162, 235, 1)',   // Blue
+    'rgba(255, 206, 86, 1)',   // Yellow
+    'rgba(75, 192, 192, 1)',   // Cyan
+    'rgba(153, 102, 255, 1)',  // Purple
+    'rgba(255, 159, 64, 1)',   // Orange
+    'rgba(127, 255, 0, 1)',    // Green
+    'rgba(128, 0, 128, 1)',    // Purple
+  ];
+  const setLoadingInterval = () => {
+    loadingIntervalRef.current = setInterval(() => {
+      setLoadingProgress((prev) => Math.min(prev + 10, 100)); // Increment loading progress
+    }, 200); // Increment every 200ms
   };
 
   const generateChartData = (chartData) => {
     const labels = chartData.map((entry) => entry.invoice_due_date);
-    const totalTurnoverData = chartData.map((entry, index) => {
-      return index % 2 === 0
-        ? { totalTurnover: entry.total_turnover, color: 'rgba(53, 162, 235, 0.5)' }
-        : { totalTurnover: entry.total_turnover, color: 'rgba(255, 99, 132, 0.5)' };
-    });
+    const totalTurnoverData = chartData.map((entry) => entry.total_turnover);
+
+    // Use the colors array and map it to the length of the data
+    const backgroundColors = totalTurnoverData.map((_, index) =>
+      colors[index % colors.length] // Loop through the colors array
+    );
+
+    const openReportPage = async () => {
+      const shiftNumber = parseInt(isShift);
+      const outlet_id = userTokenData.outlet_id;
+
+      // Constructing the report URL with query parameters
+      const reportUrl = `/report?outlet_id=${outlet_id}&start_date=${startDate}&end_date=${endDate}&is_success=${isSuccess}&is_pending=${isPending}&is_shift=${shiftNumber}`;
+
+      window.open(reportUrl, '_blank'); // Open the report in a new tab
+    };
+
     return {
       labels: labels,
       datasets: [
         {
           label: "Total Omset",
-          data: totalTurnoverData.map((entry) => entry.totalTurnover),
-          backgroundColor: totalTurnoverData.map((entry) => entry.color),
+          data: totalTurnoverData,
+          backgroundColor: backgroundColors,
+          borderColor: backgroundColors.map(color => color.replace('1', '0.5')), // Make borders lighter
           borderWidth: 1,
         },
       ],
-      scales: {
-        x: {
-          type: 'linear',
-          position: 'bottom',
-          title: {
-            display: true,
-            text: 'Invoice Due Date',
-          },
-        },
-      },
     };
   };
 
@@ -235,17 +312,11 @@ const Report = ({ userTokenData }) => {
             </div>
           </div>
         </div>
-        <section class="section">
-          <div class="card">
-            <div class="card-header">
+        <section className="section">
+          <div className="card">
+            <div className="card-header">
               <div className="float-lg-start">
                 <div className="card-header-report">
-                  <div
-                    className="button btn btn-primary rounded-pill"
-                    onClick={handleSearch}
-                  >
-                    <i class="bi bi-search"></i> Cari
-                  </div>
                   <div>
                     <input
                       type="text"
@@ -259,43 +330,42 @@ const Report = ({ userTokenData }) => {
                   <div>
                     <input
                       type="text"
-                      id="startDateInput"
+                      id="endDateInput"
                       className={`form-control`}
                       placeholder="Tanggal akhir"
                       value={endDate || ""}
                       ref={endDateInputRef}
                     />
                   </div>
-                  <div class="form-check">
-                    <div class="checkbox">
+                  <div className="form-check">
+                    <div className="checkbox">
                       <input
                         type="checkbox"
-                        class="form-check-input"
+                        className="form-check-input"
                         checked={isSuccess}
                         onChange={(e) => {
                           setIsSuccess(!isSuccess);
-                          setIsCashierReportEnabled(e.target.checked);
                         }}
                       />
-                      <label for="checkbox2">Transaksi Sukses </label>
+                      <label htmlFor="checkbox2">Transaksi Sukses </label>
                     </div>
                   </div>
-                  <div class="form-check">
-                    <div class="checkbox">
+                  <div className="form-check">
+                    <div className="checkbox">
                       <input
                         type="checkbox"
-                        class="form-check-input"
+                        className="form-check-input"
                         checked={isPending}
                         onChange={() => setIsPending(!isPending)}
                       />
-                      <label for="checkbox2">Transaksi Pending </label>
+                      <label htmlFor="checkbox2">Transaksi Pending </label>
                     </div>
                   </div>
                   <div className="d-flex align-items-center ms-2">
                     <div className="me-2">Shift:</div>
                     <div>
                       <select
-                        class="form-select"
+                        className="form-select"
                         id="basicSelect"
                         value={isShift}
                         onChange={(e) => {
@@ -314,39 +384,99 @@ const Report = ({ userTokenData }) => {
                 </div>
               </div>
               <div className="float-lg-end">
-                <div 
+                <div
                   className={`button btn btn-primary rounded-pill ${isCashierReportEnabled ? "" : "disabled"}`}
                   onClick={openReportPaymentModal}
                 >
                   Laporan Kasir
                 </div>
               </div>
+              {/* Loading Modal Display */}
+              {loading && (
+                <div className="modal loading-modal show" tabIndex="-1" role="dialog" style={{ display: 'block' }}>
+                  <div className="modal-dialog modal-dialog-centered" role="document">
+                    <div className="modal-content">
+                      <div className="modal-header">
+                        <h5 className="modal-title">Loading...</h5>
+                      </div>
+                      <div className="modal-body">
+                        <h6>{loadingProgress}%</h6>
+                        <div className="progress">
+                          <div
+                            className="progress-bar"
+                            role="progressbar"
+                            style={{ width: `${loadingProgress}%` }}
+                            aria-valuenow={loadingProgress}
+                            aria-valuemin="0"
+                            aria-valuemax="100"
+                          >
+                            {loadingProgress}%
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
-            <div class="card-body">
-
-              {/* Chart.js Bar Chart */}
+            <div className="card-body">
               <div className="container mb-4">
-                <div className="d-flex justify-content-center align-center" style={{ height: "30vh" }}>
-                  <Bar data={chartData} />
+                <div className="d-flex justify-content-center align-center" style={{ height: "300px", width: "100%" }}>
+                  {/* Setting a fixed height to match the previous design */}
+                  {selectedChart === 'bar' && <Bar data={chartData} options={{ responsive: true, maintainAspectRatio: false }} />}
+                  {selectedChart === 'line' && <Line data={chartData} options={{ responsive: true, maintainAspectRatio: false }} />}
+                  {selectedChart === 'pie' && <Pie data={chartData} options={{ responsive: true, maintainAspectRatio: false }} />}
+                </div>
+              </div>
+              {/* Checkbox selection for charts */}
+              <div className="d-flex align-items-center mb-2">
+                <div className="me-2">Tampilkan Chart:</div>
+                <div className="form-check">
+                  <input
+                    type="radio"
+                    className="form-check-input"
+                    id="barChart"
+                    checked={selectedChart === 'bar'}
+                    onChange={() => setSelectedChart('bar')}
+                  />
+                  <label className="form-check-label" htmlFor="barChart">Bar Chart</label>
+                </div>
+                <div className="form-check">
+                  <input
+                    type="radio"
+                    className="form-check-input"
+                    id="lineChart"
+                    checked={selectedChart === 'line'}
+                    onChange={() => setSelectedChart('line')}
+                  />
+                  <label className="form-check-label" htmlFor="lineChart">Line Chart</label>
+                </div>
+                <div className="form-check">
+                  <input
+                    type="radio"
+                    className="form-check-input"
+                    id="pieChart"
+                    checked={selectedChart === 'pie'}
+                    onChange={() => setSelectedChart('pie')}
+                  />
+                  <label className="form-check-label" htmlFor="pieChart">Pie Chart</label>
                 </div>
               </div>
 
-              <table class="table table-striped" id="table1">
+              <table className="table table-striped" id="table1">
                 <thead>
                   <tr>
                     <th>No</th>
                     <th>Status</th>
                     <th>Receipt Number</th>
-                    <th>Customer Name</th>
-                    <th>Customer Seat</th>
-                    <th>Total Transaction</th>
-                    <th>Customer Cash</th>
-                    <th>Customer Change</th>
+                    <th>Name</th>
+                    <th>Seat</th>
+                    <th>Total</th>
+                    <th>Cash</th>
+                    <th>Change</th>
                     <th>Payment Type</th>
-                    {/* <th>Delivery Type</th>
-                    <th>Delivery Note</th> */}
                     <th>Invoice Number</th>
-                    <th>Last Data Changed At</th>
+                    <th>Last Updated</th>
                     <th>Actions</th>
                   </tr>
                 </thead>
@@ -364,8 +494,6 @@ const Report = ({ userTokenData }) => {
                       <td>{report.customer_cash || "-"}</td>
                       <td>{report.customer_change || "-"}</td>
                       <td>{report.payment_type || "-"}</td>
-                      {/* <td>{report.delivery_type || "-"}</td>
-                      <td>{report.delivery_note || "-"}</td> */}
                       <td>{report.invoice_number || "-"}</td>
                       <td>{report.invoice_due_date ? report.invoice_due_date : report.updated_at}</td>
                       <td>
@@ -386,6 +514,34 @@ const Report = ({ userTokenData }) => {
           </div>
         </section>
       </div>
+
+      {/* Loading Overlay Modal */}
+      {loading && (
+        <div className="modal loading-modal show" tabIndex="-1" role="dialog" style={{ display: 'block' }}>
+          <div className="modal-dialog modal-dialog-centered" role="document">
+            <div className="modal-content">
+              <div className="modal-header">
+                <h5 className="modal-title">Loading...</h5>
+              </div>
+              <div className="modal-body">
+                <h6>{loadingProgress}%</h6>
+                <div className="progress">
+                  <div
+                    className="progress-bar"
+                    role="progressbar"
+                    style={{ width: `${loadingProgress}%` }}
+                    aria-valuenow={loadingProgress}
+                    aria-valuemin="0"
+                    aria-valuemax="100"
+                  >
+                    {loadingProgress}%
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       <ReportDetailModal
         show={showModal}

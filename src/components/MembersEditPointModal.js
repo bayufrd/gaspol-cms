@@ -22,7 +22,7 @@ const MembersEditPointModal = ({ show, onClose, selectedMemberId, userTokenData,
     const hours = String(d.getHours()).padStart(2, '0');
     const minutes = String(d.getMinutes()).padStart(2, '0');
     const seconds = String(d.getSeconds()).padStart(2, '0');
-    return `${year}/${month}/${day} ${hours}:${minutes}:${seconds}`;
+    return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
   };
 
   // Fetch membership history when modal opens
@@ -32,7 +32,17 @@ const MembersEditPointModal = ({ show, onClose, selectedMemberId, userTokenData,
         setIsLoading(true);
         try {
           const response = await axios.get(`${apiBaseUrl}/membership-history/${selectedMemberId}`);
-          setHistory(response.data.data || []);
+          const fetchedHistory = response.data.data || [];
+
+          setHistory(fetchedHistory);
+
+          // If history exists, set the last points to pointsToAdd
+          if (fetchedHistory.length > 0) {
+            const latestEntry = fetchedHistory[0]; // Assuming the first entry is the latest
+            setPointsToAdd(latestEntry.points); // Set the latest points to the input field
+          } else {
+            setPointsToAdd(0); // If no history exists, default to zero
+          }
         } catch (error) {
           console.error("Error fetching membership history:", error);
           Swal.fire({
@@ -45,6 +55,7 @@ const MembersEditPointModal = ({ show, onClose, selectedMemberId, userTokenData,
         }
       } else {
         setHistory([]);
+        setPointsToAdd(0); // Reset points when modal closes
       }
     };
 
