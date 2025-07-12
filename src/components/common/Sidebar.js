@@ -84,7 +84,7 @@ const Sidebar = ({ onToggleSidebar, isOpen, userTokenData }) => {
             )}
             {userTokenData.menu_access.includes("10") && (
               <li class="sidebar-item">
-                <Link to="/payment-category" class="sidebar-link">
+                <Link to="/payment-management" class="sidebar-link">
                   <i className="bi bi-bank"></i>
                   <span>Payment Categories</span>
                 </Link>

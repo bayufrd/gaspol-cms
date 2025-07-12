@@ -1,12 +1,14 @@
 import React, { useState, useEffect, useCallback } from "react";
 import axios from "axios";
 import { MembersModal } from "../components/MembersModal";
+import MembersSettingsModal from "../components/MembersSettingsModal"; 
 
 const Member = ({ userTokenData }) => {
   const apiBaseUrl = process.env.REACT_APP_API_BASE_URL;
   const [members, setMembers] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [selectedMemberId, setSelectedMemberId] = useState(null);
+  const [showSettingsModal, setShowSettingsModal] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
 
@@ -47,7 +49,13 @@ const Member = ({ userTokenData }) => {
     setSelectedMemberId(null);
     setShowModal(false);
   };
+  const openSettingsModal = () => {
+    setShowSettingsModal(true);
+  };
 
+  const closeSettingsModal = () => {
+    setShowSettingsModal(false);
+  };
   // Handle member save/update
   const handleSaveMember = async (memberData) => {
     try {
@@ -62,7 +70,7 @@ const Member = ({ userTokenData }) => {
   // WhatsApp link formatter
   const formatWhatsAppLink = (phoneNumber) => {
     const cleanedNumber = phoneNumber.replace(/\D/g, '');
-    let formattedNumber = cleanedNumber.startsWith('0') 
+    let formattedNumber = cleanedNumber.startsWith('0')
       ? '+62' + cleanedNumber.slice(1)
       : cleanedNumber.startsWith('62')
         ? '+' + cleanedNumber
@@ -89,7 +97,13 @@ const Member = ({ userTokenData }) => {
           <div className="card">
             <div className="card-header">
               <div className="float-lg-end">
-                <button 
+                <button
+                  className="btn btn-primary rounded-pill ms-2"
+                  onClick={openSettingsModal}
+                >
+                  <i className="bi bi-plus"></i> Tambah Settings
+                </button>
+                <button
                   className="btn btn-primary rounded-pill"
                   onClick={() => openModal()}
                 >
@@ -117,12 +131,12 @@ const Member = ({ userTokenData }) => {
                       <td>{member.member_name}</td>
                       <td>{member.member_email}</td>
                       <td>{member.member_phone_number}</td>
-                      <td>0</td> {/* Default value for Point */}
+                      <td>{member.member_points}</td>
                       <td>
                         {member.member_phone_number && (
-                          <a 
-                            href={formatWhatsAppLink(member.member_phone_number)} 
-                            target="_blank" 
+                          <a
+                            href={formatWhatsAppLink(member.member_phone_number)}
+                            target="_blank"
                             rel="noopener noreferrer"
                             className="btn btn-success btn-sm"
                           >
@@ -146,7 +160,11 @@ const Member = ({ userTokenData }) => {
           </div>
         </section>
       </div>
-
+      <MembersSettingsModal
+        show={showSettingsModal}
+        onClose={closeSettingsModal}
+        onSave={getMembers}
+      />
       <MembersModal
         show={showModal}
         onClose={closeModal}
