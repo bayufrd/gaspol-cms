@@ -79,6 +79,20 @@ const MembersEditPointModal = ({ show, onClose, selectedMemberId, userTokenData,
     }
   };
 
+  // Function to determine style based on status
+  const getStatusStyle = (status) => {
+    switch (status) {
+      case 'add':
+        return 'status-add';   // Green for add
+      case 'subtract':
+        return 'status-subtract'; // Red for subtract
+      case 'edit':
+        return 'status-edit'; // Blue for edit
+      default:
+        return '';
+    }
+  };
+
   if (!show) return null;
 
   return (
@@ -101,7 +115,7 @@ const MembersEditPointModal = ({ show, onClose, selectedMemberId, userTokenData,
               />
             </div>
             <div className="mb-3">
-              <label htmlFor="pointsToAdd" className="form-label">Points to Add</label>
+              <label htmlFor="pointsToAdd" className="form-label">Points</label>
               <input
                 type="number"
                 className="form-control"
@@ -127,9 +141,9 @@ const MembersEditPointModal = ({ show, onClose, selectedMemberId, userTokenData,
                 </thead>
                 <tbody>
                   {history.map((hist) => (
-                    <tr key={hist.id}>
+                    <tr key={hist.id} className={getStatusStyle(hist.status)}>
                       <td>{formatDate(hist.created_at)}</td>
-                      <td>{hist.points}</td>
+                      <td>{hist.status === 'add' ? `+${hist.points}` : hist.status === 'subtract' ? `-${hist.points}` : hist.points}</td>
                       <td>{hist.status}</td>
                       <td>{hist.update_from}</td>
                     </tr>

@@ -153,18 +153,26 @@
 .grid-container {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-    gap: 16px; /* Spacing between cards */
-    padding: 16px; /* Padding around the grid */
+    gap: 16px;
+    /* Spacing between cards */
+    padding: 16px;
+    /* Padding around the grid */
 }
 
 .grid-card {
-    background-color: #fff; /* Background color of the card */
-    border: 1px solid #ddd; /* Border around the card */
-    border-radius: 8px; /* Rounded corners */
-    overflow: hidden; /* Prevents overflow of content */
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Shadow effect */
-    transition: transform 0.2s; /* Animation for hover effect */
-    
+    background-color: #fff;
+    /* Background color of the card */
+    border: 1px solid #ddd;
+    /* Border around the card */
+    border-radius: 8px;
+    /* Rounded corners */
+    overflow: hidden;
+    /* Prevents overflow of content */
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    /* Shadow effect */
+    transition: transform 0.2s;
+    /* Animation for hover effect */
+
     display: grid;
     justify-content: center;
     align-content: stretch;
@@ -172,25 +180,33 @@
 }
 
 .grid-card:hover {
-    transform: scale(1.05); /* Scale effect on hover */
+    transform: scale(1.05);
+    /* Scale effect on hover */
 }
 
 .card-image {
-    width: 100%; /* Full width for the image */
-    height: auto; /* Maintain aspect ratio */
+    width: 100%;
+    /* Full width for the image */
+    height: auto;
+    /* Maintain aspect ratio */
 }
 
 .card-content {
-    padding: 16px; /* Padding inside the card */
-    display: flex; /* Use flexbox */
-    flex-direction: column; /* Align items vertically */
-    justify-content: space-around; /* Spread out content */
+    padding: 16px;
+    /* Padding inside the card */
+    display: flex;
+    /* Use flexbox */
+    flex-direction: column;
+    /* Align items vertically */
+    justify-content: space-around;
+    /* Spread out content */
     align-items: center;
     text-align: center;
 }
 
 .action-buttons {
-    margin-top: 15px; /* Space above the action buttons */
+    margin-top: 15px;
+    /* Space above the action buttons */
 }
 
 .modal-backdrop {
@@ -199,6 +215,29 @@
     left: 0;
     right: 0;
     bottom: 0;
-    background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent black */
-    z-index: 1040; /* Ensure it sits above the content */
-  }
+    background-color: rgba(0, 0, 0, 0.5);
+    /* Semi-transparent black */
+    z-index: 1040;
+    /* Ensure it sits above the content */
+}
+
+.status-add {
+    background-color: #d4edda;
+    /* Light green background */
+    border: 1px solid #c3e6cb;
+    /* Green border */
+}
+
+.status-subtract {
+    background-color: #f8d7da;
+    /* Light red background */
+    border: 1px solid #f5c6cb;
+    /* Red border */
+}
+
+.status-edit {
+    background-color: #d1ecf1;
+    /* Light blue background */
+    border: 1px solid #bee5eb;
+    /* Blue border */
+}
