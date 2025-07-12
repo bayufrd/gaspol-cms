@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import Swal from "sweetalert2";
 import axios from "axios";
+import { ReportDetailModal } from "./ReportDetailModal"; // Import modal baru
 
 const MembersEditPointModal = ({ show, onClose, selectedMemberId, userTokenData, refreshHistory }) => {
   const apiBaseUrl = process.env.REACT_APP_API_BASE_URL;
@@ -9,6 +10,8 @@ const MembersEditPointModal = ({ show, onClose, selectedMemberId, userTokenData,
   const [editorName, setEditorName] = useState("");
   const [history, setHistory] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [showReportModal, setShowReportModal] = useState(false); // State untuk modal
+  const [selectedTransactionId, setSelectedTransactionId] = useState(null); // State untuk ID transaksi yang dipilih
 
   // Function to format date to 'YYYY-MM-DD HH:mm:ss'
   const formatDate = (date) => {
@@ -19,7 +22,7 @@ const MembersEditPointModal = ({ show, onClose, selectedMemberId, userTokenData,
     const hours = String(d.getHours()).padStart(2, '0');
     const minutes = String(d.getMinutes()).padStart(2, '0');
     const seconds = String(d.getSeconds()).padStart(2, '0');
-    return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+    return `${year}/${month}/${day} ${hours}:${minutes}:${seconds}`;
   };
 
   // Fetch membership history when modal opens
@@ -93,6 +96,33 @@ const MembersEditPointModal = ({ show, onClose, selectedMemberId, userTokenData,
     }
   };
 
+  // Handle the click of transaction_ref to show report modal
+  const handleTransactionRefClick = async (transactionRef) => {
+    try {
+      const response = await axios.post(`${apiBaseUrl}/transaction/reference`, {
+        transaction_ref: transactionRef,
+      });
+
+      if (response.data.code === 200 && response.data.data) {
+        setSelectedTransactionId(response.data.data.id); // Store ID transaction
+        setShowReportModal(true); // Show report modal
+      } else {
+        Swal.fire({
+          icon: "error",
+          title: "Not Found",
+          text: "Transaction not found for this reference.",
+        });
+      }
+    } catch (error) {
+      console.error("Error fetching transaction:", error);
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: "Failed to fetch transaction details.",
+      });
+    }
+  };
+
   if (!show) return null;
 
   return (
@@ -136,7 +166,8 @@ const MembersEditPointModal = ({ show, onClose, selectedMemberId, userTokenData,
                     <th>Created At</th>
                     <th>Points</th>
                     <th>Status</th>
-                    <th>Update From</th>
+                    <th>Update</th>
+                    <th>Transaction</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -145,7 +176,15 @@ const MembersEditPointModal = ({ show, onClose, selectedMemberId, userTokenData,
                       <td>{formatDate(hist.created_at)}</td>
                       <td>{hist.status === 'add' ? `+${hist.points}` : hist.status === 'subtract' ? `-${hist.points}` : hist.points}</td>
                       <td>{hist.status}</td>
-                      <td>{hist.update_from}</td>
+                      <td>{hist.update_from || 'System'}</td>
+                      <td>
+                        <button
+                          className="btn btn-link"
+                          onClick={() => handleTransactionRefClick(hist.transaction_ref)} // Handle click
+                        >
+                          {hist.transaction_ref || 'No Reference'}
+                        </button>
+                      </td>
                     </tr>
                   ))}
                   {history.length === 0 && (
@@ -159,6 +198,13 @@ const MembersEditPointModal = ({ show, onClose, selectedMemberId, userTokenData,
           </div>
         </div>
       </div>
+
+      {/* Modal to show report details based on transaction ID */}
+      <ReportDetailModal
+        show={showReportModal}
+        onClose={() => setShowReportModal(false)}
+        selectedTransactionId={selectedTransactionId}
+      />
     </div>
   );
 };

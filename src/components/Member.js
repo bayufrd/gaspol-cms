@@ -124,13 +124,13 @@ const Member = ({ userTokenData }) => {
               </div>
               <div className="float-lg-end">
                 <button
-                  className="btn btn-primary rounded-pill ms-2"
+                  className="btn btn-primary rounded-pill me-2"
                   onClick={openSettingsModal}
                 >
                   <i className="bi bi-plus"></i> Edit Bonus Percent
                 </button>
                 <button
-                  className="btn btn-primary rounded-pill"
+                  className="btn btn-primary rounded-pill ms-4"
                   onClick={openModal}
                 >
                   <i className="bi bi-plus"></i> Tambah Data
@@ -144,9 +144,8 @@ const Member = ({ userTokenData }) => {
                     <th>No</th>
                     <th>Name</th>
                     <th>Email</th>
-                    <th>Phone Number</th>
-                    <th>Point</th> {/* New Column Header */}
-                    <th>WhatsApp</th>
+                    <th>Whatsapp & Phone Number</th>
+                    <th>Point</th>
                     <th>Actions</th>
                   </tr>
                 </thead>
@@ -156,10 +155,7 @@ const Member = ({ userTokenData }) => {
                       <td>{index + 1}</td>
                       <td>{member.member_name}</td>
                       <td>{member.member_email}</td>
-                      <td>{member.member_phone_number}</td>
-                      <td>{member.member_points}</td>
-                      <td>
-                        {member.member_phone_number && (
+                      <td>{member.member_phone_number && (
                           <a
                             href={formatWhatsAppLink(member.member_phone_number)}
                             target="_blank"
@@ -168,8 +164,8 @@ const Member = ({ userTokenData }) => {
                           >
                             <i className="bi bi-whatsapp"></i> Chat
                           </a>
-                        )}
-                      </td>
+                        )} {member.member_phone_number}</td>
+                      <td>{member.member_points}</td>
                       <td>
                         <button
                           className="btn btn-primary btn-sm"

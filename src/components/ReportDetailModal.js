@@ -13,14 +13,14 @@ export const ReportDetailModal = ({ show, onClose, selectedTransactionId }) => {
         try {
           const response = await axios.get(
             `${apiBaseUrl}/transaction/${selectedTransactionId}`, {
-              params: {
-                is_report: true,
-              },
-            }
+            params: {
+              is_report: true,
+            },
+          }
           );
           const transactionsData = response.data.data;
           setTransaction(transactionsData);
-          if(transactionsData.total_refund > 0) {
+          if (transactionsData.total_refund > 0) {
             setShowRefund(true);
           }
         } catch (error) {
@@ -73,7 +73,7 @@ export const ReportDetailModal = ({ show, onClose, selectedTransactionId }) => {
                     <h4 style={{ textAlign: "center", marginBottom: "3vh" }}>
                       Transaction
                     </h4>
-                    <h5 style={{ textAlign: "center", marginBottom: "3vh", color: transaction.status === 'Paid' ? '#198754' : transaction.status === 'Pending' ? '#6f42c1' : transaction.status === 'Canceled' ? '#dc3545' : transaction.status === 'Refunded' ? '#fd7e14' : '#000000'  }}>
+                    <h5 style={{ textAlign: "center", marginBottom: "3vh", color: transaction.status === 'Paid' ? '#198754' : transaction.status === 'Pending' ? '#6f42c1' : transaction.status === 'Canceled' ? '#dc3545' : transaction.status === 'Refunded' ? '#fd7e14' : '#000000' }}>
                       "{transaction.status}"
                     </h5>
                     <div className="report-container">
@@ -91,6 +91,14 @@ export const ReportDetailModal = ({ show, onClose, selectedTransactionId }) => {
                         </div>
                         <div className="section-report-data">
                           {transaction.transaction_date_show}
+                        </div>
+                      </div>
+                      <div className="section-report">
+                        <div className="section-report-title">
+                          Transaction Reference:
+                        </div>
+                        <div className="section-report-data">
+                          {transaction.transaction_ref || '-'}
                         </div>
                       </div>
                       <div className="section-report">
@@ -149,8 +157,8 @@ export const ReportDetailModal = ({ show, onClose, selectedTransactionId }) => {
                           {transaction.discounts_is_percent === 0
                             ? "Potongan"
                             : transaction.discounts_is_percent === 1
-                            ? "Persenan"
-                            : "-"}
+                              ? "Persenan"
+                              : "-"}
                         </div>
                       </div>
                       <div className="section-report">
@@ -173,7 +181,28 @@ export const ReportDetailModal = ({ show, onClose, selectedTransactionId }) => {
                           {transaction.total || "-"}
                         </div>
                       </div>
+                      {transaction.member_id !== null && (
+                      <>
+                        <h4 style={{ textAlign: "center", marginBottom: "3vh" }}>
+                          Membership
+                        </h4>
+                        <div className="section-report">
+                        <div className="section-report-title">Name:</div>
+                        <div className="section-report-data">
+                          {transaction.member_name || "-"}
+                        </div>
+                      </div>
+                      <div className="section-report">
+                        <div className="section-report-title">Phone:</div>
+                        <div className="section-report-data">
+                          {transaction.member_phone_number || "-"}
+                        </div>
+                      </div>
+                      </>
+                    )}
                     </div>
+                    
+
                     {transaction.cart_details.length > 0 && (
                       <>
                         <hr></hr>
@@ -215,8 +244,8 @@ export const ReportDetailModal = ({ show, onClose, selectedTransactionId }) => {
                                   {item.discounts_is_percent === 0
                                     ? "Potongan"
                                     : item.discounts_is_percent === 1
-                                    ? "Persenan"
-                                    : "-"}
+                                      ? "Persenan"
+                                      : "-"}
                                 </td>
                                 {/* <td>{item.discounted_price || "-"}</td> */}
                                 <td>{item.total_price}</td>
@@ -225,6 +254,8 @@ export const ReportDetailModal = ({ show, onClose, selectedTransactionId }) => {
                           </tbody>
                         </table>
                       </>
+
+
                     )}
                     {transaction.canceled_items.length > 0 && (
                       <>
@@ -269,8 +300,8 @@ export const ReportDetailModal = ({ show, onClose, selectedTransactionId }) => {
                                   {item.discounts_is_percent === 0
                                     ? "Potongan"
                                     : item.discounts_is_percent === 1
-                                    ? "Persenan"
-                                    : "-"}
+                                      ? "Persenan"
+                                      : "-"}
                                 </td>
                                 {/* <td>{item.discounted_price || "-"}</td> */}
                                 <td>{item.total_price}</td>
