@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo } from "react";
 import Swal from "sweetalert2";
 import axios from "axios";
+import EditPointsModal from "./MembersEditPointModal"; // Import the new modal
 
 export const MembersModal = ({
   show,
@@ -26,8 +27,8 @@ export const MembersModal = ({
   const [member, setMember] = useState(initialMemberState);
   const [isLoading, setIsLoading] = useState(false);
   const [isFormValid, setIsFormValid] = useState(true);
+  const [showEditPointsModal, setShowEditPointsModal] = useState(false); // Manage edit points modal state
 
-  // Fetch member details when modal opens with a specific member ID
   useEffect(() => {
     const fetchMemberDetails = async () => {
       if (show && selectedMemberId) {
@@ -39,7 +40,6 @@ export const MembersModal = ({
             },
           });
           const members = response.data.data || [];
-          
           const selectedMember = members.find(
             (m) => m.member_id === selectedMemberId
           );
@@ -64,7 +64,6 @@ export const MembersModal = ({
           setIsLoading(false);
         }
       } else {
-        // Reset to initial state when no member is selected
         setMember(initialMemberState);
       }
     };
@@ -92,7 +91,6 @@ export const MembersModal = ({
       return;
     }
 
-    // Prepare data for submission using backend expected fields
     const submitData = {
       name: member.name,
       email: member.email,
@@ -102,7 +100,6 @@ export const MembersModal = ({
 
     try {
       if (selectedMemberId) {
-        // Update existing member
         await axios.patch(
           `${apiBaseUrl}/membership/${selectedMemberId}`, 
           submitData
@@ -114,7 +111,6 @@ export const MembersModal = ({
           text: `Member ${member.name} updated successfully`
         });
       } else {
-        // Create new member
         await axios.post(`${apiBaseUrl}/membership`, submitData);
         
         Swal.fire({
@@ -124,10 +120,8 @@ export const MembersModal = ({
         });
       }
 
-      // Refresh members list
       if (getMembers) await getMembers();
       
-      // Close modal and reset
       onClose();
       onSave(member);
     } catch (error) {
@@ -141,7 +135,6 @@ export const MembersModal = ({
     }
   };
 
-  // Handle delete member
   const handleDelete = async () => {
     const result = await Swal.fire({
       title: 'Are you sure?',
@@ -162,10 +155,8 @@ export const MembersModal = ({
           text: `Member ${member.name} deleted successfully`
         });
 
-        // Refresh members list
         if (getMembers) await getMembers();
         
-        // Close modal and reset
         onClose();
       } catch (error) {
         console.error("Error deleting member:", error);
@@ -176,6 +167,10 @@ export const MembersModal = ({
         });
       }
     }
+  };
+
+  const handleEditPoints = () => {
+    setShowEditPointsModal(true); // Open edit points modal
   };
 
   if (!show) return null;
@@ -250,10 +245,30 @@ export const MembersModal = ({
               >
                 Save
               </button>
+              {selectedMemberId && ( // Add Edit Point button
+                <button 
+                  type="button" 
+                  className="btn btn-warning" 
+                  onClick={handleEditPoints}
+                >
+                  Edit Point
+                </button>
+              )}
             </div>
           </form>
         </div>
       </div>
+      {showEditPointsModal && ( // Conditionally render EditPointsModal
+        <EditPointsModal 
+          show={showEditPointsModal}
+          onClose={() => setShowEditPointsModal(false)}
+          selectedMemberId={selectedMemberId}
+          userTokenData={userTokenData}
+          refreshHistory={getMembers} // Function to refresh history after points are added
+        />
+      )}
     </div>
   );
 };
+
+export default MembersModal;
