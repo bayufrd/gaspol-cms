@@ -22,7 +22,7 @@ const MembersEditPointModal = ({ show, onClose, selectedMemberId, userTokenData,
     const hours = String(d.getHours()).padStart(2, '0');
     const minutes = String(d.getMinutes()).padStart(2, '0');
     const seconds = String(d.getSeconds()).padStart(2, '0');
-    return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+    return `${year}/${month}/${day} ${hours}:${minutes}:${seconds}`;
   };
 
   // Fetch membership history when modal opens
@@ -174,7 +174,7 @@ const MembersEditPointModal = ({ show, onClose, selectedMemberId, userTokenData,
               <table className="table table-bordered">
                 <thead>
                   <tr>
-                    <th>Created At</th>
+                    <th>Date</th>
                     <th>Points</th>
                     <th>Status</th>
                     <th>Update</th>
