@@ -6,6 +6,8 @@ import MembersSettingsModal from "../components/MembersSettingsModal";
 const Member = ({ userTokenData }) => {
   const apiBaseUrl = process.env.REACT_APP_API_BASE_URL;
   const [members, setMembers] = useState([]);
+  const [filteredMembers, setFilteredMembers] = useState([]); // State to hold filtered members
+  const [searchTerm, setSearchTerm] = useState(""); // State for search input
   const [showModal, setShowModal] = useState(false);
   const [selectedMemberId, setSelectedMemberId] = useState(null);
   const [showSettingsModal, setShowSettingsModal] = useState(false);
@@ -25,14 +27,26 @@ const Member = ({ userTokenData }) => {
 
       console.log("Members Response:", response.data);
       setMembers(response.data.data || []);
+      setFilteredMembers(response.data.data || []); // Initialize filtered members
     } catch (error) {
       console.error("Error fetching members:", error);
       setError(error.message || "Failed to fetch members");
       setMembers([]);
+      setFilteredMembers([]);
     } finally {
       setIsLoading(false);
     }
   }, [apiBaseUrl, userTokenData]);
+
+  // Filter members based on the search term
+  useEffect(() => {
+    const results = members.filter(member =>
+      member.member_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      member.member_email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      member.member_phone_number.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+    setFilteredMembers(results); // Update filtered members based on search
+  }, [searchTerm, members]);
 
   // Initial fetch
   useEffect(() => {
@@ -49,6 +63,7 @@ const Member = ({ userTokenData }) => {
     setSelectedMemberId(null);
     setShowModal(false);
   };
+
   const openSettingsModal = () => {
     setShowSettingsModal(true);
   };
@@ -56,6 +71,7 @@ const Member = ({ userTokenData }) => {
   const closeSettingsModal = () => {
     setShowSettingsModal(false);
   };
+
   // Handle member save/update
   const handleSaveMember = async (memberData) => {
     try {
@@ -96,16 +112,26 @@ const Member = ({ userTokenData }) => {
         <section className="section">
           <div className="card">
             <div className="card-header">
+              <div className="float-lg-start">
+                <input 
+                  type="text" 
+                  className="form-control me-2" 
+                  placeholder="Search by name, phone or email" 
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)} // Update search term on input change
+                  style={{ width: '450px' }} // Adjust the width as necessary
+                />
+              </div>
               <div className="float-lg-end">
                 <button
                   className="btn btn-primary rounded-pill ms-2"
                   onClick={openSettingsModal}
                 >
-                  <i className="bi bi-plus"></i> Tambah Settings
+                  <i className="bi bi-plus"></i> Edit Bonus Percent
                 </button>
                 <button
                   className="btn btn-primary rounded-pill"
-                  onClick={() => openModal()}
+                  onClick={openModal}
                 >
                   <i className="bi bi-plus"></i> Tambah Data
                 </button>
@@ -125,7 +151,7 @@ const Member = ({ userTokenData }) => {
                   </tr>
                 </thead>
                 <tbody>
-                  {members.map((member, index) => (
+                  {filteredMembers.map((member, index) => (
                     <tr key={member.member_id}>
                       <td>{index + 1}</td>
                       <td>{member.member_name}</td>
