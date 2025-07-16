@@ -10,6 +10,7 @@ const MembersSettingsModal = ({ show, onClose, onSave }) => {
   const [history, setHistory] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isFormValid, setIsFormValid] = useState(true);
+  const [alertMessage, setAlertMessage] = useState(""); // For validation alerts
 
   useEffect(() => {
     // Reset values when modal opens
@@ -17,6 +18,7 @@ const MembersSettingsModal = ({ show, onClose, onSave }) => {
       setPointPercentage(1); // Default to 1, will update if there is history
       setUpdatedBy("");
       setIsFormValid(true);
+      setAlertMessage(""); // Clear alert message
       fetchHistory();
     }
   }, [show]);
@@ -54,8 +56,20 @@ const MembersSettingsModal = ({ show, onClose, onSave }) => {
     }
   };
 
+  // Validate input form
   const validateForm = () => {
-    return pointPercentage > 0 && updatedBy.trim() !== "";
+    const isNameValid = updatedBy.trim().length > 3 && /^[a-zA-Z\s]+$/.test(updatedBy);
+    const isPercentageValid = pointPercentage > 0;
+    
+    if (!isNameValid) {
+      setAlertMessage("Nama Pembuat harus lebih dari 3 karakter dan tidak boleh mengandung angka atau simbol.");
+    } else if (!isPercentageValid) {
+      setAlertMessage("Point Percentage harus lebih dari 0.");
+    } else {
+      setAlertMessage(""); // Clear the alert message if form is valid
+    }
+
+    return isPercentageValid && isNameValid;
   };
 
   const handleSubmit = async (e) => {
@@ -99,32 +113,57 @@ const MembersSettingsModal = ({ show, onClose, onSave }) => {
           <form onSubmit={handleSubmit}>
             <div className="modal-header">
               <h5 className="modal-title">Add Membership Settings</h5>
-              <button 
-                type="button" 
-                className="btn-close" 
-                onClick={onClose}
-              ></button>
+              <button type="button" className="btn-close" onClick={onClose}></button>
             </div>
             <div className="modal-body">
               <div className="mb-3">
                 <label className="form-label">Point Percentage</label>
                 <input
                   type="number"
-                  className={`form-control ${!isFormValid && pointPercentage <= 0 ? 'is-invalid' : ''}`}
+                  className={`form-control ${!isFormValid && pointPercentage <= 0 ? 'is-invalid' : ''}`} // Add invalid class if point percentage is invalid
                   value={pointPercentage}
-                  onChange={(e) => setPointPercentage(Number(e.target.value))}
+                  onChange={(e) => {
+                    const value = Number(e.target.value);
+                    setPointPercentage(value);
+                    // Update alert message if the value is less than or equal to 0
+                    if (value <= 0) {
+                      setAlertMessage("Point Percentage harus lebih dari 0.");
+                    } else {
+                      setAlertMessage(""); // Clear message if valid
+                    }
+                  }}
                   required
                 />
+                {alertMessage && pointPercentage <= 0 && (
+                  <div className="invalid-feedback">
+                    {alertMessage}
+                  </div>
+                )}
               </div>
               <div className="mb-3">
                 <label className="form-label">Nama Pembuat</label>
                 <input
                   type="text"
-                  className={`form-control ${!isFormValid && updatedBy.trim() === "" ? 'is-invalid' : ''}`}
+                  className={`form-control ${alertMessage ? 'is-invalid' : ''}`} // Add invalid class if alert message present
                   value={updatedBy}
-                  onChange={(e) => setUpdatedBy(e.target.value)}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    // Always update updatedBy, but validate
+                    setUpdatedBy(value);
+                    
+                    if (value.length < 4 || !/^[a-zA-Z\s]*$/.test(value)) {
+                      setAlertMessage("Nama Pembuat harus lebih dari 3 karakter dan hanya boleh huruf.");
+                    } else {
+                      setAlertMessage(""); // Clear error message if valid
+                    }
+                  }}
                   required
                 />
+                {alertMessage && (
+                  <div className="invalid-feedback">
+                    {alertMessage}
+                  </div>
+                )}
               </div>
               {/* History Section */}
               <div className="history-section" style={{ maxHeight: '200px', overflowY: 'auto', border: '1px solid #dee2e6', borderRadius: '0.25rem', padding: '10px' }}>
@@ -160,17 +199,10 @@ const MembersSettingsModal = ({ show, onClose, onSave }) => {
               </div>
             </div>
             <div className="modal-footer">
-              <button 
-                type="button" 
-                className="btn btn-secondary" 
-                onClick={onClose}
-              >
+              <button type="button" className="btn btn-secondary" onClick={onClose}>
                 Cancel
               </button>
-              <button 
-                type="submit" 
-                className="btn btn-primary"
-              >
+              <button type="submit" className="btn btn-primary">
                 Save
               </button>
             </div>

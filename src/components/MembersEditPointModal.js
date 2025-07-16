@@ -10,8 +10,9 @@ const MembersEditPointModal = ({ show, onClose, selectedMemberId, userTokenData,
   const [editorName, setEditorName] = useState("");
   const [history, setHistory] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [showReportModal, setShowReportModal] = useState(false); // State untuk modal
-  const [selectedTransactionId, setSelectedTransactionId] = useState(null); // State untuk ID transaksi yang dipilih
+  const [showReportModal, setShowReportModal] = useState(false);
+  const [selectedTransactionId, setSelectedTransactionId] = useState(null);
+  const [alertMessage, setAlertMessage] = useState("");
 
   // Function to format date to 'YYYY-MM-DD HH:mm:ss'
   const formatDate = (date) => {
@@ -36,12 +37,11 @@ const MembersEditPointModal = ({ show, onClose, selectedMemberId, userTokenData,
 
           setHistory(fetchedHistory);
 
-          // If history exists, set the last points to pointsToAdd
           if (fetchedHistory.length > 0) {
-            const latestEntry = fetchedHistory[0]; // Assuming the first entry is the latest
-            setPointsToAdd(latestEntry.points); // Set the latest points to the input field
+            const latestEntry = fetchedHistory[0];
+            setPointsToAdd(latestEntry.points);
           } else {
-            setPointsToAdd(0); // If no history exists, default to zero
+            setPointsToAdd(0);
           }
         } catch (error) {
           console.error("Error fetching membership history:", error);
@@ -115,8 +115,8 @@ const MembersEditPointModal = ({ show, onClose, selectedMemberId, userTokenData,
       });
 
       if (response.data.code === 200 && response.data.data) {
-        setSelectedTransactionId(response.data.data.id); // Store ID transaction
-        setShowReportModal(true); // Show report modal
+        setSelectedTransactionId(response.data.data.id); 
+        setShowReportModal(true);
       } else {
         Swal.fire({
           icon: "error",
@@ -131,6 +131,21 @@ const MembersEditPointModal = ({ show, onClose, selectedMemberId, userTokenData,
         title: "Error",
         text: "Failed to fetch transaction details.",
       });
+    }
+  };
+
+  // Validate editorName onChange
+  const validateEditorName = (name) => {
+    // Update editorName
+    setEditorName(name);
+
+    // Check conditions for valid name
+    if (name.length < 4) {
+      setAlertMessage("Name must be more than 3 characters.");
+    } else if (!/^[a-zA-Z\s]*$/.test(name)) {
+      setAlertMessage("Name can only contain letters and spaces.");
+    } else {
+      setAlertMessage(""); // Clear alert message if valid
     }
   };
 
@@ -149,11 +164,16 @@ const MembersEditPointModal = ({ show, onClose, selectedMemberId, userTokenData,
               <label htmlFor="editorName" className="form-label">Edit By (Name)</label>
               <input
                 type="text"
-                className="form-control"
+                className={`form-control ${alertMessage ? 'is-invalid' : ''}`} // Add Bootstrap invalid class if there's an error
                 value={editorName}
-                onChange={(e) => setEditorName(e.target.value)}
+                onChange={(e) => validateEditorName(e.target.value)}
                 required
               />
+              {alertMessage && (
+                <div className="invalid-feedback">
+                  {alertMessage}
+                </div>
+              )}
             </div>
             <div className="mb-3">
               <label htmlFor="pointsToAdd" className="form-label">Points</label>
@@ -165,7 +185,13 @@ const MembersEditPointModal = ({ show, onClose, selectedMemberId, userTokenData,
                 required
               />
             </div>
-            <button className="btn btn-primary" onClick={handleAddPoints}>Save</button>
+            <button
+              className="btn btn-primary"
+              onClick={handleAddPoints}
+              disabled={!editorName || editorName.length < 4 || alertMessage} // Disable button if name is invalid
+            >
+              Save
+            </button>
 
             <hr />
 
@@ -191,7 +217,7 @@ const MembersEditPointModal = ({ show, onClose, selectedMemberId, userTokenData,
                       <td>
                         <button
                           className="btn btn-link"
-                          onClick={() => handleTransactionRefClick(hist.transaction_ref)} // Handle click
+                          onClick={() => handleTransactionRefClick(hist.transaction_ref)}
                         >
                           {hist.transaction_ref || 'No Reference'}
                         </button>
