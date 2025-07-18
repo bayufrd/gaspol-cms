@@ -1,18 +1,19 @@
 import React, { useState, useEffect, useCallback } from "react";
 import axios from "axios";
 import { MembersModal } from "../components/MembersModal";
-import MembersSettingsModal from "../components/MembersSettingsModal"; 
+import MembersSettingsModal from "../components/MembersSettingsModal";
 
 const Member = ({ userTokenData }) => {
   const apiBaseUrl = process.env.REACT_APP_API_BASE_URL;
   const [members, setMembers] = useState([]);
-  const [filteredMembers, setFilteredMembers] = useState([]); // State to hold filtered members
-  const [searchTerm, setSearchTerm] = useState(""); // State for search input
+  const [filteredMembers, setFilteredMembers] = useState([]);
+  const [searchTerm, setSearchTerm] = useState("");
   const [showModal, setShowModal] = useState(false);
   const [selectedMemberId, setSelectedMemberId] = useState(null);
   const [showSettingsModal, setShowSettingsModal] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [whatsAppLinks, setWhatsAppLinks] = useState({}); // State to store WhatsApp links
 
   // Fetch members
   const getMembers = useCallback(async () => {
@@ -27,7 +28,7 @@ const Member = ({ userTokenData }) => {
 
       console.log("Members Response:", response.data);
       setMembers(response.data.data || []);
-      setFilteredMembers(response.data.data || []); // Initialize filtered members
+      setFilteredMembers(response.data.data || []);
     } catch (error) {
       console.error("Error fetching members:", error);
       setError(error.message || "Failed to fetch members");
@@ -45,7 +46,7 @@ const Member = ({ userTokenData }) => {
       member.member_email.toLowerCase().includes(searchTerm.toLowerCase()) ||
       member.member_phone_number.toLowerCase().includes(searchTerm.toLowerCase())
     );
-    setFilteredMembers(results); // Update filtered members based on search
+    setFilteredMembers(results);
   }, [searchTerm, members]);
 
   // Initial fetch
@@ -55,11 +56,7 @@ const Member = ({ userTokenData }) => {
 
   // Modal open/close handlers
   const openModal = (memberId = null) => {
-    if (memberId === null) {
-      setSelectedMemberId(null); // Ensure it's null for adding a new member
-    } else {
-      setSelectedMemberId(memberId); // Use the ID for editing
-    }
+    setSelectedMemberId(memberId);
     setShowModal(true);
   };
 
@@ -79,7 +76,6 @@ const Member = ({ userTokenData }) => {
   // Handle member save/update
   const handleSaveMember = async (memberData) => {
     try {
-      // Refresh members list after save
       await getMembers();
       closeModal();
     } catch (error) {
@@ -88,15 +84,50 @@ const Member = ({ userTokenData }) => {
   };
 
   // WhatsApp link formatter
-  const formatWhatsAppLink = (phoneNumber) => {
-    const cleanedNumber = phoneNumber.replace(/\D/g, '');
-    let formattedNumber = cleanedNumber.startsWith('0')
-      ? '+62' + cleanedNumber.slice(1)
-      : cleanedNumber.startsWith('62')
-        ? '+' + cleanedNumber
-        : cleanedNumber;
+  const formatWhatsAppLink = async (memberId, phoneNumber) => {
+    try {
+      const totalPointsResponse = await axios.get(`${apiBaseUrl}/membership-history/${memberId}`);
+      if (totalPointsResponse.data.code !== 200) {
+        console.error("Failed to fetch membership history");
+        return null;
+      }
 
-    return `https://wa.me/${formattedNumber}`;
+      const latestHistory = totalPointsResponse.data.data[0]; // Assuming the first entry is the latest
+      const additionalPoints = latestHistory ? latestHistory.points : 0;
+
+      // Creating message
+      const memberData = members.find(member => member.member_id === memberId);
+      const message = `
+        Jempolan Coffee & Eaterity
+        Name: ${memberData?.member_name}
+        Email: ${memberData?.member_email}
+        Phone Number: ${memberData?.member_phone_number}
+        Point: +${additionalPoints}
+        Total Points: ${memberData?.member_points}
+        Terimakasih Atas Kunjungannya
+      `;
+
+      const cleanedNumber = phoneNumber.replace(/\D/g, '');
+      const formattedNumber = cleanedNumber.startsWith('0')
+        ? '+62' + cleanedNumber.slice(1)
+        : cleanedNumber.startsWith('62')
+          ? '+' + cleanedNumber
+          : cleanedNumber;
+
+      return `https://wa.me/${formattedNumber}?text=${encodeURIComponent(message)}`;
+    } catch (error) {
+      console.error("Error formatting WhatsApp link:", error);
+      return null;
+    }
+  };
+
+  // Handle WhatsApp link generation and state update
+  const handleWhatsAppClick = async (memberId, phoneNumber) => {
+    const link = await formatWhatsAppLink(memberId, phoneNumber);
+    if (link) {
+      setWhatsAppLinks(prevLinks => ({ ...prevLinks, [memberId]: link }));
+      window.open(link, "_blank");
+    }
   };
 
   // Loading and error states
@@ -122,8 +153,8 @@ const Member = ({ userTokenData }) => {
                   className="form-control me-2" 
                   placeholder="Search by name, phone or email" 
                   value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)} // Update search term on input change
-                  style={{ width: '450px' }} // Adjust the width as necessary
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  style={{ width: '450px' }}
                 />
               </div>
               <div className="float-lg-end">
@@ -135,7 +166,7 @@ const Member = ({ userTokenData }) => {
                 </button>
                 <button
                   className="btn btn-primary rounded-pill ms-4"
-                  onClick={() => openModal(null)} // Ensure selectedMemberId is null
+                  onClick={() => openModal(null)}
                 >
                   <i className="bi bi-plus"></i> Tambah Data
                 </button>
@@ -159,21 +190,22 @@ const Member = ({ userTokenData }) => {
                       <td>{index + 1}</td>
                       <td>{member.member_name}</td>
                       <td>{member.member_email}</td>
-                      <td>{member.member_phone_number && (
-                          <a
-                            href={formatWhatsAppLink(member.member_phone_number)}
-                            target="_blank"
-                            rel="noopener noreferrer"
+                      <td>
+                        {member.member_phone_number && (
+                          <button
+                            onClick={() => handleWhatsAppClick(member.member_id, member.member_phone_number)}
                             className="btn btn-success btn-sm"
                           >
                             <i className="bi bi-whatsapp"></i> Chat
-                          </a>
-                        )} {member.member_phone_number}</td>
+                          </button>
+                        )} 
+                        {member.member_phone_number}
+                      </td>
                       <td>{member.member_points}</td>
                       <td>
                         <button
                           className="btn btn-primary btn-sm"
-                          onClick={() => openModal(member.member_id)} // Edit member
+                          onClick={() => openModal(member.member_id)} 
                         >
                           <i className="bi bi-pencil"></i>
                         </button>
