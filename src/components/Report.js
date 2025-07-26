@@ -315,62 +315,61 @@ const Report = ({ userTokenData }) => {
         <section className="section">
           <div className="card">
             <div className="card-header">
-              <div className="float-lg-start">
-                <div className="card-header-report">
-                  <div>
-                    <input
-                      type="text"
-                      id="startDateInput"
-                      className={`form-control`}
-                      placeholder="Tanggal mulai"
-                      value={startDate || ""}
-                      ref={startDateInputRef}
-                    />
-                  </div>
-                  <div>
-                    <input
-                      type="text"
-                      id="endDateInput"
-                      className={`form-control`}
-                      placeholder="Tanggal akhir"
-                      value={endDate || ""}
-                      ref={endDateInputRef}
-                    />
-                  </div>
-                  <div className="form-check">
-                    <div className="checkbox">
+              <div className="container-fluid">
+                <div className="row g-2 align-items-center">
+                  <div className="col-12 col-sm-6 col-md-4 col-lg-3">
+                    <div className="input-group">
+                      <span className="input-group-text"><i className="bi bi-calendar"></i></span>
                       <input
-                        type="checkbox"
-                        className="form-check-input"
-                        checked={isSuccess}
-                        onChange={(e) => {
-                          setIsSuccess(!isSuccess);
-                        }}
+                        type="text"
+                        className="form-control"
+                        placeholder="Tanggal mulai"
+                        value={startDate || ""}
+                        ref={startDateInputRef}
                       />
-                      <label htmlFor="checkbox2">Transaksi Sukses </label>
                     </div>
                   </div>
-                  <div className="form-check">
-                    <div className="checkbox">
+                  <div className="col-12 col-sm-6 col-md-4 col-lg-3">
+                    <div className="input-group">
+                      <span className="input-group-text"><i className="bi bi-calendar"></i></span>
                       <input
-                        type="checkbox"
+                        type="text"
+                        className="form-control"
+                        placeholder="Tanggal akhir"
+                        value={endDate || ""}
+                        ref={endDateInputRef}
+                      />
+                    </div>
+                  </div>
+                  <div className="col-12 col-md-4 col-lg-2">
+                    <div className="form-check form-switch">
+                      <input
                         className="form-check-input"
+                        type="checkbox"
+                        checked={isSuccess}
+                        onChange={() => setIsSuccess(!isSuccess)}
+                      />
+                      <label className="form-check-label">Transaksi Sukses</label>
+                    </div>
+                  </div>
+                  <div className="col-12 col-md-4 col-lg-2">
+                    <div className="form-check form-switch">
+                      <input
+                        className="form-check-input"
+                        type="checkbox"
                         checked={isPending}
                         onChange={() => setIsPending(!isPending)}
                       />
-                      <label htmlFor="checkbox2">Transaksi Pending </label>
+                      <label className="form-check-label">Transaksi Pending</label>
                     </div>
                   </div>
-                  <div className="d-flex align-items-center ms-2">
-                    <div className="me-2">Shift:</div>
-                    <div>
+                  <div className="col-12 col-md-4 col-lg-2">
+                    <div className="input-group">
+                      <span className="input-group-text">Shift</span>
                       <select
                         className="form-select"
-                        id="basicSelect"
                         value={isShift}
-                        onChange={(e) => {
-                          setIsShift(e.target.value);
-                        }}
+                        onChange={(e) => setIsShift(e.target.value)}
                       >
                         <option value="0">Semua</option>
                         {shifts.map((shift) => (
@@ -383,12 +382,26 @@ const Report = ({ userTokenData }) => {
                   </div>
                 </div>
               </div>
-              <div className="float-lg-end">
-                <div
-                  className={`button btn btn-primary rounded-pill ${isCashierReportEnabled ? "" : "disabled"}`}
-                  onClick={openReportPaymentModal}
-                >
-                  Laporan Kasir
+              <div className="row g-3 mt-2 mb-2">
+                <div className="col-12">
+                  <div className="d-grid d-lg-flex justify-content-end">
+                    <button
+                      className={`
+          btn 
+          btn-primary 
+          rounded-pill 
+          w-100 w-lg-auto 
+          ${isCashierReportEnabled ? "" : "disabled"}
+        `}
+                      onClick={openReportPaymentModal}
+                      style={{
+                        maxWidth: '250px',
+                        padding: '10px 20px'
+                      }}
+                    >
+                      Laporan Kasir
+                    </button>
+                  </div>
                 </div>
               </div>
               {/* Loading Modal Display */}

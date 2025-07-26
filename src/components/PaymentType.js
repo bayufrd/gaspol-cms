@@ -88,7 +88,7 @@ const PaymentType = ({ userTokenData }) => {
     if (dragMode) {
       // When cancelling drag mode, reload the page
       setIsOrderChanged(false); // Reset the order change state after saving
-      setDragMode(false); 
+      setDragMode(false);
       getPaymentTypes();
     } else {
       // Enable drag mode
@@ -110,23 +110,46 @@ const PaymentType = ({ userTokenData }) => {
       <section className="section">
         <div className="card">
           <div className="card-header">
-            <div className="float-lg-end">
-              <div
-                className="button btn btn-primary rounded-pill"
-                onClick={() => openModal(null)}
-              >
-                <i className="bi bi-plus"></i> Tambah Data
-              </div>
-            </div>
-            {/* Button to activate drag mode */}
-            <div className="float-lg-end">
+            <div className="button-container">
               <button
                 className="btn btn-secondary rounded-pill"
                 onClick={handleDragModeToggle}
               >
                 {dragMode ? "Cancel Ubah Urutan" : "Ubah Urutan"}
               </button>
+              <button
+                className="btn btn-primary rounded-pill"
+                onClick={() => openModal(null)}
+              >
+                <i className="bi bi-plus"></i> Tambah Data
+              </button>
             </div>
+
+            <style jsx>{`
+    .button-container {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      justify-content: flex-end;
+      align-items: stretch;
+    }
+
+    .button-container button {
+      width: 100%;
+    }
+
+    @media (min-width: 768px) {
+      .button-container {
+        flex-direction: row;
+        align-items: center;
+      }
+
+      .button-container button {
+        width: auto;
+        margin-left: 10px;
+      }
+    }
+  `}</style>
           </div>
           <div className="card-body">
             {/* Render table with or without drag-and-drop functionality */}

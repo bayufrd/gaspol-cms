@@ -78,11 +78,10 @@ const Menu = ({ userTokenData }) => {
           }}
         />
         <span
-          className={`position-absolute top-0 end-0 m-2 badge ${
-            menu.is_active === 1
+          className={`position-absolute top-0 end-0 m-2 badge ${menu.is_active === 1
               ? 'bg-success'
               : 'bg-danger'
-          }`}
+            }`}
         >
           {menu.is_active === 1 ? "Aktif" : "Tidak Aktif"}
         </span>
@@ -103,23 +102,29 @@ const Menu = ({ userTokenData }) => {
         <section className="section">
           <div className="card">
             <div className="card-header">
-              <div className="float-lg-start">
-                <input
-                  type="text"
-                  className="form-control me-2"
-                  placeholder="Search by name, type or price"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)} // Update search term on input change
-                  style={{ width: '450px' }} // Adjust the width as necessary
-                />
-              </div>
-              <div className="float-lg-end">
-                <button
-                  className="btn btn-primary rounded-pill"
-                  onClick={() => openModal(null)}
-                >
-                  <i className="bi bi-plus"></i> Tambah Data
-                </button>
+              <div className="container-fluid px-0">
+                <div className="row g-2 align-items-center">
+                  <div className="col-12 col-md-8 col-lg-9">
+                    <div className="input-group">
+                      <span className="input-group-text"><i className="bi bi-search"></i></span>
+                      <input
+                        type="text"
+                        className="form-control"
+                        placeholder="Search by name, type or price"
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                      />
+                    </div>
+                  </div>
+                  <div className="col-12 col-md-4 col-lg-3">
+                    <button
+                      className="btn btn-primary rounded-pill w-100"
+                      onClick={() => openModal(null)}
+                    >
+                      <i className="bi bi-plus"></i> Tambah Data
+                    </button>
+                  </div>
+                </div>
               </div>
             </div>
             <div className="card-body">

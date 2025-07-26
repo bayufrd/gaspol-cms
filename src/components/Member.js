@@ -146,32 +146,33 @@ const Member = ({ userTokenData }) => {
         </div>
         <section className="section">
           <div className="card">
-            <div className="card-header">
-              <div className="float-lg-start">
-                <input 
-                  type="text" 
-                  className="form-control me-2" 
-                  placeholder="Search by name, phone or email" 
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  style={{ width: '450px' }}
-                />
-              </div>
-              <div className="float-lg-end">
-                <button
-                  className="btn btn-primary rounded-pill me-2"
-                  onClick={openSettingsModal}
-                >
-                  <i className="bi bi-plus"></i> Edit Bonus Percent
-                </button>
-                <button
-                  className="btn btn-primary rounded-pill ms-4"
-                  onClick={() => openModal(null)}
-                >
-                  <i className="bi bi-plus"></i> Tambah Data
-                </button>
-              </div>
-            </div>
+          <div className="card-header">
+  <div className="d-flex flex-column flex-md-row justify-content-between align-items-stretch gap-2">
+    <div className="flex-grow-1 mb-2 mb-md-0">
+      <input
+        type="text"
+        className="form-control"
+        placeholder="Search by name, phone or email"
+        value={searchTerm}
+        onChange={(e) => setSearchTerm(e.target.value)}
+      />
+    </div>
+    <div className="d-flex flex-column flex-md-row gap-2">
+      <button
+        className="btn btn-primary rounded-pill w-100 w-md-auto"
+        onClick={openSettingsModal}
+      >
+        <i className="bi bi-plus"></i> Edit Bonus Percent
+      </button>
+      <button
+        className="btn btn-primary rounded-pill w-100 w-md-auto"
+        onClick={() => openModal(null)}
+      >
+        <i className="bi bi-plus"></i> Tambah Data
+      </button>
+    </div>
+  </div>
+</div>
             <div className="card-body">
               <table className="table table-striped" id="table1">
                 <thead>
@@ -198,14 +199,14 @@ const Member = ({ userTokenData }) => {
                           >
                             <i className="bi bi-whatsapp"></i> Chat
                           </button>
-                        )} 
+                        )}
                         {member.member_phone_number}
                       </td>
                       <td>{member.member_points}</td>
                       <td>
                         <button
                           className="btn btn-primary btn-sm"
-                          onClick={() => openModal(member.member_id)} 
+                          onClick={() => openModal(member.member_id)}
                         >
                           <i className="bi bi-pencil"></i>
                         </button>
