@@ -181,14 +181,14 @@ export const ServingTypeModal = ({
               <div class="modal-footer">
               {selectedServingTypeId && (
                 <div className="delete-modal">
-                  <button
+                  {/* <button
                     type="button"
                     class="btn btn-danger rounded-pill"
                     data-bs-dismiss="modal"
                     onClick={() => setShowDeleteConfirmation(true)}
                   >
                     <span class="d-none d-sm-block">Hapus Serving Type!</span>
-                  </button>
+                  </button> */}
                 </div>
               )}
                 <button
