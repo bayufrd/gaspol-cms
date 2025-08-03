@@ -6,7 +6,7 @@ const apiBaseUrl = process.env.REACT_APP_API_BASE_URL;
 const Discount = ({ userTokenData }) => {
   const [discounts, setDiscounts] = useState([]);
   const [showModal, setShowModal] = useState(false);
-  const [selectedDiscountId, setSelectedDiscountId] = useState(null);
+  const [selectedDiscountId, setSelectedDiscountId] = useState(null)
 
   useEffect(() => {
     getDiscounts();
@@ -40,13 +40,17 @@ const Discount = ({ userTokenData }) => {
     }
   };
 
-  const openModal = (discountId) => {
+  // Gunakan handler yang lebih eksplisit
+  const openModal = (discountId = null) => {
+    console.log('Opening modal with ID:', discountId);
     setSelectedDiscountId(discountId);
     setShowModal(true);
   };
 
   const closeModal = () => {
+    console.log('Closing modal');
     setShowModal(false);
+    setSelectedDiscountId(null);
   };
 
   const handleSaveDiscount = async (newDiscount) => {
@@ -62,8 +66,8 @@ const Discount = ({ userTokenData }) => {
 
   // Helper function to safely format number
   const formatNumber = (value) => {
-    return value !== null && value !== undefined 
-      ? value.toLocaleString() 
+    return value !== null && value !== undefined
+      ? value.toLocaleString()
       : '-';
   };
 
@@ -144,12 +148,12 @@ const Discount = ({ userTokenData }) => {
       </div>
 
       <DiscountModal
-        show={showModal}
+        isOpen={showModal}  // Ganti prop show menjadi isOpen
         onClose={closeModal}
         onSave={handleSaveDiscount}
-        selectedDiscountId={selectedDiscountId}
-        getDiscounts={getDiscounts}
+        discountId={selectedDiscountId}
         userTokenData={userTokenData}
+        getDiscounts={getDiscounts}
       />
     </div>
   );

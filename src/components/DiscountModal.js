@@ -6,30 +6,33 @@ import "flatpickr/dist/flatpickr.min.css";
 import { DeleteConfirmationModal } from "./DeleteConfirmationModal";
 
 export const DiscountModal = ({
-  show,
+  isOpen,  // Ganti nama prop dari show ke isOpen
   onClose,
   onSave,
-  selectedDiscountId,
-  getDiscounts,
+  discountId,
   userTokenData,
+  getDiscounts
 }) => {
   const apiBaseUrl = process.env.REACT_APP_API_BASE_URL;
 
-  const initialDiscountState = useMemo(
-    () => ({
-      code: "",
-      is_percent: 1,
-      is_discount_cart: 1,
-      value: "",
-      start_date: null,
-      end_date: null,
-      min_purchase: "",
-      max_discount: "",
-      is_unlimited_max_discount: false, // Default ke false
-      outlet_id: userTokenData.outlet_id,
-    }),
-    [userTokenData]
-  );
+    // Gunakan useMemo untuk initialDiscountState
+    const initialDiscountState = useMemo(
+      () => ({
+        code: "",
+        is_percent: 1,
+        is_discount_cart: 1,
+        value: "",
+        start_date: null,
+        end_date: null,
+        min_purchase: "",
+        max_discount: "",
+        is_unlimited_max_discount: false,
+        outlet_id: userTokenData.outlet_id,
+        showMaxDiscount: true // Tambahkan properti ini
+      }),
+      [userTokenData]
+    );
+  
 
   const [discount, setDiscount] = useState(initialDiscountState);
   const [formErrors, setFormErrors] = useState({});
@@ -37,7 +40,31 @@ export const DiscountModal = ({
 
   const startDateInputRef = useRef(null);
   const endDateInputRef = useRef(null);
+  const [isModalVisible, setIsModalVisible] = useState(false);
 
+  useEffect(() => {
+    if (isOpen) {
+      setIsModalVisible(true);
+    } else {
+      // Tambahkan delay untuk animasi
+      const timer = setTimeout(() => {
+        setIsModalVisible(false);
+      }, 300);
+      return () => clearTimeout(timer);
+    }
+  }, [isOpen]);
+
+  // Handler untuk menutup modal dengan animasi
+  const handleClose = () => {
+    onClose();
+  };
+
+  // Handler overlay click
+  const handleOverlayClick = (e) => {
+    if (e.target === e.currentTarget) {
+      handleClose();
+    }
+  };
   useEffect(() => {
     let startDatePicker, endDatePicker;
 
@@ -87,11 +114,11 @@ export const DiscountModal = ({
   };
 
   useEffect(() => {
-    if (show && selectedDiscountId) {
+    if (isOpen && discountId) {
       const fetchDiscountDetails = async () => {
         try {
           const response = await axios.get(
-            `${apiBaseUrl}/discount/${selectedDiscountId}`
+            `${apiBaseUrl}/discount/${discountId}`
           );
           const discountData = response.data.data;
 
@@ -119,7 +146,7 @@ export const DiscountModal = ({
       }));
       setFormErrors({});
     }
-  }, [show, selectedDiscountId, apiBaseUrl, initialDiscountState, userTokenData]);
+  }, [isOpen, discountId, apiBaseUrl, initialDiscountState, userTokenData]);
 
   const handleInputChange = (field, value) => {
     setDiscount(prev => {
@@ -177,8 +204,8 @@ export const DiscountModal = ({
     };
 
     try {
-      const saveMethod = selectedDiscountId
-        ? axios.patch(`${apiBaseUrl}/discount/${selectedDiscountId}`, finalDiscount)
+      const saveMethod = discountId
+        ? axios.patch(`${apiBaseUrl}/discount/${discountId}`, finalDiscount)
         : axios.post(`${apiBaseUrl}/discount/`, finalDiscount);
 
       await saveMethod;
@@ -186,7 +213,7 @@ export const DiscountModal = ({
       Swal.fire({
         icon: "success",
         title: "Berhasil!",
-        text: selectedDiscountId
+        text: discountId
           ? `Diskon ${discount.code} diperbarui`
           : `Diskon ${discount.code} ditambahkan`
       });
@@ -204,7 +231,7 @@ export const DiscountModal = ({
 
   const handleDeleteDiscount = async () => {
     try {
-      await axios.delete(`${apiBaseUrl}/discount/${selectedDiscountId}`);
+      await axios.delete(`${apiBaseUrl}/discount/${discountId}`);
 
       Swal.fire({
         icon: "success",
@@ -224,11 +251,17 @@ export const DiscountModal = ({
     }
   };
 
-  return (
-    <div className={`discount-modal modal ${show ? 'is-active' : ''}`}>
-    <div className="modal-container">
-      <div className="modal-header">
-          <h3>{selectedDiscountId ? "Edit Diskon" : "Tambah Diskon"}</h3>
+  return isModalVisible ? (
+    <div 
+      className={`discount-modal modal ${isOpen ? 'is-active' : ''}`}
+      onClick={handleOverlayClick}
+    >
+      <div 
+        className="modal-container" 
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="modal-header">
+          <h3>{discountId ? "Edit Diskon" : "Tambah Diskon"}</h3>
           <button onClick={onClose} className="modal-close">×</button>
         </div>
 
@@ -349,7 +382,7 @@ export const DiscountModal = ({
           </div>
 
           <div className="modal-actions">
-            {selectedDiscountId && (
+            {discountId && (
               <button
                 type="button"
                 onClick={() => setShowDeleteConfirmation(true)}
@@ -372,5 +405,5 @@ export const DiscountModal = ({
         purposeDialog="discount"
       />
     </div>
-  );
+  ) : null;
 };
