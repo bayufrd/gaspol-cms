@@ -241,3 +241,104 @@
     border: 1px solid #bee5eb;
     /* Blue border */
 }
+
+.product-card {
+    transition: all 0.3s ease;
+    box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+  }
+  
+  .product-card:hover {
+    box-shadow: 0 15px 30px rgba(0,0,0,0.15);
+  }
+  
+  .product-image {
+    transition: transform 0.3s ease;
+  }
+  
+  .product-card:hover .product-image {
+    transform: scale(1.05);
+  }
+
+  /* CSS Khusus Discount Modal */
+.discount-modal .modal {
+    display: flex;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.5);
+    overflow: auto;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .discount-modal .modal-container {
+    background-color: white;
+    border-radius: 8px;
+    max-width: 600px;
+    width: 95%;
+    padding: 25px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+  
+  .discount-modal .modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 10px;
+  }
+  
+  .discount-modal .modal-form .form-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 15px;
+  }
+  
+  .discount-modal .modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 20px;
+    border-top: 1px solid #eee;
+    padding-top: 15px;
+  }
+  
+  .discount-modal .max-discount-container {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  .error-text {
+    color: red;
+    font-size: 0.8rem;
+    margin-top: 5px;
+  }
+  
+  .max-discount-container {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  .unlimited-checkbox {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  
+  .unlimited-checkbox input[type="checkbox"] {
+    margin: 0;
+  }
+  
+  .unlimited-checkbox label {
+    margin: 0;
+    font-size: 0.9rem;
+    cursor: pointer;
+  }

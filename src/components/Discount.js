@@ -28,12 +28,16 @@ const Discount = ({ userTokenData }) => {
   }, [showModal]);
 
   const getDiscounts = async () => {
-    const response = await axios.get(`${apiBaseUrl}/v2/discount`, {
-      params: {
-        outlet_id: userTokenData.outlet_id,
-      },
-    });
-    setDiscounts(response.data.data);
+    try {
+      const response = await axios.get(`${apiBaseUrl}/v2/discount`, {
+        params: {
+          outlet_id: userTokenData.outlet_id,
+        },
+      });
+      setDiscounts(response.data.data);
+    } catch (error) {
+      console.error("Error fetching discounts:", error);
+    }
   };
 
   const openModal = (discountId) => {
@@ -56,6 +60,13 @@ const Discount = ({ userTokenData }) => {
     }
   };
 
+  // Helper function to safely format number
+  const formatNumber = (value) => {
+    return value !== null && value !== undefined 
+      ? value.toLocaleString() 
+      : '-';
+  };
+
   return (
     <div>
       <div className="page-heading">
@@ -66,20 +77,20 @@ const Discount = ({ userTokenData }) => {
             </div>
           </div>
         </div>
-        <section class="section">
-          <div class="card">
-            <div class="card-header">
-              <div class="float-lg-end">
+        <section className="section">
+          <div className="card">
+            <div className="card-header">
+              <div className="float-lg-end">
                 <div
                   className="button btn btn-primary rounded-pill"
                   onClick={() => openModal(null)}
                 >
-                  <i class="bi bi-plus"></i> Tambah Data
+                  <i className="bi bi-plus"></i> Tambah Data
                 </div>
               </div>
             </div>
-            <div class="card-body">
-              <table class="table table-striped" id="table1">
+            <div className="card-body">
+              <table className="table table-striped" id="table1">
                 <thead>
                   <tr>
                     <th>No</th>
@@ -99,15 +110,20 @@ const Discount = ({ userTokenData }) => {
                   {discounts.map((discount, index) => (
                     <tr key={discount.id}>
                       <td>{index + 1}</td>
-                      <td>{discount.code}</td>
+                      <td>{discount.code || '-'}</td>
                       <td>{discount.is_percent === 1 ? "Persen" : "Nominal"}</td>
                       <td>{discount.is_discount_cart === 1 ? "Keranjang" : "Peritem"}</td>
-                      <td>{discount.value}</td>
-                      <td>{discount.start_date}</td>
-                      <td>{discount.end_date}</td>
-                      <td>{discount.min_purchase}</td>
-                      <td>{discount.max_discount}</td>
-                      <td>{discount.updated_at}</td>
+                      <td>
+                        {discount.is_percent === 1
+                          ? `${discount.value || '-'}%`
+                          : `Rp. ${formatNumber(discount.value)}`
+                        }
+                      </td>
+                      <td>{discount.start_date || '-'}</td>
+                      <td>{discount.end_date || '-'}</td>
+                      <td>Rp. {formatNumber(discount.min_purchase)}</td>
+                      <td>Rp. {formatNumber(discount.max_discount)}</td>
+                      <td>{discount.updated_at || '-'}</td>
                       <td>
                         <div className="action-buttons">
                           <div

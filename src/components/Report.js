@@ -49,6 +49,18 @@ const Report = ({ userTokenData }) => {
   const [loadingProgress, setLoadingProgress] = useState(0);
   const loadingIntervalRef = useRef(null);
 
+
+  function formatRupiah(value) {
+    const number = Number(value);
+    if (isNaN(number)) {
+      return value; // Kembalikan original jika tidak bisa diparsing ke angka
+    }
+    return number.toLocaleString("id-ID", {
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    });
+  }
+
   useEffect(() => {
     getReports();
   }, []);
@@ -503,9 +515,9 @@ const Report = ({ userTokenData }) => {
                       <td>{report.receipt_number || "-"}</td>
                       <td>{report.customer_name || "-"}</td>
                       <td>{report.customer_seat || "-"}</td>
-                      <td>{report.total || "-"}</td>
-                      <td>{report.customer_cash || "-"}</td>
-                      <td>{report.customer_change || "-"}</td>
+                      <td>{formatRupiah(report.total) || "-"}</td>
+                      <td>{formatRupiah(report.customer_cash) || "-"}</td>
+                      <td>{formatRupiah(report.customer_change) || "-"}</td>
                       <td>{report.payment_type || "-"}</td>
                       <td>{report.invoice_number || "-"}</td>
                       <td>{report.invoice_due_date ? report.invoice_due_date : report.updated_at}</td>

@@ -38,6 +38,18 @@ export const ReportPaymentModal = ({
       .join(" ");
   }
 
+  function formatRupiah(value) {
+    const number = Number(value);
+    if (isNaN(number)) {
+      return value; // Kembalikan original jika tidak bisa diparsing ke angka
+    }
+    return number.toLocaleString("id-ID", {
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    });
+  }
+
+
   useEffect(() => {
     // Reset progress when opening the modal
     if (show) {
@@ -435,23 +447,23 @@ export const ReportPaymentModal = ({
 
   return (
     <>
-    {/* Show loading progress even if paymentReport is null initially */}
-    {loading && (
-      <div className="loading-container text-center">
-        <div className="progress" style={{ height: '30px' }}>
-          <div
-            className="progress-bar bg-success"
-            role="progressbar"
-            style={{ width: `${progress}%` }}
-            aria-valuenow={progress}
-            aria-valuemin="0"
-            aria-valuemax="100"
-          >
-            {progress}%
+      {/* Show loading progress even if paymentReport is null initially */}
+      {loading && (
+        <div className="loading-container text-center">
+          <div className="progress" style={{ height: '30px' }}>
+            <div
+              className="progress-bar bg-success"
+              role="progressbar"
+              style={{ width: `${progress}%` }}
+              aria-valuenow={progress}
+              aria-valuemin="0"
+              aria-valuemax="100"
+            >
+              {progress}%
+            </div>
           </div>
         </div>
-      </div>
-    )}
+      )}
       {paymentReport && (
         <>
           <div
@@ -539,16 +551,14 @@ export const ReportPaymentModal = ({
                             </thead>
                             <tbody>
                               <td>{shiftDetails.casher_name || "-"}</td>
-                              <td>{shiftDetails.actual_ending_cash || "-"}</td>
-                              <td>{shiftDetails.cash_difference || "-"}</td>
-                              <td>
-                                {shiftDetails.expected_ending_cash || "-"}
-                              </td>
-                              <td>{shiftDetails.total_discount || "-"}</td>
-                              <td>{shiftDetails.total_amount || "-"}</td>
+                              <td>{formatRupiah(shiftDetails.actual_ending_cash) || "-"}</td>
+                              <td>{formatRupiah(shiftDetails.cash_difference) || "-"}</td>
+                              <td>{formatRupiah(shiftDetails.expected_ending_cash) || "-"}</td>
+                              <td>{formatRupiah(shiftDetails.total_discount) || "-"}</td>
+                              <td>{formatRupiah(shiftDetails.total_amount) || "-"}</td>
                               <td>
                                 {expenditures && expenditures.totalExpense
-                                  ? expenditures.totalExpense
+                                  ? formatRupiah(expenditures.totalExpense)
                                   : "-"}
                               </td>
                             </tbody>
@@ -571,7 +581,7 @@ export const ReportPaymentModal = ({
                                   {expenditures.lists.map((expense, index) => (
                                     <tr key={index}>
                                       <td>{expense.description || "-"}</td>
-                                      <td>{expense.nominal || "-"}</td>
+                                      <td>{formatRupiah(expense.nominal) || "-"}</td>
                                     </tr>
                                   ))}
                                 </tbody>
@@ -595,11 +605,12 @@ export const ReportPaymentModal = ({
                             ([jenisLaporan, totalLaporan], index) => (
                               <tr key={index}>
                                 <td>{toPascalCaseWithSpaces(jenisLaporan)}</td>
-                                <td>{totalLaporan}</td>
+                                <td>{formatRupiah(totalLaporan)}</td>
                               </tr>
                             )
                           )}
                         </tbody>
+
                       </table>
 
                       <br></br>
@@ -627,7 +638,7 @@ export const ReportPaymentModal = ({
                                 <td>{item.menu_name}</td>
                                 <td>{item.varian || "-"}</td>
                                 <td>{item.total_quantity}</td>
-                                <td>{item.total_price}</td>
+                                <td>{formatRupiah(item.total_price)}</td>
                               </tr>
                             ))}
                           </tbody>
@@ -748,9 +759,9 @@ export const ReportPaymentModal = ({
                                 </td>
                                 <td>{transaction.max_discount || "-"}</td>
                                 <td>{transaction.discounts_value || "-"}</td> */}
-                                  <td>{transaction.subtotal || "-"}</td>
-                                  <td>{transaction.total || "-"}</td>
-                                  <td>{transaction.total_refund || "-"}</td>
+                                  <td>{formatRupiah(transaction.subtotal) || "-"}</td>
+                                  <td>{formatRupiah(transaction.total) || "-"}</td>
+                                  <td>{formatRupiah(transaction.total_refund) || "-"}</td>
                                   <td>{transaction.refund_updated_at || "-"}</td>
                                   <td>
                                     <div className="action-buttons">
@@ -802,7 +813,7 @@ export const ReportPaymentModal = ({
                                 <td>{cartDetail.serving_type_name || "-"}</td>
                                 <td>{cartDetail.note_item || "-"}</td>
                                 <td>{cartDetail.qty || "-"}</td>
-                                <td>{cartDetail.price || "-"}</td>
+                                <td>{formatRupiah(cartDetail.price) || "-"}</td>
                                 <td>{cartDetail.discount_code || "-"}</td>
                                 <td>{cartDetail.discounts_value || "-"}</td>
                                 <td>
@@ -821,7 +832,7 @@ export const ReportPaymentModal = ({
                       </table>
 
                       <h4 style={{ textAlign: "center", marginBottom: "3vh" }}>
-                        Pengeluaran
+                        Pengeluaran / Refunded
                       </h4>
                       {paymentReport.refund && paymentReport.refund[0] ? (
                         <>
@@ -878,15 +889,6 @@ export const ReportPaymentModal = ({
                     </div>
                   </div>
                   <div class="modal-footer">
-                    <button
-                      type="button"
-                      class="btn btn-light-secondary"
-                      data-bs-dismiss="modal"
-                      onClick={onClose}
-                    >
-                      <i class="bx bx-x d-block d-sm-none"></i>
-                      <span class="d-none d-sm-block">Close</span>
-                    </button>
                   </div>
                 </div>
               </div>

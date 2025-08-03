@@ -25,62 +25,28 @@ export const DiscountModal = ({
       end_date: null,
       min_purchase: "",
       max_discount: "",
+      is_unlimited_max_discount: false, // Default ke false
       outlet_id: userTokenData.outlet_id,
     }),
     [userTokenData]
   );
 
   const [discount, setDiscount] = useState(initialDiscountState);
-  const [isFormValid, setIsFormValid] = useState(true);
+  const [formErrors, setFormErrors] = useState({});
   const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
+
   const startDateInputRef = useRef(null);
   const endDateInputRef = useRef(null);
-  const [startDate, setStartDate] = useState(discount.start_date || null);
-  const [endDate, setEndDate] = useState(discount.end_date || null);
-  const [isDiscountValueValid, setIsDiscountValueValid] = useState(true);
-
-  useEffect(() => {
-    if (show && selectedDiscountId) {
-      const fetchData = async () => {
-        try {
-          const response = await axios.get(
-            `${apiBaseUrl}/discount/${selectedDiscountId}`
-          );
-          const discountData = response.data.data;
-          setDiscount({
-            ...discountData,
-            outlet_id: userTokenData.outlet_id,
-          });
-          setStartDate(discountData.start_date);
-          setEndDate(discountData.end_date);
-        } catch (error) {
-          console.error("Error fetching discount:", error);
-        }
-      };
-      fetchData();
-    } else {
-      setDiscount(initialDiscountState);
-      setIsFormValid(true);
-      setStartDate(null);
-      setEndDate(null);
-    }
-  }, [
-    show,
-    selectedDiscountId,
-    apiBaseUrl,
-    initialDiscountState,
-    userTokenData,
-  ]);
 
   useEffect(() => {
     let startDatePicker, endDatePicker;
+
     if (startDateInputRef.current) {
       startDatePicker = flatpickr(startDateInputRef.current, {
         enableTime: true,
         dateFormat: "Y-m-d H:i",
         defaultDate: discount.start_date ? new Date(discount.start_date) : null,
         onChange: (selectedDates, dateStr) => {
-          setStartDate(dateStr);
           handleInputChange("start_date", dateStr);
         },
       });
@@ -92,72 +58,146 @@ export const DiscountModal = ({
         dateFormat: "Y-m-d H:i",
         defaultDate: discount.end_date ? new Date(discount.end_date) : null,
         onChange: (selectedDates, dateStr) => {
-          setEndDate(dateStr);
           handleInputChange("end_date", dateStr);
         },
       });
     }
 
     return () => {
-      if (startDatePicker) {
-        startDatePicker.destroy();
-      }
-      if (endDatePicker) {
-        endDatePicker.destroy();
-      }
+      if (startDatePicker) startDatePicker.destroy();
+      if (endDatePicker) endDatePicker.destroy();
     };
   }, [discount]);
 
+  const validateForm = () => {
+    const errors = {};
+
+    if (!discount.code) errors.code = "Kode diskon harus diisi";
+    if (!discount.start_date) errors.start_date = "Tanggal mulai harus diisi";
+    if (!discount.end_date) errors.end_date = "Tanggal akhir harus diisi";
+    if (!discount.value) errors.value = "Nilai diskon harus diisi";
+
+    if (discount.is_percent === "1" && Number(discount.value) > 100) {
+      errors.value = "Diskon persentase tidak boleh lebih dari 100%";
+    }
+
+
+    setFormErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
+  useEffect(() => {
+    if (show && selectedDiscountId) {
+      const fetchDiscountDetails = async () => {
+        try {
+          const response = await axios.get(
+            `${apiBaseUrl}/discount/${selectedDiscountId}`
+          );
+          const discountData = response.data.data;
+
+          setDiscount(prevDiscount => ({
+            ...discountData,
+            outlet_id: userTokenData.outlet_id,
+            is_percent: String(discountData.is_percent),
+            // Tambahkan state untuk selalu menampilkan max discount
+            showMaxDiscount: discountData.is_percent === 1
+          }));
+        } catch (error) {
+          Swal.fire({
+            icon: "error",
+            title: "Gagal",
+            text: "Tidak dapat mengambil detail diskon"
+          });
+        }
+      };
+      fetchDiscountDetails();
+    } else {
+      setDiscount(prevDiscount => ({
+        ...initialDiscountState,
+        // Tambahkan state untuk selalu menampilkan max discount
+        showMaxDiscount: true
+      }));
+      setFormErrors({});
+    }
+  }, [show, selectedDiscountId, apiBaseUrl, initialDiscountState, userTokenData]);
+
   const handleInputChange = (field, value) => {
-    setDiscount((prevDiscount) => ({
-      ...prevDiscount,
-      [field]: value,
-    }));
+    setDiscount(prev => {
+      let updatedDiscount = {
+        ...prev,
+        [field]: value
+      };
+
+      // Logika khusus untuk perubahan tipe diskon
+      if (field === 'is_percent') {
+        if (value === "0") {
+          // Jika nominal, sembunyikan max diskon
+          updatedDiscount.max_discount = "";
+          updatedDiscount.is_unlimited_max_discount = false;
+          updatedDiscount.showMaxDiscount = false;
+        } else {
+          // Jika persentase, pastikan max diskon muncul
+          updatedDiscount.showMaxDiscount = true;
+          updatedDiscount.is_unlimited_max_discount = false;
+        }
+      }
+
+      // Logika untuk checkbox tidak ada batasan
+      if (field === 'is_unlimited_max_discount') {
+        if (value === true) {
+          updatedDiscount.max_discount = "";
+        } else {
+          // Buka kembali input max diskon
+          updatedDiscount.max_discount = "";
+        }
+      }
+
+      return updatedDiscount;
+    });
+
+    // Hapus error untuk field yang diubah
+    if (formErrors[field]) {
+      setFormErrors(prev => ({
+        ...prev,
+        [field]: undefined
+      }));
+    }
   };
 
   const handleSave = async (e) => {
     e.preventDefault();
 
-    const isDiscountCodeValid = discount.code === "";
-    const isDiscountValueValidForm = discount.value === "";
-    if (
-      isDiscountCodeValid ||
-      isDiscountValueValidForm ||
-      startDate == null ||
-      endDate == null
-    ) {
-      console.log(isDiscountCodeValid ," " + " ", isDiscountValueValidForm, " " + " ", isDiscountValueValid);
-      setIsFormValid(false);
-      return;
-    }
+    if (!validateForm()) return;
+
+    const finalDiscount = {
+      ...discount,
+      max_discount: discount.is_percent === "1" && !discount.is_unlimited_max_discount
+        ? discount.max_discount
+        : null
+    };
 
     try {
-      if (selectedDiscountId) {
-        await axios.patch(
-          `${apiBaseUrl}/discount/${selectedDiscountId}`,
-          discount
-        );
-        Swal.fire({
-          icon: "success",
-          title: "Success!",
-          text: `Diskon berhasil diperbarui: ${discount.code}`,
-        });
-      } else {
-        await axios.post(`${apiBaseUrl}/discount/`, discount);
-        Swal.fire({
-          icon: "success",
-          title: "Success!",
-          text: `${discount.code} berhasil ditambahkan!`,
-        });
-      }
-      onSave(discount);
-      setDiscount(initialDiscountState);
+      const saveMethod = selectedDiscountId
+        ? axios.patch(`${apiBaseUrl}/discount/${selectedDiscountId}`, finalDiscount)
+        : axios.post(`${apiBaseUrl}/discount/`, finalDiscount);
+
+      await saveMethod;
+
+      Swal.fire({
+        icon: "success",
+        title: "Berhasil!",
+        text: selectedDiscountId
+          ? `Diskon ${discount.code} diperbarui`
+          : `Diskon ${discount.code} ditambahkan`
+      });
+
+      onSave(finalDiscount);
       onClose();
     } catch (error) {
       Swal.fire({
-        title: "Gagal",
-        text: "Terdapat data yang tidak valid",
         icon: "error",
+        title: "Gagal",
+        text: "Terdapat data yang tidak valid"
       });
     }
   };
@@ -165,239 +205,172 @@ export const DiscountModal = ({
   const handleDeleteDiscount = async () => {
     try {
       await axios.delete(`${apiBaseUrl}/discount/${selectedDiscountId}`);
+
       Swal.fire({
         icon: "success",
-        title: "Success!",
-        text: `Diskon berhasil diperbarui: ${discount.code}`,
+        title: "Dihapus!",
+        text: `Diskon ${discount.code} berhasil dihapus`
       });
-      setShowDeleteConfirmation(false);
+
       await getDiscounts();
       onClose();
+      setShowDeleteConfirmation(false);
     } catch (error) {
-      console.error("Error deleting discount:", error);
+      Swal.fire({
+        icon: "error",
+        title: "Gagal",
+        text: "Tidak dapat menghapus diskon"
+      });
     }
   };
 
   return (
-    <>
-      <div
-        className={`modal fade text-left ${show ? "show" : ""}`}
-        id="inlineForm"
-        role="dialog"
-        aria-labelledby="myModalLabel33"
-        aria-modal={show ? "true" : undefined}
-        aria-hidden={show ? undefined : "true"}
-        style={show ? { display: "block" } : { display: "none" }}
-      >
-        <div
-          class="modal-dialog modal-dialog-centered modal-dialog-scrollable"
-          role="document"
-        >
-          <div class="modal-content scrollable-content">
-            <div class="modal-header">
-              <h4 class="modal-title" id="myModalLabel33">
-                {selectedDiscountId ? "Edit Discount" : "Add Discount"}
-              </h4>
+    <div className={`discount-modal modal ${show ? 'is-active' : ''}`}>
+    <div className="modal-container">
+      <div className="modal-header">
+          <h3>{selectedDiscountId ? "Edit Diskon" : "Tambah Diskon"}</h3>
+          <button onClick={onClose} className="modal-close">×</button>
+        </div>
+
+        <form onSubmit={handleSave} className="modal-form">
+          <div className="form-grid">
+            <div className="form-group">
+              <label>Kode Diskon</label>
+              <input
+                type="text"
+                value={discount.code}
+                onChange={(e) => handleInputChange('code', e.target.value)}
+                className={`form-control ${formErrors.code ? 'is-invalid' : ''}`}
+                placeholder="Masukkan kode diskon"
+              />
+              {formErrors.code && <div className="error-text">{formErrors.code}</div>}
+            </div>
+
+            <div className="form-group">
+              <label>Tanggal Mulai</label>
+              <input
+                ref={startDateInputRef}
+                type="text"
+                className={`form-control ${formErrors.start_date ? 'is-invalid' : ''}`}
+                placeholder="Pilih tanggal mulai"
+              />
+              {formErrors.start_date && <div className="error-text">{formErrors.start_date}</div>}
+            </div>
+
+            <div className="form-group">
+              <label>Tanggal Berakhir</label>
+              <input
+                ref={endDateInputRef}
+                type="text"
+                className={`form-control ${formErrors.end_date ? 'is-invalid' : ''}`}
+                placeholder="Pilih tanggal berakhir"
+              />
+              {formErrors.end_date && <div className="error-text">{formErrors.end_date}</div>}
+            </div>
+
+            <div className="form-group">
+              <label>Tipe Diskon</label>
+              <select
+                value={discount.is_percent}
+                onChange={(e) => handleInputChange('is_percent', e.target.value)}
+                className="form-control"
+              >
+                <option value="1">Persentase</option>
+                <option value="0">Nominal</option>
+              </select>
+            </div>
+
+            <div className="form-group">
+              <label>Diskon Untuk</label>
+              <select
+                value={discount.is_discount_cart}
+                onChange={(e) => handleInputChange('is_discount_cart', e.target.value)}
+                className="form-control"
+              >
+                <option value="1">Keranjang</option>
+                <option value="0">Per Item</option>
+              </select>
+            </div>
+
+            <div className="form-group">
+              <label>Nilai Diskon</label>
+              <input
+                type="number"
+                value={discount.value}
+                onChange={(e) => handleInputChange('value', e.target.value)}
+                className={`form-control ${formErrors.value ? 'is-invalid' : ''}`}
+                placeholder="Masukkan nilai diskon"
+              />
+              {formErrors.value && <div className="error-text">{formErrors.value}</div>}
+            </div>
+
+            <div className="form-group">
+              <label>Minimal Pembelian</label>
+              <input
+                type="number"
+                value={discount.min_purchase}
+                onChange={(e) => handleInputChange('min_purchase', e.target.value)}
+                className={`form-control ${formErrors.min_purchase ? 'is-invalid' : ''}`}
+                placeholder="Masukkan minimal pembelian"
+              />
+              {formErrors.min_purchase && <div className="error-text">{formErrors.min_purchase}</div>}
+            </div>
+
+            {(discount.is_percent === "1" || discount.showMaxDiscount) && (
+              <div className="form-group">
+                <label>Maksimal Diskon</label>
+                <div className="max-discount-container">
+                  <div className="unlimited-checkbox">
+                    <input
+                      type="checkbox"
+                      id="unlimitedMaxDiscount"
+                      checked={discount.is_unlimited_max_discount || false}
+                      onChange={(e) => handleInputChange('is_unlimited_max_discount', e.target.checked)}
+                    />
+                    <label htmlFor="unlimitedMaxDiscount">Tidak ada batasan</label>
+                  </div>
+
+                  {!discount.is_unlimited_max_discount && (
+                    <input
+                      type="number"
+                      value={discount.max_discount || ''}
+                      onChange={(e) => handleInputChange('max_discount', e.target.value)}
+                      className={`form-control ${formErrors.max_discount ? 'is-invalid' : ''}`}
+                      placeholder="Masukkan maksimal diskon"
+                      required
+                    />
+                  )}
+                </div>
+                {formErrors.max_discount && (
+                  <div className="error-text">{formErrors.max_discount}</div>
+                )}
+              </div>
+            )}
+          </div>
+
+          <div className="modal-actions">
+            {selectedDiscountId && (
               <button
                 type="button"
-                class="close"
-                data-bs-dismiss="modal"
-                aria-label="Close"
-                onClick={onClose}
+                onClick={() => setShowDeleteConfirmation(true)}
+                className="btn btn-danger"
               >
-                <i data-feather="x"></i>x
+                Hapus
               </button>
-            </div>
-            <div>
-              <div class="modal-body scrollable-content">
-                <label>Code: </label>
-                <div class="form-group">
-                  <input
-                    type="text"
-                    placeholder="Code diskon"
-                    class={`form-control ${
-                      !isFormValid && discount.code === "" ? "is-invalid" : ""
-                    }`}
-                    value={discount.code}
-                    onChange={(e) => {
-                      handleInputChange("code", e.target.value);
-                      setIsFormValid(true);
-                    }}
-                  />
-                  {!isFormValid && discount.code === "" ? (
-                    <div className="invalid-feedback">
-                      Code diskon harus diisi
-                    </div>
-                  ) : null}
-                </div>
-                <label>Tanggal mulai diskon: </label>
-                <div className="form-group">
-                  <input
-                    type="text"
-                    id="startDateInput"
-                    ref={startDateInputRef}
-                    className={`form-control ${
-                      !isFormValid && !discount.start_date ? "is-invalid" : ""
-                    }`}
-                    placeholder="Tanggal mulai diskon"
-                    value={startDate || ""}
-                  />
-                  {!isFormValid && !discount.start_date && (
-                    <div className="invalid-feedback">
-                      Tanggal mulai diskon harus diisi
-                    </div>
-                  )}
-                </div>
-                <label>Tanggal akhir diskon: </label>
-                <div className="form-group">
-                  <input
-                    type="text"
-                    id="startDateInput"
-                    ref={endDateInputRef}
-                    className={`form-control ${
-                      !isFormValid && !discount.end_date ? "is-invalid" : ""
-                    }`}
-                    placeholder="Tanggal akhir diskon"
-                    value={endDate || ""}
-                  />
-                  {!isFormValid && !discount.end_date && (
-                    <div className="invalid-feedback">
-                      Tanggal akhir diskon harus diisi
-                    </div>
-                  )}
-                </div>
-                <label>Tipe Diskon: </label>
-                <div class="form-group">
-                  <select
-                    class="choices form-select"
-                    value={discount.is_percent}
-                    onChange={(e) => {
-                      handleInputChange("is_percent", e.target.value);
-                    }}
-                  >
-                    <option value="1">Persen</option>
-                    <option value="0">Nominal</option>
-                  </select>
-                </div>
-                <label>Diskon untuk: </label>
-                <div class="form-group">
-                  <select
-                    class="choices form-select"
-                    value={discount.is_discount_cart}
-                    onChange={(e) => {
-                      handleInputChange("is_discount_cart", e.target.value);
-                    }}
-                  >
-                    <option value="1">Keranjang</option>
-                    <option value="0">Peritem</option>
-                  </select>
-                </div>
-                <label>Nilai discount: </label>
-                <div class="form-group">
-                  <input
-                    type="number"
-                    placeholder="Nilai discount"
-                    class={`form-control ${
-                      (!isFormValid && discount.value === "") ||
-                      !isDiscountValueValid
-                        ? "is-invalid"
-                        : ""
-                    }`}
-                    value={discount.value}
-                    onChange={(e) => {
-                      handleInputChange("value", e.target.value);
-                      setIsFormValid(true);
-                      setIsDiscountValueValid(true);
-                      if (
-                        discount.is_percent === "1" &&
-                        e.target.value > 100
-                      ) {
-                        setIsDiscountValueValid(false);
-                      }
-                    }}
-                  />
-                  {!isFormValid && discount.value === "" ? (
-                    <div className="invalid-feedback">
-                      Nilai diskon harus diisi
-                    </div>
-                  ) : null}
-                  {!isFormValid && !isDiscountValueValid ? (
-                    <div className="invalid-feedback">
-                      Nilai diskon tidak boleh lebih dari 100
-                    </div>
-                  ) : null}
-                </div>
-                <label>Minimal pembelian: </label>
-                <div class="form-group">
-                  <input
-                    type="number"
-                    placeholder="Minimal pembelian"
-                    class="form-control"
-                    value={discount.min_purchase}
-                    onChange={(e) => {
-                      handleInputChange("min_purchase", e.target.value);
-                      setIsFormValid(true);
-                    }}
-                  />
-                </div>
-                <label>Maksimal diskon: </label>
-                <div class="form-group">
-                  <input
-                    type="number"
-                    placeholder="Maksimal diskon"
-                    class="form-control"
-                    value={discount.max_discount}
-                    onChange={(e) => {
-                      handleInputChange("max_discount", e.target.value);
-                      setIsFormValid(true);
-                    }}
-                    disabled={discount.is_percent === "0"}
-                  />
-                </div>
-              </div>
-              <div class="modal-footer">
-                {selectedDiscountId && (
-                  <div className="delete-modal">
-                    <button
-                      type="button"
-                      class="btn btn-danger rounded-pill"
-                      data-bs-dismiss="modal"
-                      onClick={() => setShowDeleteConfirmation(true)}
-                    >
-                      <span class="d-none d-sm-block">Hapus Dikson!</span>
-                    </button>
-                  </div>
-                )}
-                <button
-                  type="button"
-                  class="btn btn-light-secondary"
-                  data-bs-dismiss="modal"
-                  onClick={onClose}
-                >
-                  <i class="bx bx-x d-block d-sm-none"></i>
-                  <span class="d-none d-sm-block">Close</span>
-                </button>
-                <button
-                  type="button"
-                  class="btn btn-primary ml-1"
-                  data-bs-dismiss="modal"
-                  onClick={handleSave}
-                >
-                  <i class="bx bx-check d-block d-sm-none"></i>
-                  <span class="d-none d-sm-block">Submit</span>
-                </button>
-              </div>
-            </div>
+            )}
+            <button type="submit" className="btn btn-primary">
+              Simpan
+            </button>
           </div>
-        </div>
+        </form>
       </div>
-      <div className={show && `modal-backdrop fade show`}></div>
+
       <DeleteConfirmationModal
         showDeleteConfirmation={showDeleteConfirmation}
         onConfirmDelete={handleDeleteDiscount}
         onCancelDelete={() => setShowDeleteConfirmation(false)}
-        purposeDialog={"discount"}
+        purposeDialog="discount"
       />
-    </>
+    </div>
   );
 };
