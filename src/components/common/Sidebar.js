@@ -1,12 +1,12 @@
 import React from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 
 const Sidebar = ({ onToggleSidebar, isOpen, userTokenData }) => {
+  const location = useLocation();
+
   const hasAccess = (accessCode) => {
     const menuAccess = userTokenData.menu_access;
-    console.log('Menu Access Type:', typeof userTokenData.menu_access);
-    console.log('Menu Access Value:', userTokenData.menu_access);
-    // Multiple type-safe checks
+    
     if (Array.isArray(menuAccess)) {
       return menuAccess.includes(accessCode) ||
         menuAccess.includes(Number(accessCode)) ||
@@ -19,123 +19,182 @@ const Sidebar = ({ onToggleSidebar, isOpen, userTokenData }) => {
 
     return false;
   };
+
+  // Definisi menu terstruktur
+  const menuSections = [
+    {
+      title: "Management",
+      items: [
+        { 
+          accessCode: "1", 
+          icon: "bi-people-fill", 
+          label: "Management Users", 
+          path: "/" 
+        },
+        { 
+          accessCode: "1", 
+          icon: "bi-building", 
+          label: "Management Outlet", 
+          path: "/outlet" 
+        },
+        { 
+          accessCode: "2", 
+          icon: "bi-cup-straw", 
+          label: "Management Menus", 
+          path: "/menu" 
+        },
+        { 
+          accessCode: "3", 
+          icon: "bi-tags-fill", 
+          label: "Management Discounts", 
+          path: "/discount" 
+        },
+        { 
+          accessCode: "9", 
+          icon: "bi-people-fill", 
+          label: "Management Membership", 
+          path: "/member" 
+        }
+      ]
+    },
+    {
+      title: "Financial",
+      items: [
+        { 
+          accessCode: "5", 
+          icon: "bi-currency-exchange", 
+          label: "Serving Types", 
+          path: "/serving-type" 
+        },
+        { 
+          accessCode: "8", 
+          icon: "bi-bank", 
+          label: "Payment Types", 
+          path: "/payment-type" 
+        },
+        { 
+          accessCode: "10", 
+          icon: "bi-coin", 
+          label: "Payment Categories", 
+          path: "/payment-management" 
+        }
+      ]
+    },
+    {
+      title: "Reporting",
+      items: [
+        { 
+          accessCode: "4", 
+          icon: "bi-book", 
+          label: "Reports", 
+          path: "/report" 
+        },
+        { 
+          accessCode: "6", 
+          icon: "bi-clipboard-check", 
+          label: "Ingredients Order", 
+          path: "/ingredient-order" 
+        },
+        { 
+          accessCode: "7", 
+          icon: "bi-box-seam", 
+          label: "Ingredients Report", 
+          path: "/ingredient-report" 
+        }
+      ]
+    }
+  ];
+
+  // Menu khusus Warehouse
+  const warehouseMenus = [
+    { 
+      icon: "bi-basket", 
+      label: "Ingredients", 
+      path: "/ingredient" 
+    },
+    { 
+      icon: "bi-cart", 
+      label: "Ingredients Order Outlet", 
+      path: "/ingredient-order-outlet" 
+    }
+  ];
+
+  // Fungsi render menu section
+  const renderMenuSection = (section) => {
+    // Filter item yang memiliki akses
+    const visibleItems = section.items.filter(item => 
+      hasAccess(item.accessCode)
+    );
+
+    // Jika tidak ada item yang bisa diakses, jangan tampilkan section
+    if (visibleItems.length === 0) return null;
+
+    return (
+      <div key={section.title}>
+        <li className="sidebar-title">{section.title}</li>
+        {visibleItems.map(item => (
+          <li key={item.path} className="sidebar-item">
+            <Link 
+              to={item.path} 
+              className={`sidebar-link ${location.pathname === item.path ? 'active' : ''}`}
+            >
+              <i className={`bi ${item.icon}`}></i>
+              <span>{item.label}</span>
+            </Link>
+          </li>
+        ))}
+      </div>
+    );
+  };
+
   return (
-    <div id="sidebar" className={`sidebar ${isOpen ? "active" : ""}`}>
+    <div 
+      id="sidebar" 
+      className={`sidebar ${isOpen ? "active" : ""}`}
+      style={{
+        width: isOpen ? '250px' : '80px',
+        transition: 'width 0.3s ease'
+      }}
+    >
       <div className="sidebar-wrapper active">
         <div className="sidebar-header position-relative">
           <div className="d-flex justify-content-between align-items-center">
             <div className="logo">
-              <Link to="/">GASPOLL CMS</Link>
+              <Link to="/">
+                {isOpen ? 'GASPOLL CMS' : 'GP'}
+              </Link>
             </div>
-            <div className="sidebar-toggler" onClick={onToggleSidebar}>
+            <div 
+              className="sidebar-toggler" 
+              onClick={onToggleSidebar}
+              style={{ cursor: 'pointer' }}
+            >
               <div className="sidebar-hide d-xl-none d-block">
-                <i className="bi bi-x bi-middle"></i>
+                <i className={`bi ${isOpen ? 'bi-x' : 'bi-list'} bi-middle`}></i>
               </div>
             </div>
           </div>
         </div>
         <div className="sidebar-menu">
-          <ul class="menu">
-            <li class="sidebar-title">Menu</li>
-            {userTokenData.menu_access.includes("1") && (
-              <><li class="sidebar-item">
-                <Link to="/" class="sidebar-link">
-                  <i className="bi bi-tags-fill"></i>
-                  <span>Management Users</span>
-                </Link>
-              </li><li class="sidebar-item">
-                  <Link to="/outlet" class="sidebar-link">
-                    <i className="bi bi-building"></i>
-                    <span>Management Outlet</span>
-                  </Link>
-                </li></>
-            )}
-            {userTokenData.menu_access.includes("2") && (
-              <li class="sidebar-item">
-                <Link to="/menu" class="sidebar-link">
-                  <i className="bi bi-cup-straw"></i>
-                  <span>Management Menus</span>
-                </Link>
-              </li>
-            )}
-            {userTokenData.menu_access.includes("3") && (
-              <li class="sidebar-item">
-                <Link to="/discount" class="sidebar-link">
-                  <i className="bi bi-tags-fill"></i>
-                  <span>Management Discounts</span>
-                </Link>
-              </li>
-            )}
-            {userTokenData.menu_access.includes("5") && (
-              <li class="sidebar-item">
-                <Link to="/serving-type" class="sidebar-link">
-                  <i className="bi bi-currency-exchange"></i>
-                  <span>Serving Types</span>
-                </Link>
-              </li>
-            )}
-            {userTokenData.menu_access.includes("8") && (
-              <li class="sidebar-item">
-                <Link to="/payment-type" class="sidebar-link">
-                  <i className="bi bi-bank"></i>
-                  <span>Payment Types</span>
-                </Link>
-              </li>
-            )}
-            {userTokenData.menu_access.includes("10") && (
-              <li class="sidebar-item">
-                <Link to="/payment-management" class="sidebar-link">
-                  <i className="bi bi-bank"></i>
-                  <span>Payment Categories</span>
-                </Link>
-              </li>
-            )}
-            {userTokenData.menu_access.includes("9") && (
-              <li className="sidebar-item">
-                <Link to="/member" className="sidebar-link">
-                  <i className="bi bi-people-fill"></i>
-                  <span>Management Membership</span>
-                </Link>
-              </li>
-            )}
-            {userTokenData.menu_access.includes("4") && (
-              <li class="sidebar-item">
-                <Link to="/report" class="sidebar-link">
-                  <i className="bi bi-book"></i>
-                  <span>Reports</span>
-                </Link>
-              </li>
-            )}
-            {userTokenData.menu_access.includes("6") && (
-              <li class="sidebar-item">
-                <Link to="/ingredient-order" class="sidebar-link">
-                  <i className="bi bi-clipboard-check"></i>
-                  <span>Ingredients Order</span>
-                </Link>
-              </li>
-            )}
-            {userTokenData.menu_access.includes("7") && (
-              <li class="sidebar-item">
-                <Link to="/ingredient-report" class="sidebar-link">
-                  <i className="bi bi-box-seam"></i>
-                  <span>Ingredients Report</span>
-                </Link>
-              </li>
-            )}
+          <ul className="menu">
+            {/* Render menu sections */}
+            {menuSections.map(renderMenuSection)}
+
+            {/* Render warehouse menu jika role sesuai */}
             {userTokenData.role === "Warehouse" && (
               <>
-                <li class="sidebar-item">
-                  <Link to="/ingredient" class="sidebar-link">
-                    <i className="bi bi-basket"></i>
-                    <span>Ingredients</span>
-                  </Link>
-                </li>
-                <li class="sidebar-item">
-                  <Link to="/ingredient-order-outlet" class="sidebar-link">
-                    <i className="bi bi-basket"></i>
-                    <span>Ingredients Order Outlet</span>
-                  </Link>
-                </li>
+                <li className="sidebar-title">Warehouse</li>
+                {warehouseMenus.map(item => (
+                  <li key={item.path} className="sidebar-item">
+                    <Link 
+                      to={item.path} 
+                      className={`sidebar-link ${location.pathname === item.path ? 'active' : ''}`}
+                    >
+                      <i className={`bi ${item.icon}`}></i>
+                      <span>{item.label}</span>
+                    </Link>
+                  </li>
+                ))}
               </>
             )}
           </ul>
