@@ -13,6 +13,8 @@ const Menu = ({ userTokenData }) => {
   const [viewMode, setViewMode] = useState('grid'); // Add view mode state
 
   useEffect(() => {
+    document.title = "Dashboard - Gaspoll Content Management System";
+
     getMenus();
   }, []);
 
@@ -45,19 +47,19 @@ const Menu = ({ userTokenData }) => {
   };
 
   const handleSaveMenu = async (menuData) => {
-  setMenus((prevMenus) => {
-    if (menuData.id) {
-      return prevMenus.map((m) =>
-        m.id === menuData.id ? menuData : m
-      );
-    }
-    return [...prevMenus, menuData];
-  });
+    setMenus((prevMenus) => {
+      if (menuData.id) {
+        return prevMenus.map((m) =>
+          m.id === menuData.id ? menuData : m
+        );
+      }
+      return [...prevMenus, menuData];
+    });
 
-  closeModal();
+    closeModal();
 
-  await getMenus();
-};
+    await getMenus();
+  };
 
 
   const renderMenuImage = (menu) => {
@@ -88,8 +90,8 @@ const Menu = ({ userTokenData }) => {
         />
         <span
           className={`position-absolute top-0 end-0 m-2 badge ${menu.is_active === 1
-              ? 'bg-success'
-              : 'bg-danger'
+            ? 'bg-success'
+            : 'bg-danger'
             }`}
         >
           {menu.is_active === 1 ? "Aktif" : "Tidak Aktif"}
@@ -102,8 +104,8 @@ const Menu = ({ userTokenData }) => {
     <div className="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 row-cols-xl-5 g-4">
       {filteredMenus.map((menu) => (
         <div className="col" key={menu.id}>
-          <div 
-            className="card h-100 shadow-lg product-card transition-all" 
+          <div
+            className="card h-100 shadow-lg product-card transition-all"
             style={{
               borderRadius: '12px',
               transition: 'all 0.3s ease',
@@ -145,8 +147,8 @@ const Menu = ({ userTokenData }) => {
               />
               <span
                 className={`position-absolute top-0 end-0 m-2 badge ${menu.is_active === 1 ? 'bg-success' : 'bg-danger'}`}
-                style={{ 
-                  fontSize: '0.7em', 
+                style={{
+                  fontSize: '0.7em',
                   fontWeight: 'normal',
                   borderRadius: '4px'
                 }}
@@ -154,37 +156,37 @@ const Menu = ({ userTokenData }) => {
                 {menu.is_active === 1 ? "Aktif" : "Tidak Aktif"}
               </span>
             </div>
-            <div 
-              className="card-body text-center p-3" 
-              style={{ 
-                backgroundColor: 'white', 
-                borderBottomLeftRadius: '12px', 
-                borderBottomRightRadius: '12px' 
+            <div
+              className="card-body text-center p-3"
+              style={{
+                backgroundColor: 'white',
+                borderBottomLeftRadius: '12px',
+                borderBottomRightRadius: '12px'
               }}
             >
-              <h6 
-                className="card-title mb-2" 
-                style={{ 
-                  whiteSpace: 'nowrap', 
-                  overflow: 'hidden', 
+              <h6
+                className="card-title mb-2"
+                style={{
+                  whiteSpace: 'nowrap',
+                  overflow: 'hidden',
                   textOverflow: 'ellipsis',
                   fontWeight: '600'
                 }}
               >
                 {menu.name}
               </h6>
-              <p 
-                className="card-text text-muted mb-1" 
-                style={{ 
+              <p
+                className="card-text text-muted mb-1"
+                style={{
                   fontSize: '0.8em',
                   color: '#6c757d'
                 }}
               >
                 {menu.menu_type}
               </p>
-              <h6 
-                className="card-subtitle mb-3 text-success" 
-                style={{ 
+              <h6
+                className="card-subtitle mb-3 text-success"
+                style={{
                   fontSize: '0.9em',
                   fontWeight: 'bold'
                 }}
@@ -284,15 +286,15 @@ const Menu = ({ userTokenData }) => {
                   </div>
                   <div className="col-12 col-md-3 col-lg-2">
                     <div className="btn-group w-100" role="group">
-                      <button 
-                        type="button" 
+                      <button
+                        type="button"
                         className={`btn ${viewMode === 'grid' ? 'btn-primary' : 'btn-outline-primary'}`}
                         onClick={() => setViewMode('grid')}
                       >
                         <i className="bi bi-grid"></i>
                       </button>
-                      <button 
-                        type="button" 
+                      <button
+                        type="button"
                         className={`btn ${viewMode === 'list' ? 'btn-primary' : 'btn-outline-primary'}`}
                         onClick={() => setViewMode('list')}
                       >
