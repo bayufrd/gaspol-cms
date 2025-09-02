@@ -16,6 +16,11 @@ const Footer = () => {
       justifyContent: 'space-between',
       alignItems: 'center',
     },
+    leftSection: {
+      display: 'flex',
+      alignItems: 'center',
+      gap: '20px',
+    },
     companyLink: {
       display: 'flex',
       alignItems: 'center',
@@ -42,43 +47,48 @@ const Footer = () => {
       margin: 0,
       marginLeft: '10px',
     },
-    socialLinks: {
+    downloadLink: {
       display: 'flex',
-      gap: '15px',
+      alignItems: 'center',
+      gap: '6px',
+      textDecoration: 'none',
+      color: '#2575fc',
+      fontWeight: '500',
     },
-    socialIcon: {
-      color: '#6c757d',
-      fontSize: '20px',
-      transition: 'color 0.3s ease',
+    icon: {
+      fontSize: '18px',
     },
   };
 
   return (
     <footer style={styles.footer}>
       <div style={styles.container}>
-        <div>
-          <a 
-            href="https://dastrevas.com" 
-            target="_blank" 
-            rel="noopener noreferrer" 
+        <div style={styles.leftSection}>
+          <a
+            href="https://dastrevas.com"
+            target="_blank"
+            rel="noopener noreferrer"
             style={styles.companyLink}
-            onMouseOver={(e) => {
-              e.currentTarget.style.color = '#2575fc';
-            }}
-            onMouseOut={(e) => {
-              e.currentTarget.style.color = '#333';
-            }}
+            onMouseOver={(e) => (e.currentTarget.style.color = '#2575fc')}
+            onMouseOut={(e) => (e.currentTarget.style.color = '#333')}
           >
             <div style={styles.logo}>
-              <img 
-                src="/assets/images/DT.svg" 
-                alt="Dastrevas Tech Logo" 
+              <img
+                src="/assets/images/DT.svg"
+                alt="Dastrevas Tech Logo"
                 style={styles.logoImage}
               />
             </div>
-            <p style={styles.companyText}>
-              2023 © Akhari Tech x Dastrevas
-            </p>
+            <p style={styles.companyText}>2023 © Akhari Tech x Dastrevas</p>
+          </a>
+
+          <a
+            href="https://gaspollmanagementcenter.com/server/setup.exe"
+            target="_blank"
+            rel="noopener noreferrer"
+            style={styles.downloadLink}
+          >
+            <span style={styles.icon}>⬇</span> Download KASIR Installer Setup (Windows)
           </a>
         </div>
       </div>
