@@ -507,16 +507,24 @@ export const MenuModal = ({
                             placeholder="Varian"
                             value={menuDetail.varian}
                             onChange={(e) =>
-                              handleMenuDetailChange(
-                                index,
-                                "varian",
-                                e.target.value
-                              )
+                              handleMenuDetailChange(index, "varian", e.target.value)
+                            }
+                          />
+                        </div>
+                        <div className="col-5">
+                          <input
+                            type="number"
+                            className="form-control"
+                            placeholder="Harga"
+                            value={menuDetail.price}
+                            onChange={(e) =>
+                              handleMenuDetailChange(index, "price", e.target.value)
                             }
                           />
                         </div>
                         <div className="col-2">
                           <button
+                            type="button"
                             className="btn btn-danger"
                             onClick={() => handleRemoveMenuDetail(index)}
                           >
@@ -525,6 +533,7 @@ export const MenuModal = ({
                         </div>
                       </div>
                     ))}
+
                     <button
                       className="btn btn-light"
                       onClick={handleAddMenuDetail}
@@ -556,12 +565,12 @@ export const MenuModal = ({
       </div>
 
       {/* Modal Preview Gambar */}
-      <ImagePreviewModal 
+      <ImagePreviewModal
         show={showImagePreviewModal}
         imageUrl={previewImageUrl}
         onClose={handleCloseImagePreview}
       />
-      
+
       {/* Modal untuk Konfirmasi Hapus */}
       <DeleteConfirmationModal
         showDeleteConfirmation={showDeleteConfirmation}

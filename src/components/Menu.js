@@ -44,11 +44,21 @@ const Menu = ({ userTokenData }) => {
     setShowModal(false);
   };
 
-  const handleSaveMenu = async (newMenu) => {
-    setMenus([...menus, newMenu]);
-    closeModal();
-    await getMenus();
-  };
+  const handleSaveMenu = async (menuData) => {
+  setMenus((prevMenus) => {
+    if (menuData.id) {
+      return prevMenus.map((m) =>
+        m.id === menuData.id ? menuData : m
+      );
+    }
+    return [...prevMenus, menuData];
+  });
+
+  closeModal();
+
+  await getMenus();
+};
+
 
   const renderMenuImage = (menu) => {
     const imageUrl = menu.image_url
