@@ -84,8 +84,6 @@ const Footer = () => {
 
           <a
             href="https://gaspollmanagementcenter.com/server/setup.exe"
-            target="_blank"
-            rel="noopener noreferrer"
             style={styles.downloadLink}
           >
             <span style={styles.icon}>⬇</span> Download KASIR Installer Setup (Windows)
