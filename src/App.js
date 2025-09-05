@@ -19,6 +19,7 @@ import IngredientOrderListOutlet from "./components/IngredientOrderListOutlet";
 import IngredientReport from "./components/IngredientReport";
 import PaymentType from "./components/PaymentType";
 import Members from "./components/Member";
+import WhatsappConfig from "./components/WhatsappConfig";
 
 function App() {
   const [isSidebarOpen, setSidebarOpen] = useState(false);
@@ -89,16 +90,16 @@ function App() {
                     </>
                   )}
                   {userTokenData && userTokenData.menu_access.includes("2") && (
-                   <>
-                     <Route
-                      path="/"
-                      element={<Menu userTokenData={userTokenData} />}
+                    <>
+                      <Route
+                        path="/"
+                        element={<Menu userTokenData={userTokenData} />}
                       />
                       <Route
                         path="/menu"
                         element={<Menu userTokenData={userTokenData} />}
                       />
-                   </>
+                    </>
                   )}
                   {userTokenData && userTokenData.menu_access.includes("3") && (
                     <Route
@@ -119,37 +120,37 @@ function App() {
                     />
                   )}
                   {userTokenData && userTokenData.menu_access.includes("6") && (
-                     <>
+                    <>
                       <Route
-                      path="/"
-                      element={<IngredientOrderList userTokenData={userTokenData} />}
+                        path="/"
+                        element={<IngredientOrderList userTokenData={userTokenData} />}
                       />
                       <Route
                         path="/ingredient-order"
                         element={<IngredientOrderList userTokenData={userTokenData} />}
                       />
-                     </>
+                    </>
                   )}
                   {userTokenData && userTokenData.menu_access.includes("7") && (
-                     
-                      <Route
-                        path="/ingredient-report"
-                        element={<IngredientReport userTokenData={userTokenData} />}
-                      />
+
+                    <Route
+                      path="/ingredient-report"
+                      element={<IngredientReport userTokenData={userTokenData} />}
+                    />
                   )}
                   {userTokenData && userTokenData.menu_access.includes("8") && (
-                     
-                     <Route
-                       path="/payment-type"
-                       element={<PaymentType userTokenData={userTokenData} />}
-                     />
-                 )}{userTokenData && userTokenData.menu_access.includes("9") && (
-                     
-                  <Route
-                    path="/member"
-                    element={<Members userTokenData={userTokenData} />}
-                  />
-              )}
+
+                    <Route
+                      path="/payment-type"
+                      element={<PaymentType userTokenData={userTokenData} />}
+                    />
+                  )}{userTokenData && userTokenData.menu_access.includes("9") && (
+
+                    <Route
+                      path="/member"
+                      element={<Members userTokenData={userTokenData} />}
+                    />
+                  )}
                   {userTokenData && userTokenData.role === "Warehouse" && (
                     <>
                       <Route
@@ -166,6 +167,17 @@ function App() {
                       />
                     </>
                   )}
+
+                  {/* Whatsapp CMS */}
+                  {userTokenData && (userTokenData.menu_access.includes("1") || userTokenData.menu_access.includes("4")) && (
+
+                    <Route
+                      path="/whatsapp-config"
+                      element={<WhatsappConfig userTokenData={userTokenData} />}
+                    />
+                  )}
+
+
                   <Route
                     path="/profile"
                     element={<Profile userTokenData={userTokenData} />}

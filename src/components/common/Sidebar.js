@@ -19,7 +19,6 @@ const Sidebar = ({ onToggleSidebar, isOpen, userTokenData }) => {
 
     return false;
   };
-
   // Definisi menu terstruktur
   const menuSections = [
     {
@@ -100,6 +99,30 @@ const Sidebar = ({ onToggleSidebar, isOpen, userTokenData }) => {
           icon: "bi-box-seam", 
           label: "Ingredients Report", 
           path: "/ingredient-report" 
+        }
+      ]
+    },
+    {
+      // Whatsapp Management System
+      title: "Whatsapp Management",
+      items: [
+        { 
+          accessCode: "4", 
+          icon: "bi-whatsapp", 
+          label: "QR Code & Config", 
+          path: "/whatsapp-config" 
+        },
+        { 
+          accessCode: "4", 
+          icon: "bi-broadcast", 
+          label: "Broadcast", 
+          path: "/report" 
+        },
+        { 
+          accessCode: "4", 
+          icon: "bi-chat-dots", 
+          label: "Kirim Lampiran", 
+          path: "/report" 
         }
       ]
     }
