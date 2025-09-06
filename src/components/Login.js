@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { extractUserTokenData } from "../helpers/token";
+import { normalizeMenuAccess } from "../helpers/normalizeMenuAccess";
+import { accessRoutes } from "../helpers/accessRoutes";
 import axios from 'axios';
 import Swal from "sweetalert2";
 
@@ -166,23 +168,30 @@ const LoginForm = ({ setIsLoggedIn, setUserTokenData }) => {
 
   const handleLogin = async (e) => {
     e.preventDefault();
-    
+
     const apiBaseUrl = process.env.REACT_APP_API_BASE_URL;
     try {
       const response = await axios.post(`${apiBaseUrl}/login`, { username, password });
       if (response.status === 200) {
         const token = response.data.token;
-        const tokenData = extractUserTokenData(token);
+        let tokenData = extractUserTokenData(token);
+        tokenData.menu_access = normalizeMenuAccess(tokenData.menu_access);
+
         setUserTokenData(tokenData);
         setIsLoggedIn(true);
         localStorage.setItem('token', token);
+
+        // 🔑 Cari akses terkecil
+        const firstAccess = Math.min(...tokenData.menu_access);
+        const redirectPath = accessRoutes[firstAccess] || "/profile";
+
         Swal.fire({
           icon: "success",
           title: "Login Berhasil!",
           showConfirmButton: false,
           timer: 1500
         }).then(() => {
-          navigate("/");
+          navigate(redirectPath);
         })
       }
     } catch (error) {
@@ -201,7 +210,7 @@ const LoginForm = ({ setIsLoggedIn, setUserTokenData }) => {
   return (
     <>
       <style>{pulseKeyframes}</style>
-      
+
       <div style={styles.container}>
         <div style={styles.loginWrapper}>
           {/* Brand Icon */}
@@ -222,21 +231,21 @@ const LoginForm = ({ setIsLoggedIn, setUserTokenData }) => {
           {/* Partner Logos - Fleksibel dan Responsif */}
           <div style={styles.logoSection}>
             {partnerLogos.map((logo, index) => (
-              <div 
-                key={index} 
+              <div
+                key={index}
                 style={{
                   ...styles.partnerLogoContainer,
                   ':hover': { transform: 'scale(1.05)' }
                 }}
               >
-                <a 
-                  href={logo.link} 
-                  target="_blank" 
+                <a
+                  href={logo.link}
+                  target="_blank"
                   rel="noopener noreferrer"
                 >
-                  <img 
-                    src={logo.src} 
-                    alt={logo.alt} 
+                  <img
+                    src={logo.src}
+                    alt={logo.alt}
                     style={{
                       ...styles.partnerLogo,
                       ':hover': {
@@ -265,7 +274,7 @@ const LoginForm = ({ setIsLoggedIn, setUserTokenData }) => {
           </div>
 
           <form onSubmit={handleLogin} style={{ width: '100%' }}>
-            <input 
+            <input
               type="text"
               placeholder="Username"
               style={styles.input}
@@ -274,7 +283,7 @@ const LoginForm = ({ setIsLoggedIn, setUserTokenData }) => {
               required
             />
             <div style={{ position: 'relative' }}>
-              <input 
+              <input
                 type={showPassword ? "text" : "password"}
                 placeholder="Password"
                 style={styles.input}
@@ -282,12 +291,12 @@ const LoginForm = ({ setIsLoggedIn, setUserTokenData }) => {
                 onChange={(e) => setPassword(e.target.value)}
                 required
               />
-              <button 
+              <button
                 type="button"
                 style={{
-                  position: 'absolute', 
-                  right: '15px', 
-                  top: '50%', 
+                  position: 'absolute',
+                  right: '15px',
+                  top: '50%',
                   transform: 'translateY(-50%)',
                   background: 'transparent',
                   border: 'none',
@@ -300,8 +309,8 @@ const LoginForm = ({ setIsLoggedIn, setUserTokenData }) => {
                 {showPassword ? '👁️' : '👁️‍🗨️'}
               </button>
             </div>
-            <button 
-              type="submit" 
+            <button
+              type="submit"
               style={styles.button}
               disabled={!username || !password}
             >
