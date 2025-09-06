@@ -107,22 +107,10 @@ const Sidebar = ({ onToggleSidebar, isOpen, userTokenData }) => {
       title: "Whatsapp Management",
       items: [
         { 
-          accessCode: "4", 
+          accessCode: "11", 
           icon: "bi-whatsapp", 
-          label: "QR Code & Config", 
-          path: "/whatsapp-config" 
-        },
-        { 
-          accessCode: "4", 
-          icon: "bi-broadcast", 
-          label: "Broadcast", 
-          path: "/report" 
-        },
-        { 
-          accessCode: "4", 
-          icon: "bi-chat-dots", 
-          label: "Kirim Lampiran", 
-          path: "/report" 
+          label: "Whatsapp", 
+          path: "/whatsapp" 
         }
       ]
     }

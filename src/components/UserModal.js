@@ -35,6 +35,7 @@ export const UserModal = ({
     ingredients_report: false,
     payment_type: false,
     member: false,
+    whatsapp: false,
   });
 
   const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
@@ -58,6 +59,7 @@ export const UserModal = ({
             ingredients_report: menuAccessArray.includes("7"),
             payment_type: menuAccessArray.includes("8"),
             member: menuAccessArray.includes("9"),
+            whatsapp: menuAccessArray.includes("11"),
           });
         } catch (error) {
           console.error("Error fetching user:", error);
@@ -75,6 +77,7 @@ export const UserModal = ({
         ingredients_report: false,
         payment_type: false,
         member: false,
+        whatsapp: false,
       });
     }
   }, [show, selectedUserId, apiBaseUrl, initialUserState]);
@@ -112,7 +115,8 @@ export const UserModal = ({
     if (menuAccess.ingredients_order) selectedMenuAccess.push("6");
     if (menuAccess.ingredients_report) selectedMenuAccess.push("7");
     if (menuAccess.payment_type) selectedMenuAccess.push("8");
-    if (menuAccess.member) selectedMenuAccess.push("10");
+    if (menuAccess.member) selectedMenuAccess.push("9");
+    if (menuAccess.whatsapp) selectedMenuAccess.push("11");
     user.menu_access = selectedMenuAccess.join(",");
 
     try {
@@ -346,6 +350,18 @@ export const UserModal = ({
                   />
                   <label class="form-check-label" for="discountCheckbox">
                     Membership
+                  </label>
+                </div>
+                <div class="form-check">
+                  <input
+                    type="checkbox"
+                    class="form-check-input"
+                    id="discountCheckbox"
+                    checked={menuAccess.whatsapp}
+                    onChange={() => handleCheckboxChange("whatsapp")}
+                  />
+                  <label class="form-check-label" for="discountCheckbox">
+                    Whatsapp Management
                   </label>
                 </div>
                 <div class="form-check">

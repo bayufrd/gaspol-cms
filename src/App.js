@@ -19,7 +19,7 @@ import IngredientOrderListOutlet from "./components/IngredientOrderListOutlet";
 import IngredientReport from "./components/IngredientReport";
 import PaymentType from "./components/PaymentType";
 import Members from "./components/Member";
-import WhatsappConfig from "./components/WhatsappConfig";
+import WhatsappPage from "./components/WhatsappPage";
 
 function App() {
   const [isSidebarOpen, setSidebarOpen] = useState(false);
@@ -172,11 +172,10 @@ function App() {
                   {userTokenData && (userTokenData.menu_access.includes("1") || userTokenData.menu_access.includes("4")) && (
 
                     <Route
-                      path="/whatsapp-config"
-                      element={<WhatsappConfig userTokenData={userTokenData} />}
+                      path="/whatsapp"
+                      element={<WhatsappPage userTokenData={userTokenData} />}
                     />
                   )}
-
 
                   <Route
                     path="/profile"
