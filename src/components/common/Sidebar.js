@@ -1,32 +1,26 @@
 // Sidebar.js
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
-import { accessRoutes } from "../../helpers/accessRoutes";
 
 const Sidebar = ({ onToggleSidebar, isOpen, userTokenData }) => {
   const location = useLocation();
 
-const hasAccess = (accessCode, path) => {
-  if (!userTokenData?.menu_access) return false;
-  if (!userTokenData.menu_access.includes(Number(accessCode))) return false;
+  const hasAccess = (accessCode) => {
+    if (!userTokenData?.menu_access) return false;
+    return userTokenData.menu_access.includes(Number(accessCode));
+  };
 
-  const routes = accessRoutes[accessCode];
-  if (!routes) return false;
-
-  return Array.isArray(routes) ? routes.includes(path) : routes === path;
-};
-
-    const menuSections = [
-      {
-        title: "Management",
-        items: [
-          { accessCode: 1, icon: "bi-people-fill", label: "Management Users", path: "/" },
-          { accessCode: 1, icon: "bi-building", label: "Management Outlet", path: "/outlet" },
-          { accessCode: 2, icon: "bi-cup-straw", label: "Management Menus", path: "/menu" },
-          { accessCode: 3, icon: "bi-tags-fill", label: "Management Discounts", path: "/discount" },
-          { accessCode: 9, icon: "bi-people-fill", label: "Management Membership", path: "/member" }
-        ]
-      },
+  const menuSections = [
+    {
+      title: "Management",
+      items: [
+        { accessCode: 1, icon: "bi-people-fill", label: "Management Users", path: "/" },
+        { accessCode: 0, icon: "bi-building", label: "Management Outlet", path: "/outlet" },
+        { accessCode: 2, icon: "bi-cup-straw", label: "Management Menus", path: "/menu" },
+        { accessCode: 3, icon: "bi-tags-fill", label: "Management Discounts", path: "/discount" },
+        { accessCode: 9, icon: "bi-people-fill", label: "Management Membership", path: "/member" }
+      ]
+    },
     {
       title: "Financial",
       items: [
@@ -57,7 +51,7 @@ const hasAccess = (accessCode, path) => {
   ];
 
   const renderMenuSection = (section) => {
-    const visibleItems = section.items.filter(item => hasAccess(item.accessCode, item.path));
+    const visibleItems = section.items.filter(item => hasAccess(item.accessCode));
     if (visibleItems.length === 0) return null;
 
     return (
