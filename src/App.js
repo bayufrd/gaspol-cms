@@ -101,7 +101,7 @@ function App() {
                   {userTokenData.menu_access.includes(1) && (
                     <Route path="/" element={<User />} />
                   )}
-                  {userTokenData.menu_access.includes(12) && (
+                  {userTokenData.menu_access.includes(0) && (
                     <Route path="/outlet" element={<Outlet />} />
                   )}
                   {userTokenData.menu_access.includes(2) && (
