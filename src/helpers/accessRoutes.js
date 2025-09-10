@@ -1,5 +1,5 @@
 export const accessRoutes = {
-    0: "/outlet",
+    12: "/outlet",
     1: "/",
     2: "/menu",
     3: "/discount",
