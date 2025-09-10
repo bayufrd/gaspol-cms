@@ -15,7 +15,7 @@ const Sidebar = ({ onToggleSidebar, isOpen, userTokenData }) => {
       title: "Management",
       items: [
         { accessCode: 1, icon: "bi-people-fill", label: "Management Users", path: "/" },
-        { accessCode: 12, icon: "bi-building", label: "Management Outlet", path: "/outlet" },
+        { accessCode: 1, icon: "bi-building", label: "Management Outlet", path: "/outlet" },
         { accessCode: 2, icon: "bi-cup-straw", label: "Management Menus", path: "/menu" },
         { accessCode: 3, icon: "bi-tags-fill", label: "Management Discounts", path: "/discount" },
         { accessCode: 9, icon: "bi-people-fill", label: "Management Membership", path: "/member" }
