@@ -1,6 +1,7 @@
 // Sidebar.js
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
+import { accessRoutes } from "../../helpers/accessRoutes";
 
 const Sidebar = ({ onToggleSidebar, isOpen, userTokenData }) => {
   const location = useLocation();
