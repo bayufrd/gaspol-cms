@@ -437,7 +437,7 @@ export const ReportDetailModal = ({ show, onClose, selectedTransactionId }) => {
           </div>
         </div>
       </div>
-      <div className={show && `modal-backdrop fade show`}></div>
+      <div className={show ? "modal-backdrop fade show" : undefined}></div>
     </>
   );
 };

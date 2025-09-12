@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from "react";
+import React, { useRef, useState, useEffect } from "react";
 import axios from "axios";
 import { useReactToPrint } from "react-to-print";
 import { ReportDetailModal } from "./ReportDetailModal";
 import Swal from "sweetalert2";
-import * as XLSX from 'xlsx'; // Mengimpor library xlsx
+import * as XLSX from 'xlsx'; 
 
 export const ReportPaymentModal = ({
   show,
@@ -30,6 +30,29 @@ export const ReportPaymentModal = ({
   const componentRef = React.useRef();
   const [loading, setLoading] = useState(false);
   const [progress, setProgress] = useState(0);
+  const [showShiftDetails, setShowShiftDetails] = useState(true);
+  const [showExpenditures, setShowExpenditures] = useState(false);
+  const [showPaymentReports, setShowPaymentReports] = useState(false);
+  const [showIncome, setShowIncome] = useState(false);
+  const [showTransactions, setShowTransactions] = useState(false);
+  const [showDetailIncome, setShowDetailIncome] = useState(false);
+  const [showRefunds, setShowRefunds] = useState(false);
+  const isFetchingRef = useRef(false);
+
+  useEffect(() => {
+    if (showDetailPaymentModal) {
+      document.body.classList.add("modal-open");
+      document.body.style.overflow = "hidden";
+      document.body.style.paddingRight = "0px";
+    } else {
+      document.body.classList.remove("modal-open");
+      document.body.style.removeProperty("overflow", "padding-right");
+    }
+
+    return () => {
+      document.body.classList.remove("modal-open");
+    };
+  }, [showDetailPaymentModal]);
 
   function toPascalCaseWithSpaces(text) {
     return text
@@ -49,63 +72,69 @@ export const ReportPaymentModal = ({
     });
   }
 
-
   useEffect(() => {
-    // Reset progress when opening the modal
-    if (show) {
-      setProgress(0);
-      setLoading(true);
-      const interval = setInterval(() => {
-        setProgress((oldProgress) => {
-          const newProgress = oldProgress + 10;
-          if (newProgress === 100) {
-            clearInterval(interval);
-            return 100; // Stop at 100%
-          }
-          return newProgress;
-        });
-      }, 150); // Adjust interval timing as desired
+    if (!show || !startDate || !endDate) return;
 
-      const fetchData = async () => {
-        try {
-          const response = await axios.get(`${apiBaseUrl}/payment-report`, {
-            params: {
-              outlet_id: userTokenData.outlet_id,
-              start_date: startDate,
-              end_date: endDate,
-              is_shift: shiftNumber,
-            },
-          });
+    // Jika sedang fetching, hentikan
+    if (isFetchingRef.current) return;
+    isFetchingRef.current = true;
 
-          const paymentReportData = response.data.data;
-          setPaymentReport(paymentReportData);
-          if (paymentReportData) {
-            setShiftDetails(paymentReportData.shift_details);
-            setExpenditures(paymentReportData.expenditures);
-          }
+    setProgress(0);
+    setLoading(true);
 
-          // Set progress to 100 when done
-          setProgress(100);
-        } catch (error) {
-          if (error.response.data.code === 404) {
-            Swal.fire({
-              icon: "error",
-              title: "Data Tidak ditemukan!",
-              text: error.response.data.message,
-            });
-          }
-          console.error("Error fetching payment report:", error);
-          onClose();
-        } finally {
-          // Stop loading
-          setLoading(false);
-          clearInterval(interval); // Clear interval if not done
+    const interval = setInterval(() => {
+      setProgress((oldProgress) => {
+        const newProgress = oldProgress + 10;
+        if (newProgress >= 100) {
+          clearInterval(interval);
+          return 100;
         }
-      };
+        return newProgress;
+      });
+    }, 150);
 
-      fetchData();
-    }
-  }, [show, apiBaseUrl, userTokenData, startDate, endDate, shiftNumber, onClose]);
+    const fetchData = async () => {
+      try {
+        const response = await axios.get(`${apiBaseUrl}/payment-report`, {
+          params: {
+            outlet_id: userTokenData.outlet_id,
+            start_date: startDate,
+            end_date: endDate,
+            is_shift: shiftNumber,
+          },
+        });
+
+        const paymentReportData = response.data.data;
+        setPaymentReport(paymentReportData);
+
+        if (paymentReportData) {
+          setShiftDetails(paymentReportData.shift_details);
+          setExpenditures(paymentReportData.expenditures);
+          setStartDateShift(paymentReportData.start_date);
+          setEndDateShift(paymentReportData.end_date);
+        }
+
+        setProgress(100);
+      } catch (error) {
+        if (error.response?.data?.code === 404) {
+          Swal.fire({
+            icon: "error",
+            title: "Data Tidak ditemukan!",
+            text: error.response.data.message,
+          });
+        }
+        console.error("Error fetching payment report:", error);
+        onClose();
+      } finally {
+        clearInterval(interval);
+        setLoading(false);
+        isFetchingRef.current = false; // reset guard
+      }
+    };
+
+    fetchData();
+  }, [show, startDate, endDate, shiftNumber]);
+
 
   const filePdfName =
     startDate === endDate
@@ -168,61 +197,61 @@ export const ReportPaymentModal = ({
 
   // const groupedRefunds = paymentReport.refund ? groupRefunds(paymentReport.refund[0]) : [];
 
-  useEffect(() => {
-    if (show && startDate && endDate) {
-      const fetchData = async () => {
-        try {
-          const response = await axios.get(`${apiBaseUrl}/payment-report`, {
-            params: {
-              outlet_id: userTokenData.outlet_id,
-              start_date: startDate,
-              end_date: endDate,
-              is_shift: shiftNumber,
-            },
-          });
-          const paymentReportData = response.data.data;
-          setPaymentReport(paymentReportData);
-          if (paymentReportData) {
-            setStartDateShift(paymentReportData.start_date);
-            setEndDateShift(paymentReportData.end_date);
-          }
-          if (paymentReportData.shift_details) {
-            setShiftDetails(paymentReportData.shift_details);
-          }
-          if (paymentReportData.expenditures) {
-            setExpenditures(paymentReportData.expenditures);
-          }
-        } catch (error) {
-          if (error.response.data.code === 404) {
-            Swal.fire({
-              icon: "error",
-              title: "Data Tidak ditemukan!",
-              text: error.response.data.message,
-            });
-          }
-          console.error("Error fetching payment report:", error);
-          onClose();
-        }
-      };
-      fetchData();
-    } else {
-      setPaymentReport(null);
-      setShiftDetails(null);
-      setExpenditures(null);
-      setWithOutDiscount(false);
-      setWithDiscountCart(false);
-      setWithDiscountPerItem(false);
-      setDiscountType(0);
-    }
-  }, [
-    show,
-    apiBaseUrl,
-    userTokenData,
-    startDate,
-    endDate,
-    shiftNumber,
-    onClose,
-  ]);
+  // useEffect(() => {
+  //   if (show && startDate && endDate) {
+  //     const fetchData = async () => {
+  //       try {
+  //         const response = await axios.get(`${apiBaseUrl}/payment-report`, {
+  //           params: {
+  //             outlet_id: userTokenData.outlet_id,
+  //             start_date: startDate,
+  //             end_date: endDate,
+  //             is_shift: shiftNumber,
+  //           },
+  //         });
+  //         const paymentReportData = response.data.data;
+  //         setPaymentReport(paymentReportData);
+  //         if (paymentReportData) {
+  //           setStartDateShift(paymentReportData.start_date);
+  //           setEndDateShift(paymentReportData.end_date);
+  //         }
+  //         if (paymentReportData.shift_details) {
+  //           setShiftDetails(paymentReportData.shift_details);
+  //         }
+  //         if (paymentReportData.expenditures) {
+  //           setExpenditures(paymentReportData.expenditures);
+  //         }
+  //       } catch (error) {
+  //         if (error.response.data.code === 404) {
+  //           Swal.fire({
+  //             icon: "error",
+  //             title: "Data Tidak ditemukan!",
+  //             text: error.response.data.message,
+  //           });
+  //         }
+  //         console.error("Error fetching payment report:", error);
+  //         onClose();
+  //       }
+  //     };
+  //     fetchData();
+  //   } else {
+  //     setPaymentReport(null);
+  //     setShiftDetails(null);
+  //     setExpenditures(null);
+  //     setWithOutDiscount(false);
+  //     setWithDiscountCart(false);
+  //     setWithDiscountPerItem(false);
+  //     setDiscountType(0);
+  //   }
+  // }, [
+  //   show,
+  //   apiBaseUrl,
+  //   userTokenData,
+  //   startDate,
+  //   endDate,
+  //   shiftNumber,
+  //   onClose,
+  // ]);
   const handleExportExcel = () => {
     if (!paymentReport) return;
 
@@ -479,10 +508,10 @@ export const ReportPaymentModal = ({
             }}
           >
             <div
-              class="modal-report modal-dialog modal-dialog-centered modal-dialog-scrollable"
+              className="modal-report modal-dialog modal-dialog-centered modal-dialog-scrollable"
               role="document"
             >
-              <div class="modal-content">
+              <div className="modal-content">
                 <div className="modal-header d-flex justify-content-between align-items-center">
                   <h4 className="modal-title" id="myModalLabel33">
                     "Laporan Kasir"
@@ -517,7 +546,7 @@ export const ReportPaymentModal = ({
                   </div>
                 </div>
                 <div>
-                  <div class="modal-body scrollable-content">
+                  <div className="modal-body scrollable-content">
                     <div ref={componentRef}>
                       <br></br>
                       <h4 style={{ textAlign: "center", marginBottom: "3vh" }}>
@@ -535,307 +564,325 @@ export const ReportPaymentModal = ({
                       {shiftDetails && (
                         <>
                           <h5
-                            style={{ textAlign: "center", marginBottom: "3vh" }}
+                            style={{ cursor: "pointer", textAlign: "center" }}
+                            onClick={() => setShowShiftDetails(!showShiftDetails)}
                           >
-                            Rincian Shift
+                            {showShiftDetails ? "▼" : "►"} Rincian Shift
                           </h5>
-                          <table className="table table-striped text-center">
-                            <thead>
-                              <th>Casher Name</th>
-                              <th>Actual Ending Cash</th>
-                              <th>Cash Difference</th>
-                              <th>Expected Ending Cash</th>
-                              <th>Total Discount</th>
-                              <th>Total Amount Shift</th>
-                              <th>Total Expense</th>
-                            </thead>
-                            <tbody>
-                              <td>{shiftDetails.casher_name || "-"}</td>
-                              <td>{formatRupiah(shiftDetails.actual_ending_cash) || "-"}</td>
-                              <td>{formatRupiah(shiftDetails.cash_difference) || "-"}</td>
-                              <td>{formatRupiah(shiftDetails.expected_ending_cash) || "-"}</td>
-                              <td>{formatRupiah(shiftDetails.total_discount) || "-"}</td>
-                              <td>{formatRupiah(shiftDetails.total_amount) || "-"}</td>
-                              <td>
-                                {expenditures && expenditures.totalExpense
-                                  ? formatRupiah(expenditures.totalExpense)
-                                  : "-"}
-                              </td>
-                            </tbody>
-                          </table>
+                          {showShiftDetails && (
+                            <table className="table table-striped text-center">
+                              <thead>
+                                <tr>
+                                  <th>Casher Name</th>
+                                  <th>Actual Ending Cash</th>
+                                  <th>Cash Difference</th>
+                                  <th>Expected Ending Cash</th>
+                                  <th>Total Discount</th>
+                                  <th>Total Amount Shift</th>
+                                  <th>Total Expense</th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                <tr>
+                                  <td>{shiftDetails.casher_name || "-"}</td>
+                                  <td>{formatRupiah(shiftDetails.actual_ending_cash) || "-"}</td>
+                                  <td>{formatRupiah(shiftDetails.cash_difference) || "-"}</td>
+                                  <td>{formatRupiah(shiftDetails.expected_ending_cash) || "-"}</td>
+                                  <td>{formatRupiah(shiftDetails.total_discount) || "-"}</td>
+                                  <td>{formatRupiah(shiftDetails.total_amount) || "-"}</td>
+                                  <td>{expenditures ? formatRupiah(expenditures.totalExpense) : "-"}</td>
+                                </tr>
+                              </tbody>
+                            </table>
+                          )}
                           {expenditures && (
                             <>
                               <br></br>
                               <hr></hr>
-                              <h5 style={{ textAlign: "center" }}>
-                                Rincian Expenditures
+                              <h5
+                                style={{ cursor: "pointer", textAlign: "center" }}
+                                onClick={() => setShowExpenditures(!showExpenditures)}
+                              >
+                                {showExpenditures ? "▼" : "►"} Rincian Expenditure / Pengeluaran
                               </h5>
-                              <table className="table table-striped">
-                                <thead>
-                                  <tr>
-                                    <th>Description</th>
-                                    <th>Nominal</th>
-                                  </tr>
-                                </thead>
-                                <tbody>
-                                  {expenditures.lists.map((expense, index) => (
-                                    <tr key={index}>
-                                      <td>{expense.description || "-"}</td>
-                                      <td>{formatRupiah(expense.nominal) || "-"}</td>
+                              {showExpenditures && (
+                                <table className="table table-striped">
+                                  <thead>
+                                    <tr>
+                                      <th>Description</th>
+                                      <th>Nominal</th>
                                     </tr>
-                                  ))}
-                                </tbody>
-                              </table>
+                                  </thead>
+                                  <tbody>
+                                    {expenditures.lists.map((expense, index) => (
+                                      <tr key={index}>
+                                        <td>{expense.description || "-"}</td>
+                                        <td>{formatRupiah(expense.nominal) || "-"}</td>
+                                      </tr>
+                                    ))}
+                                  </tbody>
+                                </table>)}
                             </>
                           )}
                           <br></br>
                           <hr></hr>
                         </>
                       )}
-                      <h5 style={{ textAlign: "center" }}>Rincian Laporan</h5>
-                      <table className="table table-striped">
-                        <thead>
-                          <tr>
-                            <th>Jenis Laporan</th>
-                            <th>Total Laporan</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {Object.entries(paymentReport.payment_reports).map(
-                            ([jenisLaporan, totalLaporan], index) => (
-                              <tr key={index}>
-                                <td>{toPascalCaseWithSpaces(jenisLaporan)}</td>
-                                <td>{formatRupiah(totalLaporan)}</td>
-                              </tr>
-                            )
-                          )}
-                        </tbody>
+                      <h5
+                        style={{ cursor: "pointer", textAlign: "center" }}
+                        onClick={() => setShowPaymentReports(!showPaymentReports)}
+                      >
+                        {showPaymentReports ? "▼" : "►"} Rincian Laporan
+                      </h5>
+                      {showPaymentReports && (
+                        <table className="table table-striped">
+                          <thead>
+                            <tr>
+                              <th>Jenis Laporan</th>
+                              <th>Total Laporan</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {Object.entries(paymentReport.payment_reports).map(
+                              ([jenisLaporan, totalLaporan], index) => (
+                                <tr key={index}>
+                                  <td>{toPascalCaseWithSpaces(jenisLaporan)}</td>
+                                  <td>{formatRupiah(totalLaporan)}</td>
+                                </tr>
+                              )
+                            )}
+                          </tbody>
 
-                      </table>
+                        </table>)}
+
+                      <br></br>
+                      <hr></hr>
+                      <h5
+                        style={{ cursor: "pointer", textAlign: "center" }}
+                        onClick={() => setShowDetailIncome(!showDetailIncome)}
+                      >
+                        {showDetailIncome ? "▼" : "►"} Rincian Pemasukan
+                      </h5>
+                      {showDetailIncome && (
+
+                        <div className="table-responsive">
+                          <table className="table table-striped text-center">
+                            <thead>
+                              <tr>
+                                <th>Menu Type</th>
+                                <th>Menu Name</th>
+                                <th>Varian</th>
+                                <th>Total Sold Quantity</th>
+                                <th>Total Amount</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {groupedCartDetails.map((item, index) => (
+                                <tr key={index}>
+                                  <td>{item.menu_type}</td>
+                                  <td>{item.menu_name}</td>
+                                  <td>{item.varian || "-"}</td>
+                                  <td>{item.total_quantity}</td>
+                                  <td>{formatRupiah(item.total_price)}</td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>)}
 
                       <br></br>
                       <hr></hr>
 
-                      <h4 style={{ textAlign: "center", marginBottom: "3vh" }}>
-                        Pemasukan
-                      </h4>
+                      <h5
+                        style={{ cursor: "pointer", textAlign: "center" }}
+                        onClick={() => setShowTransactions(!showTransactions)}
+                      >
+                        {showTransactions ? "▼" : "►"} Semua Transaksi
+                      </h5>
 
-                      <div className="table-responsive">
-                        <table className="table table-striped text-center">
+                      {showTransactions && (
+                        <div>
+                          <div className="d-flex justify-content-center gap-5">
+                            <div className="form-check">
+                              <div className="checkbox">
+                                <input
+                                  id="withoutDiscount"
+                                  type="checkbox"
+                                  className="form-check-input"
+                                  checked={withOutDiscount}
+                                  onChange={() => {
+                                    setWithOutDiscount(!withOutDiscount);
+                                    handleDiscountType(!withOutDiscount, withDiscountCart, withDiscountPerItem);
+                                  }}
+                                />
+                                <label htmlFor="withoutDiscount">Tanpa Diskon</label>
+                              </div>
+                            </div>
+                            <div className="form-check">
+                              <div className="checkbox">
+                                <input
+                                  id="discountCart"
+                                  type="checkbox"
+                                  className="form-check-input"
+                                  checked={withDiscountCart}
+                                  onChange={() => {
+                                    setWithDiscountCart(!withDiscountCart);
+                                    handleDiscountType(withOutDiscount, !withDiscountCart, withDiscountPerItem);
+                                  }}
+                                />
+                                <label htmlFor="discountCart">Diskon Keranjang</label>
+                              </div>
+                            </div>
+                            <div className="form-check">
+                              <div className="checkbox">
+                                <input
+                                  id="discountPerItem"
+                                  type="checkbox"
+                                  className="form-check-input"
+                                  checked={withDiscountPerItem}
+                                  onChange={() => {
+                                    setWithDiscountPerItem(!withDiscountPerItem);
+                                    handleDiscountType(withOutDiscount, withDiscountCart, !withDiscountPerItem);
+                                  }}
+                                />
+                                <label htmlFor="discountPerItem">Diskon Per-Item</label>
+                              </div>
+                            </div>
+                          </div>
+
+                          {paymentReport.transactions.length > 0 ? (
+                            <table className="table table-striped">
+                              <thead>
+                                <tr>
+                                  <th>Nomor Invoice</th>
+                                  <th>Tipe Pembayaran</th>
+                                  <th>Waktu Pembayaran</th>
+                                  <th>Kode Diskon</th>
+                                  <th>Tipe Diskon</th>
+                                  <th>Subtotal</th>
+                                  <th>Total</th>
+                                  <th>Total Refund</th>
+                                  <th>Terakhir Refund</th>
+                                  <th>Aksi</th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                {paymentReport.transactions
+                                  .filter(transaction => {
+                                    // Sederhanakan logika filter
+                                    switch (discountType) {
+                                      case 0: return true; // Semua transaksi
+                                      case 1: return transaction.discount_type === 0; // Tanpa diskon
+                                      case 2: return transaction.discount_type === 1; // Diskon Keranjang
+                                      case 3: return transaction.discount_type === 2; // Diskon Per-Item
+                                      case 4: return [0, 1].includes(transaction.discount_type); // Tanpa Diskon atau Diskon Keranjang
+                                      case 5: return [0, 2].includes(transaction.discount_type); // Tanpa Diskon atau Diskon Per-Item
+                                      case 6: return [1, 2].includes(transaction.discount_type); // Diskon Keranjang atau Diskon Per-Item
+                                      default: return false;
+                                    }
+                                  })
+                                  .map((transaction, index) => (
+                                    <tr key={index}>
+                                      <td>{transaction.invoice_number || "-"}</td>
+                                      <td>{transaction.payment_type || "-"}</td>
+                                      <td>{transaction.invoice_due_date || "-"}</td>
+                                      <td>{transaction.transaction_discount_code || "-"}</td>
+                                      <td>
+                                        {transaction.discount_type === 1
+                                          ? "Diskon Keranjang"
+                                          : transaction.discount_type === 2
+                                            ? "Diskon Per-Item"
+                                            : "-"}
+                                      </td>
+                                      <td>{formatRupiah(transaction.subtotal) || "-"}</td>
+                                      <td>{formatRupiah(transaction.total) || "-"}</td>
+                                      <td>{formatRupiah(transaction.total_refund) || "-"}</td>
+                                      <td>{transaction.refund_updated_at || "-"}</td>
+                                      <td>
+                                        <div className="action-buttons">
+                                          <div
+                                            className="buttons btn info btn-primary"
+                                            onClick={() => openReportPaymentDetail(transaction.transaction_id)}
+                                          >
+                                            <i className="bi bi-eye"></i>
+                                          </div>
+                                        </div>
+                                      </td>
+                                    </tr>
+                                  ))}
+                              </tbody>
+                            </table>
+                          ) : (
+                            <p className="text-center text-muted">Tidak ada transaksi</p>
+                          )}
+                        </div>
+                      )}
+
+                      <br></br>
+                      <hr></hr>
+
+                      <h5
+                        style={{ cursor: "pointer", textAlign: "center" }}
+                        onClick={() => setShowDetailIncome(!showDetailIncome)}
+                      >
+                        {showDetailIncome ? "▼" : "►"} Detail Pemasukan
+                      </h5>
+                      {showDetailIncome && (
+
+                        <table className="table table-striped">
                           <thead>
                             <tr>
                               <th>Menu Type</th>
                               <th>Menu Name</th>
                               <th>Varian</th>
-                              <th>Total Sold Quantity</th>
-                              <th>Total Amount</th>
+                              <th>Serving Type</th>
+                              <th>Note Item</th>
+                              <th>Quantity</th>
+                              <th>Menu Price</th>
+                              <th>Discount Code</th>
+                              <th>Discounts Value</th>
+                              <th>Discounts Type</th>
+                              <th>Discounted Price</th>
+                              <th>Total Price</th>
                             </tr>
                           </thead>
                           <tbody>
-                            {groupedCartDetails.map((item, index) => (
-                              <tr key={index}>
-                                <td>{item.menu_type}</td>
-                                <td>{item.menu_name}</td>
-                                <td>{item.varian || "-"}</td>
-                                <td>{item.total_quantity}</td>
-                                <td>{formatRupiah(item.total_price)}</td>
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
-                      </div>
-
-                      <br></br>
-                      <hr></hr>
-
-                      <h4 style={{ textAlign: "center", marginBottom: "3vh" }}>
-                        Semua Transaksi
-                      </h4>
-                      <div className="d-flex justify-content-center gap-5">
-                        <div class="form-check">
-                          <div class="checkbox">
-                            <input
-                              type="checkbox"
-                              class="form-check-input"
-                              checked={withOutDiscount}
-                              onChange={() => {
-                                setWithOutDiscount(!withOutDiscount);
-                                handleDiscountType(!withOutDiscount, withDiscountCart, withDiscountPerItem);
-                              }}
-                            />
-                            <label for="checkbox2">Tanpa Diskon </label>
-                          </div>
-                        </div>
-                        <div class="form-check">
-                          <div class="checkbox">
-                            <input
-                              type="checkbox"
-                              class="form-check-input"
-                              checked={withDiscountCart}
-                              onChange={() => {
-                                setWithDiscountCart(!withDiscountCart);
-                                handleDiscountType(withOutDiscount, !withDiscountCart, withDiscountPerItem);
-                              }}
-                            />
-                            <label for="checkbox2">Diskon Keranjang</label>
-                          </div>
-                        </div>
-                        <div class="form-check">
-                          <div class="checkbox">
-                            <input
-                              type="checkbox"
-                              class="form-check-input"
-                              checked={withDiscountPerItem}
-                              onChange={() => {
-                                setWithDiscountPerItem(!withDiscountPerItem);
-                                handleDiscountType(withOutDiscount, withDiscountCart, !withDiscountPerItem);
-                              }}
-                            />
-                            <label for="checkbox2">Diskon Per-Item</label>
-                          </div>
-                        </div>
-                      </div>
-                      <table className="table table-striped">
-                        <thead>
-                          <tr>
-                            <th>Invoice Number</th>
-                            <th>Payment Type</th>
-                            <th>Time to Make Payment</th>
-                            <th>Discount Code</th>
-                            <th>Discount Type</th>
-                            {/* <th>Discount Type</th>
-                            <th>Max Discount Value</th>
-                            <th>Discount Value</th> */}
-                            <th>Subtotal</th>
-                            <th>Total</th>
-                            <th>Total Refund</th>
-                            <th>Last Time For Refund</th>
-                            <th>Actions</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {paymentReport.transactions
-                            .filter(transaction => {
-                              if (discountType === 0) {
-                                return true;
-                              } else if (discountType === 1) {
-                                return transaction.discount_type === 0;
-                              } else if (discountType === 2) {
-                                return transaction.discount_type === 1;
-                              } else if (discountType === 3) {
-                                return transaction.discount_type === 2;
-                              } else if (discountType === 4) {
-                                return transaction.discount_type === 0 || transaction.discount_type === 1;
-                              } else if (discountType === 5) {
-                                return transaction.discount_type === 0 || transaction.discount_type === 2;
-                              } else if (discountType === 6) {
-                                return transaction.discount_type === 1 || transaction.discount_type === 2;
-                              } else {
-                                return false;
-                              }
-                            })
-                            .map(
-                              (transaction, index) => (
+                            {paymentReport.cart_details.map(
+                              (cartDetail, index) => (
                                 <tr key={index}>
-                                  <td>{transaction.invoice_number || "-"}</td>
-                                  <td>{transaction.payment_type || "-"}</td>
-                                  <td>{transaction.invoice_due_date || "-"}</td>
+                                  <td>{cartDetail.menu_type || "-"}</td>
+                                  <td>{cartDetail.menu_name || "-"}</td>
+                                  <td>{cartDetail.varian || "-"}</td>
+                                  <td>{cartDetail.serving_type_name || "-"}</td>
+                                  <td>{cartDetail.note_item || "-"}</td>
+                                  <td>{cartDetail.qty || "-"}</td>
+                                  <td>{formatRupiah(cartDetail.price) || "-"}</td>
+                                  <td>{cartDetail.discount_code || "-"}</td>
+                                  <td>{cartDetail.discounts_value || "-"}</td>
                                   <td>
-                                    {transaction.transaction_discount_code || "-"}
-                                  </td>
-                                  <td>
-                                    {transaction.discount_type === 1
-                                      ? "Discount Cart"
-                                      : transaction.discount_type === 2
-                                        ? "Discount Per-Item"
+                                    {cartDetail.discounts_is_percent === 0
+                                      ? "Potongan"
+                                      : cartDetail.discounts_is_percent === 1
+                                        ? "Persen"
                                         : "-"}
                                   </td>
-                                  {/* <td>
-                                  {transaction.discounts_is_percent === 0
-                                    ? "Potongan"
-                                    : transaction.discounts_is_percent === 1
-                                    ? "Persenan"
-                                    : "-"}
-                                </td>
-                                <td>{transaction.max_discount || "-"}</td>
-                                <td>{transaction.discounts_value || "-"}</td> */}
-                                  <td>{formatRupiah(transaction.subtotal) || "-"}</td>
-                                  <td>{formatRupiah(transaction.total) || "-"}</td>
-                                  <td>{formatRupiah(transaction.total_refund) || "-"}</td>
-                                  <td>{transaction.refund_updated_at || "-"}</td>
-                                  <td>
-                                    <div className="action-buttons">
-                                      <div
-                                        className="buttons btn info btn-primary"
-                                        onClick={() => openReportPaymentDetail(transaction.transaction_id)}
-                                      >
-                                        <i className="bi bi-eye"></i>
-                                      </div>
-                                    </div>
-                                  </td>
+                                  <td>{cartDetail.discounted_price || "-"}</td>
+                                  <td>{cartDetail.total_price || "-"}</td>
                                 </tr>
                               )
                             )}
-                        </tbody>
-                      </table>
-
+                          </tbody>
+                        </table>)}
                       <br></br>
                       <hr></hr>
-
-                      <h5 style={{ textAlign: "center", marginBottom: "3vh" }}>
-                        Detail Pemasukan
+                      <h5
+                        style={{ cursor: "pointer", textAlign: "center" }}
+                        onClick={() => setShowRefunds(!showRefunds)}
+                      >
+                        {showRefunds ? "▼" : "►"} Pengeluaran / Refunded
                       </h5>
-
-                      <table className="table table-striped">
-                        <thead>
-                          <tr>
-                            <th>Menu Type</th>
-                            <th>Menu Name</th>
-                            <th>Varian</th>
-                            <th>Serving Type</th>
-                            <th>Note Item</th>
-                            <th>Quantity</th>
-                            <th>Menu Price</th>
-                            <th>Discount Code</th>
-                            <th>Discounts Value</th>
-                            <th>Discounts Type</th>
-                            <th>Discounted Price</th>
-                            <th>Total Price</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {paymentReport.cart_details.map(
-                            (cartDetail, index) => (
-                              <tr key={index}>
-                                <td>{cartDetail.menu_type || "-"}</td>
-                                <td>{cartDetail.menu_name || "-"}</td>
-                                <td>{cartDetail.varian || "-"}</td>
-                                <td>{cartDetail.serving_type_name || "-"}</td>
-                                <td>{cartDetail.note_item || "-"}</td>
-                                <td>{cartDetail.qty || "-"}</td>
-                                <td>{formatRupiah(cartDetail.price) || "-"}</td>
-                                <td>{cartDetail.discount_code || "-"}</td>
-                                <td>{cartDetail.discounts_value || "-"}</td>
-                                <td>
-                                  {cartDetail.discounts_is_percent === 0
-                                    ? "Potongan"
-                                    : cartDetail.discounts_is_percent === 1
-                                      ? "Persen"
-                                      : "-"}
-                                </td>
-                                <td>{cartDetail.discounted_price || "-"}</td>
-                                <td>{cartDetail.total_price || "-"}</td>
-                              </tr>
-                            )
-                          )}
-                        </tbody>
-                      </table>
-
-                      <h4 style={{ textAlign: "center", marginBottom: "3vh" }}>
-                        Pengeluaran / Refunded
-                      </h4>
-                      {paymentReport.refund && paymentReport.refund[0] ? (
-                        <>
+                      {showRefunds && (
+                        paymentReport.refund && paymentReport.refund[0] ? (
                           <table className="table table-striped">
                             <thead>
                               <tr>
@@ -882,26 +929,27 @@ export const ReportPaymentModal = ({
                               ))}
                             </tbody>
                           </table>
-                        </>
-                      ) : (
-                        <h6 style={{ textAlign: "center" }}>Data Kosong</h6>
+                        ) : (
+                          <h6 style={{ textAlign: "center" }}>Data Kosong</h6>
+                        )
                       )}
                     </div>
                   </div>
-                  <div class="modal-footer">
+                  <div className="modal-footer">
                   </div>
                 </div>
               </div>
             </div>
           </div>
-          <div className={show && `modal-backdrop fade show`}></div>
+          <div className={show ? "modal-backdrop fade show" : undefined}></div>
           <ReportDetailModal
             show={showDetailPaymentModal}
             onClose={() => setShowDetailPaymentModal(false)}
             selectedTransactionId={selectedTransactionId}
           />
         </>
-      )}
+      )
+      }
     </>
   );
 };

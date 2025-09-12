@@ -146,33 +146,33 @@ const Member = ({ userTokenData }) => {
         </div>
         <section className="section">
           <div className="card">
-          <div className="card-header">
-  <div className="d-flex flex-column flex-md-row justify-content-between align-items-stretch gap-2">
-    <div className="flex-grow-1 mb-2 mb-md-0">
-      <input
-        type="text"
-        className="form-control"
-        placeholder="Search by name, phone or email"
-        value={searchTerm}
-        onChange={(e) => setSearchTerm(e.target.value)}
-      />
-    </div>
-    <div className="d-flex flex-column flex-md-row gap-2">
-      <button
-        className="btn btn-primary rounded-pill w-100 w-md-auto"
-        onClick={openSettingsModal}
-      >
-        <i className="bi bi-plus"></i> Edit Bonus Percent
-      </button>
-      <button
-        className="btn btn-primary rounded-pill w-100 w-md-auto"
-        onClick={() => openModal(null)}
-      >
-        <i className="bi bi-plus"></i> Tambah Data
-      </button>
-    </div>
-  </div>
-</div>
+            <div className="card-header">
+              <div className="d-flex flex-column flex-md-row justify-content-between align-items-stretch gap-2">
+                <div className="flex-grow-1 mb-2 mb-md-0">
+                  <input
+                    type="text"
+                    className="form-control"
+                    placeholder="Search by name, phone or email"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                  />
+                </div>
+                <div className="d-flex flex-column flex-md-row gap-2">
+                  <button
+                    className="btn btn-primary rounded-pill w-100 w-md-auto"
+                    onClick={openSettingsModal}
+                  >
+                    <i className="bi bi-plus"></i> Edit Bonus Percent
+                  </button>
+                  <button
+                    className="btn btn-primary rounded-pill w-100 w-md-auto"
+                    onClick={() => openModal(null)}
+                  >
+                    <i className="bi bi-plus"></i> Tambah Data
+                  </button>
+                </div>
+              </div>
+            </div>
             <div className="card-body">
               <table className="table table-striped" id="table1">
                 <thead>
@@ -192,14 +192,14 @@ const Member = ({ userTokenData }) => {
                       <td>{member.member_name}</td>
                       <td>{member.member_email}</td>
                       <td>
-                        {member.member_phone_number && (
+                        {/* {member.member_phone_number && (
                           <button
                             onClick={() => handleWhatsAppClick(member.member_id, member.member_phone_number)}
                             className="btn btn-success btn-sm"
                           >
                             <i className="bi bi-whatsapp"></i> Chat
                           </button>
-                        )}
+                        )} */}
                         {member.member_phone_number}
                       </td>
                       <td>{member.member_points}</td>

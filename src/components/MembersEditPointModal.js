@@ -161,7 +161,7 @@ const MembersEditPointModal = ({ show, onClose, selectedMemberId, userTokenData,
           </div>
           <div className="modal-body">
             <div className="mb-3">
-              <label htmlFor="editorName" className="form-label">Edit By (Name)</label>
+              <label htmlFor="editorName" className="form-label">Di Edit Oleh : </label>
               <input
                 type="text"
                 className={`form-control ${alertMessage ? 'is-invalid' : ''}`} // Add Bootstrap invalid class if there's an error

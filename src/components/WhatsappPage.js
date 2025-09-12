@@ -1,12 +1,13 @@
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useCallback, useEffect } from "react";
 import axios from "axios";
 import Swal from "sweetalert2";
 
 // const apiBaseUrl = 'http://localhost:8090';
 const apiBaseUrl = process.env.REACT_APP_API_WHATSAPP_URL;
+const apiUrlBaseBackend = process.env.REACT_APP_API_BASE_URL;
 
-const WhatsappPage = () => {
+const WhatsappPage = ({ userTokenData }) => {
   const [activeTab, setActiveTab] = useState('config');
   const [qrCode, setQrCode] = useState('');
   const [connectionStatus, setConnectionStatus] = useState({ connected: false, status: 'Menunggu status...', qrAvailable: false });
@@ -16,6 +17,42 @@ const WhatsappPage = () => {
   const [pesan, setPesan] = useState('');
   const [isAttachment, setIsAttachment] = useState(false);
   const [lampiran, setLampiran] = useState(null);
+
+  // --- State untuk Members ---
+  const [members, setMembers] = useState([]);
+  const [filteredMembers, setFilteredMembers] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [showModal, setShowModal] = useState(false);
+
+  const getMembers = useCallback(async () => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const response = await axios.get(`${apiUrlBaseBackend}/membership`, {
+        params: {
+          outlet_id: userTokenData.outlet_id,
+        },
+      });
+
+      console.log("Members Response:", response.data);
+      setMembers(response.data.data || []);
+      setFilteredMembers(response.data.data || []);
+    } catch (error) {
+      console.error("Error fetching members:", error);
+      setError(error.message || "Failed to fetch members");
+      setMembers([]);
+      setFilteredMembers([]);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [apiUrlBaseBackend, userTokenData]);
+
+  useEffect(() => {
+    if (showModal) {
+      getMembers();
+    }
+  }, [showModal, getMembers]);
 
   // Styles
   const styles = {
@@ -246,8 +283,8 @@ const WhatsappPage = () => {
         </div>
       </div>
       <div style={styles.tab}>
-      
-        <div onClick={() => {setActiveTab('config'); fetchQrCode();}} style={activeTab === 'config' ? styles.activeTab : {}}> 🛠️ Konfigurasi</div>
+
+        <div onClick={() => { setActiveTab('config'); fetchQrCode(); }} style={activeTab === 'config' ? styles.activeTab : {}}> 🛠️ Konfigurasi</div>
         <div onClick={() => setActiveTab('message')} style={activeTab === 'message' ? styles.activeTab : {}}> 📩 Kirim Pesan</div>
         <div onClick={() => setActiveTab('config')} style={activeTab === 'template-pos' ? styles.activeTab : {}}> 🔐 Template POS</div>
         <div onClick={() => setActiveTab('config')} style={activeTab === 'broadcat' ? styles.activeTab : {}}> 🔐 Broadcast Pesan</div>
@@ -279,13 +316,37 @@ const WhatsappPage = () => {
       {activeTab === 'message' && (
         <div style={styles.card}>
           <h2>Kirim Pesan WhatsApp</h2>
-          <input
-            type="text"
-            placeholder="Nomor Telepon"
-            value={nomor}
-            onChange={(e) => setNomor(e.target.value)}
-            style={{ width: '100%', padding: '12px', margin: '8px 0', border: '1px solid #ccc', borderRadius: '4px' }}
-          />
+          <div style={{ display: "flex", alignItems: "center", margin: "8px 0" }}>
+            <input
+              type="text"
+              placeholder="Nomor Telepon"
+              value={nomor}
+              onChange={(e) => setNomor(e.target.value)}
+              style={{
+                flex: 1,
+                padding: "12px",
+                border: "1px solid #ccc",
+                borderRadius: "4px 0 0 4px",
+                outline: "none",
+              }}
+            />
+            <button
+              onClick={() => setShowModal(true)}
+              style={{
+                padding: "0 16px",
+                background: "#007bff",
+                color: "#fff",
+                border: "none",
+                borderRadius: "0 4px 4px 0",
+                cursor: "pointer",
+                height: "46px",
+              }}
+              title="Pilih dari Member"
+            >
+              📇
+            </button>
+          </div>
+
           <textarea
             placeholder="Pesan Anda"
             value={pesan}
@@ -308,6 +369,88 @@ const WhatsappPage = () => {
               accept="image/*" />
           )}
           <button style={styles.button} onClick={handleSendMessage}>Kirim Pesan</button>
+        </div>
+      )}
+      {/* Modal pilih member */}
+      {showModal && (
+        <div
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            width: "100%",
+            height: "100%",
+            background: "rgba(0,0,0,0.6)",
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            zIndex: 1000,
+          }}
+        >
+          <div
+            style={{
+              background: "#fff",
+              padding: "5px",
+              borderRadius: "8px",
+              width: "90%",
+              maxWidth: "600px",
+              maxHeight: "80vh",
+              overflowY: "auto",
+              boxSizing: "border-box",
+            }}
+          >
+            <h3 textAlign="center">Pilih Member</h3>
+            {isLoading && <p>Loading...</p>}
+            {error && <p style={{ color: "red" }}>{error}</p>}
+            {!isLoading && filteredMembers.length === 0 && <p>Tidak ada member</p>}
+
+            <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "14px", wordBreak: "break-word" }}>
+              <thead>
+                <tr>
+                  <th style={{ borderBottom: "1px solid #ccc", textAlign: "left", padding: "8px" }}>Nama</th>
+                  <th style={{ borderBottom: "1px solid #ccc", textAlign: "left", padding: "8px" }}>Email</th>
+                  <th style={{ borderBottom: "1px solid #ccc", textAlign: "left", padding: "8px" }}>Phone</th>
+                  <th style={{ borderBottom: "1px solid #ccc", textAlign: "center", padding: "8px" }}>Aksi</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredMembers.map((m, idx) => (
+                  <tr key={idx}>
+                    <td style={{ padding: "8px" }}>{m.member_name || "-"}</td>
+                    <td style={{ padding: "8px" }}>{m.member_email || "-"}</td>
+                    <td style={{ padding: "8px" }}>{m.member_phone_number || "-"}</td>
+                    <td style={{ textAlign: "center" }}>
+                      <button
+                        style={{
+                          background: "#007bff",
+                          color: "#fff",
+                          border: "none",
+                          padding: "6px 10px",
+                          borderRadius: "4px",
+                          cursor: "pointer",
+                        }}
+                        onClick={() => {
+                          setNomor(m.member_phone_number || "");
+                          setShowModal(false);
+                        }}
+                      >
+                        ✅
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+
+            <div style={{ marginTop: "16px", textAlign: "right" }}>
+              <button
+                style={{ background: "#ccc", padding: "8px 12px", borderRadius: "4px", border: "none" }}
+                onClick={() => setShowModal(false)}
+              >
+                Tutup
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>
