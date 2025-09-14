@@ -192,14 +192,14 @@ const Member = ({ userTokenData }) => {
                       <td>{member.member_name}</td>
                       <td>{member.member_email}</td>
                       <td>
-                        {/* {member.member_phone_number && (
+                        {member.member_phone_number && (
                           <button
                             onClick={() => handleWhatsAppClick(member.member_id, member.member_phone_number)}
                             className="btn btn-success btn-sm"
                           >
                             <i className="bi bi-whatsapp"></i> Chat
                           </button>
-                        )} */}
+                        )}
                         {member.member_phone_number}
                       </td>
                       <td>{member.member_points}</td>
