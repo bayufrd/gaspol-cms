@@ -18,7 +18,8 @@ const Sidebar = ({ onToggleSidebar, isOpen, userTokenData }) => {
         { accessCode: 0, icon: "bi-building", label: "Management Outlet", path: "/outlet" },
         { accessCode: 2, icon: "bi-cup-straw", label: "Management Menus", path: "/menu" },
         { accessCode: 3, icon: "bi-tags-fill", label: "Management Discounts", path: "/discount" },
-        { accessCode: 9, icon: "bi-people-fill", label: "Management Membership", path: "/member" }
+        { accessCode: 9, icon: "bi-people-fill", label: "Management Membership", path: "/member" },
+        { accessCode: 12, icon: "bi-cash-stack", label: "Management Tax", path: "/tax" },
       ]
     },
     {
