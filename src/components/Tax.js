@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { Line } from "react-chartjs-2";
@@ -22,38 +23,41 @@ ChartJS.register(
     Legend
 );
 
-const Tax = ({ fullscreenMode = false }) => {
-    const [taxData, setTaxData] = useState([]);
+const Tax = ({ fullscreenMode = false, userTokenData }) => {
+    const [taxData, setTaxData] = useState(null);
+    const outletId = userTokenData?.outlet_id;
+    const apiBaseUrl = process.env.REACT_APP_API_BASE_URL;
 
     useEffect(() => {
-        const fetchDummyData = async () => {
+        if (!outletId) return;
+        const fetchTaxData = async () => {
             try {
-                const response = await axios.get("/dataDummy/taxData.json");
-                setTaxData(response.data);
+                const response = await axios.get(`${apiBaseUrl}/tax/${outletId}`);
+                setTaxData(response.data.data);
             } catch (error) {
                 console.error("Gagal mengambil data pajak:", error);
             }
         };
-        fetchDummyData();
-    }, []);
+        fetchTaxData();
+    }, [outletId, apiBaseUrl]);
 
-    const totalNominal = taxData.reduce((a, b) => a + (b.pajak_nominal || 0), 0);
-    const totalDonasi = taxData.reduce((a, b) => a + (b.pajak_donasi || 0), 0);
+    if (!taxData) {
+        return <div>Loading...</div>;
+    }
 
-    // Group total per hari
-    const dailyTotals = taxData.reduce((acc, curr) => {
-        const date = new Date(curr.created_at).toLocaleDateString("id-ID");
-        if (!acc[date]) acc[date] = 0;
-        acc[date] += curr.pajak_nominal || 0;
-        return acc;
-    }, {});
+    // Data dari API
+    const totalNominal = taxData.total_nominal || 0;
+    const totalDonasi = taxData.total_donasi || 0;
+    const dailyChart = taxData.daily_chart || [];
+    const latestTaxes = taxData.latestTaxes || [];
 
+    // Untuk grafik
     const lineChartData = {
-        labels: Object.keys(dailyTotals),
+        labels: dailyChart.map((item) => item.date),
         datasets: [
             {
                 label: "Total Pajak per Hari (IDR)",
-                data: Object.values(dailyTotals),
+                data: dailyChart.map((item) => item.total),
                 borderColor: "rgba(54, 162, 235, 1)",
                 backgroundColor: "rgba(54, 162, 235, 0.15)",
                 fill: true,
@@ -63,8 +67,6 @@ const Tax = ({ fullscreenMode = false }) => {
             },
         ],
     };
-
-    const latestTaxes = taxData.slice(-5).reverse();
 
     // 🔹 FULLSCREEN MODE
     if (fullscreenMode) {
@@ -195,7 +197,8 @@ const Tax = ({ fullscreenMode = false }) => {
                                 <tr>
                                     <th>No</th>
                                     <th>Nama Customer</th>
-                                    <th>Nominal (IDR)</th>
+                                    <th>Transaction Ref</th>
+                                    <th>Nominal Tax (IDR)</th>
                                     <th>Donasi (IDR)</th>
                                     <th>Tipe Pembayaran</th>
                                     <th>Tanggal</th>
@@ -206,6 +209,7 @@ const Tax = ({ fullscreenMode = false }) => {
                                     <tr key={t.id}>
                                         <td>{i + 1}</td>
                                         <td>{t.customer_name}</td>
+                                        <td>{t.transaction_ref_tax}</td>
                                         <td>{t.pajak_nominal.toLocaleString("id-ID")}</td>
                                         <td>{t.pajak_donasi.toLocaleString("id-ID")}</td>
                                         <td>{t.pajak_payment_type}</td>
