@@ -1,6 +1,6 @@
 // App.js
 import React, { useEffect, useState } from "react";
-import { BrowserRouter as Router, Route, Routes, useLocation } from "react-router-dom";
+import { BrowserRouter as Router, Route, Routes, useLocation, Navigate } from "react-router-dom";
 import { isTokenValid, extractUserTokenData } from "./helpers/token";
 import { normalizeMenuAccess } from "./helpers/normalizeMenuAccess";
 import Footer from "./components/common/Footer";
@@ -28,10 +28,11 @@ import Tax from "./components/Tax";
 
 function Layout({ children, userTokenData, toggleSidebar, isSidebarOpen, setIsLoggedIn }) {
   const location = useLocation();
-  const isFullscreen = location.pathname === "/tax-fullscreen"; // detect fullscreen
+  // detect fullscreen path both with and without param: /tax-fullscreen or /tax-fullscreen/:id
+  const isFullscreen = location.pathname.startsWith("/tax-fullscreen");
 
   if (isFullscreen) {
-    // Tidak render layout apapun, langsung tampilkan child
+    // Do not render layout, show child in fullscreen
     return <>{children}</>;
   }
 
@@ -119,11 +120,12 @@ function App() {
               )}
               {userTokenData.menu_access.includes(12) && (
                 <>
+                  {/* /tax is management view (requires login) */}
                   <Route path="/tax" element={<Tax userTokenData={userTokenData} />} />
-                  <Route
-                    path="/tax-fullscreen"
-                    element={<Tax userTokenData={userTokenData} fullscreenMode={true} />}
-                  />
+                  {/* Authenticated fullscreen without id (will use token outlet) */}
+                  <Route path="/tax-fullscreen" element={<Tax userTokenData={userTokenData} fullscreenMode={true} />} />
+                  {/* Public fullscreen with id param - accessible without login */}
+                  <Route path="/tax-fullscreen/:id" element={<Tax fullscreenMode={true} />} />
                 </>
               )}
 
@@ -176,6 +178,10 @@ function App() {
                 <Login setIsLoggedIn={setIsLoggedIn} setUserTokenData={setUserTokenData} />
               }
             />
+            {/* Public fullscreen by id - allow access without login */}
+            <Route path="/tax-fullscreen/:id" element={<Tax fullscreenMode={true} />} />
+            {/* Redirect any other unauthenticated route to login */}
+            <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         )}
       </Router>
