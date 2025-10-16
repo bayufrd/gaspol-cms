@@ -25,6 +25,7 @@ import PaymentType from "./components/PaymentType";
 import Members from "./components/Member";
 import WhatsappPage from "./components/WhatsappPage";
 import Tax from "./components/Tax";
+import TaxFullscreen from "./components/TaxFullscreen";
 
 function Layout({ children, userTokenData, toggleSidebar, isSidebarOpen, setIsLoggedIn }) {
   const location = useLocation();
@@ -106,6 +107,8 @@ function App() {
             setIsLoggedIn={setIsLoggedIn}
           >
             <Routes>
+                {/* Public fullscreen with id param - accessible for all logged-in users as well */}
+                <Route path="/tax-fullscreen/:id" element={<TaxFullscreen />} />
               {/* Management */}
               {userTokenData.menu_access.includes(1) && (
                 <Route path="/" element={<User />} />
@@ -127,9 +130,9 @@ function App() {
                   {/* /tax is management view (requires login) */}
                   <Route path="/tax" element={<Tax userTokenData={userTokenData} />} />
                   {/* Authenticated fullscreen without id (will use token outlet) */}
-                  <Route path="/tax-fullscreen" element={<Tax userTokenData={userTokenData} fullscreenMode={true} />} />
+                  <Route path="/tax-fullscreen" element={<TaxFullscreen userTokenData={userTokenData} />} />
                   {/* Public fullscreen with id param - accessible without login */}
-                  <Route path="/tax-fullscreen/:id" element={<Tax fullscreenMode={true} />} />
+                  <Route path="/tax-fullscreen/:id" element={<TaxFullscreen />} />
                 </>
               )}
 
@@ -183,7 +186,7 @@ function App() {
               }
             />
             {/* Public fullscreen by id - allow access without login */}
-            <Route path="/tax-fullscreen/:id" element={<Tax fullscreenMode={true} />} />
+            <Route path="/tax-fullscreen/:id" element={<TaxFullscreen />} />
             {/* Redirect any other unauthenticated route to login */}
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
