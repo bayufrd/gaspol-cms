@@ -1,70 +1,119 @@
-# Getting Started with Create React App
+# Gaspoll CMS (React) 🚀
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+![React](https://img.shields.io/badge/React-18.2.0-61DAFB?logo=react&logoColor=white)
+![Chart.js](https://img.shields.io/badge/Chart.js-4.x-F8CE00?logo=chartdotjs&logoColor=black)
+![Axios](https://img.shields.io/badge/Axios-1.x-5A29E4?logo=axios&logoColor=white)
+![SweetAlert2](https://img.shields.io/badge/SweetAlert2-11.x-FF6B6B)
 
-## Available Scripts
+[![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
-In the project directory, you can run:
+A modern React-based Content Management System (CMS) for Gaspoll. This repository contains the admin dashboard UI with management pages (Menu, Outlet, Tax, Reports, Members, etc.) and a special public fullscreen view for donation transparency.
 
-### `npm start`
+✨ Built to be modular and extensible — split components for management vs public presentation (e.g. `Tax` management and `TaxFullscreen` public view).
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+---
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+## Highlights 🌟
 
-### `npm test`
+- Clean React (CRA) scaffold with React Router v6 routing
+- Charting with Chart.js via `react-chartjs-2`
+- File uploads via FilePond
+- Auth via JWT token stored in localStorage
+- Public fullscreen route for donation transparency: `/tax-fullscreen/:id`
+- Management pages protected by token/menu access
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+---
 
-### `npm run build`
+## Quick Tech Stack 🧰
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+- React 18
+- react-router-dom v6
+- axios
+- chart.js + react-chartjs-2
+- sweetalert2
+- filepond + plugins
+- jwt-decode
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+---
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+## Getting Started (dev) 🛠️
 
-### `npm run eject`
+Clone repo and install dependencies:
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+```bash
+git clone <your-repo-url>
+cd gaspol-cms
+npm install
+```
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+Run dev server:
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+```bash
+npm start
+```
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+Build for production:
 
-## Learn More
+```bash
+npm run build
+npm run serve
+```
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+---
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+## Useful Scripts
 
-### Code Splitting
+- `npm start` — start dev server
+- `npm run build` — build production bundle
+- `npm run serve` — serve built bundle (requires `serve` package)
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+---
 
-### Analyzing the Bundle Size
+## Routing & Auth Notes 🔐
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+- The app reads JWT token from `localStorage` and validates expiration using `src/helpers/token.js`.
+- Management routes (e.g. `/tax`, `/menu`, `/report`) are only available when authenticated and the user's token `menu_access` includes the required ID.
+- Public route:
+	- `/tax-fullscreen/:id` — public donation transparency page. Can be accessed without login and will fetch data from `/tax/:id`.
+	- `/tax-fullscreen` — authenticated fullscreen using outlet id from token.
 
-### Making a Progressive Web App
+Layout hides header/sidebar for fullscreen routes (`/tax-fullscreen*`) to provide a clean public presentation.
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+---
 
-### Advanced Configuration
+## Components structure (important)
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
+- `src/components/Tax.js` — Management view for configuring tax/donation report and preview.
+- `src/components/TaxFullscreen.js` — Fullscreen/public view (logo, title, charts, latest donations, kas masuk table).
+- `src/components/common/` — Header, Footer, Sidebar, modals, etc.
 
-### Deployment
+---
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
+## API expectations 🧾
 
-### `npm run build` fails to minify
+The frontend expects an API base defined in `REACT_APP_API_BASE_URL`.
+For tax/fullscreen endpoints it calls:
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+- `GET ${API_BASE_URL}/tax/:outletId` — returns an object with keys like `total_nominal`, `total_donasi`, `daily_chart`, `latestTaxes`, and optionally `kas_masuk`.
+
+If your backend uses slightly different keys (e.g. `kas` instead of `kas_masuk`) the frontend contains fallbacks to support both.
+
+---
+
+## Tips & Troubleshooting ⚠️
+
+- Static assets in `public/index.html` are referenced using `%PUBLIC_URL%/assets/...` to support client-side routing on nested routes.
+- If you see a blank page on nested routes, ensure the dev server catches all routes (CRA dev server does this by default).
+- To test fullscreen as a guest: open `http://localhost:3000/tax-fullscreen/3`.
+
+---
+
+## Contribution & Next Steps 🤝
+
+- Add tests (React Testing Library) for pages and route guards
+- Add i18n support if needed
+- Add configuration UI in `Tax.js` so admins can choose which blocks appear in fullscreen
+
+---
+
+Thanks for using Gaspoll CMS! If you want, I can also add a quick CONTRIBUTING.md, CODE_OF_CONDUCT, or a small demo GIF for the README to make it more attractive. 😄
