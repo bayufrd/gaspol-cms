@@ -63,6 +63,9 @@ function App() {
   useEffect(() => {
     const token = localStorage.getItem("token");
     const isValidedToken = isTokenValid(token);
+    // if current location is public fullscreen, avoid showing expired-token alert/redirect
+    const currentPath = window.location.pathname || "";
+    const isPublicFullscreenPath = currentPath.startsWith("/tax-fullscreen");
 
     if (isValidedToken.valid) {
       setIsLoggedIn(true);
@@ -73,7 +76,8 @@ function App() {
       }
     } else {
       setUserTokenData(null);
-      if (isValidedToken.message) {
+      // Only show session-expired alert & redirect when NOT accessing public fullscreen
+      if (isValidedToken.message && !isPublicFullscreenPath) {
         Swal.fire({
           icon: "info",
           title: isValidedToken.message,
