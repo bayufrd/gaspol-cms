@@ -2,7 +2,6 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { Line } from "react-chartjs-2";
 import { useParams } from "react-router-dom";
-import Footer from "./common/Footer";
 
 const TaxFullscreen = ({ userTokenData, preview = false }) => {
     const params = useParams();
@@ -10,6 +9,70 @@ const TaxFullscreen = ({ userTokenData, preview = false }) => {
     const tokenOutletId = userTokenData?.outlet_id;
     const paramOutletId = params?.id || params?.outletId || null;
     const apiBaseUrl = process.env.REACT_APP_API_BASE_URL;
+
+    //Styling
+    const styles = {
+        footer: {
+            backgroundColor: '#f8f9fa',
+            padding: '20px 0',
+            borderTop: '1px solid #e9ecef',
+            fontFamily: "'Inter', 'Roboto', sans-serif",
+        },
+        container: {
+            maxWidth: '1200px',
+            margin: '0 auto',
+            padding: '0 15px',
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            flexDirection: 'column',
+            textAlign: 'center',
+        },
+        leftSection: {
+            display: 'flex',
+            alignItems: 'center',
+            gap: '20px',
+        },
+        companyLink: {
+            display: 'flex',
+            alignItems: 'center',
+            textDecoration: 'none',
+            color: '#333',
+            fontWeight: '600',
+            transition: 'color 0.3s ease',
+        },
+        logo: {
+            marginRight: '10px',
+            width: '40px',
+            height: '40px',
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+        },
+        logoImage: {
+            maxWidth: '50%',
+            maxHeight: '50%',
+            objectFit: 'contain',
+        },
+        companyText: {
+            fontSize: '14px',
+            margin: 0,
+            marginLeft: '10px',
+        },
+        downloadLink: {
+            display: 'flex',
+            alignItems: 'center',
+            gap: '6px',
+            textDecoration: 'none',
+            color: '#2575fc',
+            fontWeight: '500',
+        },
+        icon: {
+            fontSize: '18px',
+        },
+    };
+
+
 
     // For fullscreen: prefer param if provided (public link), otherwise use token outlet id
     const outletId = paramOutletId || tokenOutletId;
@@ -40,6 +103,9 @@ const TaxFullscreen = ({ userTokenData, preview = false }) => {
     const totalDonasi = taxData.total_donasi || 0;
     const dailyChart = taxData.daily_chart || [];
     const latestTaxes = taxData.latestTaxes || [];
+    // Kas masuk data (some API versions may name this differently)
+    const kasMasuk = taxData.kas_masuk || taxData.kas || [];
+    const PenyaluranDonasi = taxData.PenyaluranDonasi || taxData.DonasiSalur || [];
 
     const lineChartData = {
         labels: dailyChart.map((item) => item.date),
@@ -47,6 +113,22 @@ const TaxFullscreen = ({ userTokenData, preview = false }) => {
             {
                 label: "Total Pajak per Hari (IDR)",
                 data: dailyChart.map((item) => item.total),
+                borderColor: "rgba(54, 162, 235, 1)",
+                backgroundColor: "rgba(54, 162, 235, 0.15)",
+                fill: true,
+                tension: 0.3,
+                pointRadius: 5,
+                pointHoverRadius: 8,
+            },
+        ],
+    };
+
+    const lineChartDataDonasi = {
+        labels: dailyChart.map((item) => item.date),
+        datasets: [
+            {
+                label: "Total Donasi per Hari (IDR)",
+                data: dailyChart.map((item) => item.total_donasi),
                 borderColor: "rgba(54, 162, 235, 1)",
                 backgroundColor: "rgba(54, 162, 235, 0.15)",
                 fill: true,
@@ -126,9 +208,9 @@ const TaxFullscreen = ({ userTokenData, preview = false }) => {
 
                     <div className="col-12 mb-1">
                         <div className="card shadow-sm border-0">
-                            <div className="card-header fw-bold">Grafik Total Pajak per Hari</div>
+                            <div className="card-header fw-bold">Grafik Total Donasi per Hari</div>
                             <div className="card-body" style={{ height: "250px" }}>
-                                <Line data={lineChartData} options={{ maintainAspectRatio: false }} />
+                                <Line data={lineChartDataDonasi} options={{ maintainAspectRatio: false }} />
                             </div>
                         </div>
                     </div>
@@ -168,7 +250,82 @@ const TaxFullscreen = ({ userTokenData, preview = false }) => {
                             </div>
                         </div>
                     </div>
-
+                    {/* Kas Masuk */}
+                    <div className="col-12 mb-1">
+                        <div className="card shadow-sm border-0">
+                            <div className="card-header fw-bold">Daftar Kas Masuk</div>
+                            <div className="card-body">
+                                {kasMasuk.length === 0 ? (
+                                    <div className="text-muted">Belum ada data kas masuk.</div>
+                                ) : (
+                                    <table className="table table-striped">
+                                        <thead>
+                                            <tr>
+                                                <th>No</th>
+                                                <th>Keterangan</th>
+                                                <th>Nominal (IDR)</th>
+                                                <th>Sumber</th>
+                                                <th>Tanggal</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {kasMasuk.map((k, i) => (
+                                                <tr key={k.id || i}>
+                                                    <td>{i + 1}</td>
+                                                    <td>{k.keterangan || k.description || k.note || "-"}</td>
+                                                    <td>{(k.nominal || k.amount || 0).toLocaleString && (k.nominal || k.amount || 0).toLocaleString("id-ID")}</td>
+                                                    <td>{k.source || k.sumber || "-"}</td>
+                                                    <td>{k.created_at ? new Date(k.created_at).toLocaleString("id-ID") : (k.date ? new Date(k.date).toLocaleString("id-ID") : "-")}</td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                    {/* Penyaluran Donasi */}
+                    <div className="col-12 mb-1">
+                        <div className="card shadow-sm border-0">
+                            <div className="card-header fw-bold">Daftar Penyaluran Donasi</div>
+                            <div className="card-body">
+                                {kasMasuk.length === 0 ? (
+                                    <div className="text-muted">Belum ada data Penyaluran Donasi.</div>
+                                ) : (
+                                    <table className="table table-striped">
+                                        <thead>
+                                            <tr>
+                                                <th>No</th>
+                                                <th>Tanggal</th>
+                                                <th>Kegiatan</th>
+                                                <th>Jumlah (IDR)</th>
+                                                <th>Catatan</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {PenyaluranDonasi.map((k, i) => (
+                                                <tr key={k.id || i}>
+                                                    <td>{i + 1}</td>
+                                                    <td>{k.created_at ? new Date(k.created_at).toLocaleString("id-ID") : (k.date ? new Date(k.date).toLocaleString("id-ID") : "-")}</td>
+                                                    <td>{k.kegiatan || k.description || k.note || "-"}</td>
+                                                    <td>{(k.jumlah || k.amount || 0).toLocaleString && (k.jumlah || k.amount || 0).toLocaleString("id-ID")}</td>
+                                                    <td>{k.catatan || k.note || "-"}</td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                    <div className="col-12 mb-1">
+                        <div className="card shadow-sm border-0">
+                            <div className="card-header fw-bold">Grafik Total Pajak per Hari</div>
+                            <div className="card-body" style={{ height: "250px" }}>
+                                <Line data={lineChartData} options={{ maintainAspectRatio: false }} />
+                            </div>
+                        </div>
+                    </div>
                     <div className="col-md-12 mb-1 text-center">
                         <div className="card shadow-sm border-0">
                             <div className="card-body text-center">
@@ -213,7 +370,29 @@ const TaxFullscreen = ({ userTokenData, preview = false }) => {
                     </div>
                 </div>
             </div>
-            <Footer />
+            <footer style={styles.footer}>
+                <div style={styles.container}>
+                    <div style={styles.leftSection}>
+                        <a
+                            href="https://dastrevas.com"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            style={styles.companyLink}
+                            onMouseOver={(e) => (e.currentTarget.style.color = '#2575fc')}
+                            onMouseOut={(e) => (e.currentTarget.style.color = '#333')}
+                        >
+                            <div style={styles.logo}>
+                                <img
+                                    src="/assets/images/DT.svg"
+                                    alt="Dastrevas Tech Logo"
+                                    style={styles.logoImage}
+                                />
+                            </div>
+                            <p style={styles.companyText}>2023 © Akhari Tech x Dastrevas</p>
+                        </a>
+                    </div>
+                </div>
+            </footer>
         </div>
     );
 };
