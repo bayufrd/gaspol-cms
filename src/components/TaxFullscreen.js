@@ -2,10 +2,18 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { Line } from "react-chartjs-2";
 import { useParams } from "react-router-dom";
+import TaxFullscreenPictureModal from "./TaxFullscreenPictureModal";
+import TaxDocumentPictureEditModal from "./TaxDocumentPictureEditModal";
 
 const TaxFullscreen = ({ userTokenData, preview = false }) => {
+    const [showEditModal, setShowEditModal] = useState(false);
+    const [editDoc, setEditDoc] = useState(null);
     const params = useParams();
     const [taxData, setTaxData] = useState(null);
+    const [showPictureModal, setShowPictureModal] = useState(false);
+    const [modalImage, setModalImage] = useState("");
+    const [modalTitle, setModalTitle] = useState("");
+    const [modalDescription, setModalDescription] = useState("");
     const [footerUrl, setFooterUrl] = useState('https://dastrevas.com');
     const tokenOutletId = userTokenData?.outlet_id;
     const paramOutletId = params?.id || params?.outletId || null;
@@ -186,26 +194,29 @@ const TaxFullscreen = ({ userTokenData, preview = false }) => {
         <div style={containerStyle}>
             <div style={{ flex: 1 }}>
                 {!preview && (
-                    <div className="d-flex justify-content-between align-items-center mb-1">
-                        <div />
-                        <div style={{ textAlign: "center" }}>
-                            <img
-                                src={logoSrc}
-                                alt="logo"
-                                style={{ width: 120, height: 120, borderRadius: "50%", objectFit: "cover", marginBottom: 12 }}
-                            />
-                            <h2 style={{ margin: 0 }}>Laporan Donasi</h2>
-                            <p className="text-muted" style={{ marginTop: 6 }}>Transparansi donasi untuk kegiatan sosial</p>
+                    <>
+                        <div className="d-flex justify-content-between align-items-center mb-1">
+                            <div />
+                            <div style={{ textAlign: "center" }}>
+                                <img
+                                    src={logoSrc}
+                                    alt="logo"
+                                    style={{ width: 120, height: 120, borderRadius: "50%", objectFit: "cover", marginBottom: 12 }}
+                                />
+                                <h2 style={{ margin: 0 }}>Laporan Donasi</h2>
+                                <p className="text-muted" style={{ marginTop: 6 }}>Transparansi donasi untuk kegiatan sosial</p>
+                            </div>
+                            <div className="d-none d-md-block">
+                                <button
+                                    className="btn btn-outline-secondary"
+                                    onClick={() => (window.location.href = "/tax")}
+                                >
+                                    <i className="bi bi-arrow-left"></i> Kembali
+                                </button>
+                            </div>
                         </div>
-                        <div>
-                            <button
-                                className="btn btn-outline-secondary"
-                                onClick={() => (window.location.href = "/tax")}
-                            >
-                                <i className="bi bi-arrow-left"></i> Kembali
-                            </button>
-                        </div>
-                    </div>
+                        {/* Mobile: Kembali button will be rendered outside main content, above footer */}
+                    </>
                 )}
 
                 <div className="row">
@@ -350,6 +361,73 @@ const TaxFullscreen = ({ userTokenData, preview = false }) => {
                     {/* removed tax-only charts and tables for fullscreen view */}
                 </div>
             </div>
+            {/* Documentation Photo Cards */}
+            {taxData.documentationList && taxData.documentationList.length > 0 && (
+                <div className="container mb-4">
+                    <h5 className="fw-bold mb-3">Dokumentasi Penyaluran</h5>
+                    <div className="row g-3">
+                        {(() => {
+                            const docs = taxData.documentationList;
+                            const cols = docs.length === 1 ? 12 : docs.length === 2 ? 6 : 4;
+                            return docs.map((doc, i) => {
+                                const cleanPath = doc.image_url ? doc.image_url.replace(/^\/+/, "") : "";
+                                const imgSrc = doc.image_url ? `${apiBaseUrl}/${cleanPath}` : "/assets/images/no-image.png";
+                                // max 3 columns per row
+                                return (
+                                    <div className={`col-12 col-md-${cols}`} key={doc.id || i}>
+                                        <div className="card shadow-sm border-0 h-100 d-flex flex-column align-items-center p-2 position-relative" style={{ borderRadius: 12 }}>
+                                            <div style={{ width: '100%', cursor: 'pointer' }}
+                                                onClick={() => {
+                                                    setModalImage(imgSrc);
+                                                    setModalTitle(doc.title || "");
+                                                    setModalDescription(doc.description || "");
+                                                    setShowPictureModal(true);
+                                                }}>
+                                                <img
+                                                    src={imgSrc}
+                                                    alt={doc.title}
+                                                    style={{ width: '100%', maxHeight: 180, objectFit: 'cover', borderRadius: 8, marginBottom: 8 }}
+                                                />
+                                            </div>
+                                            <div style={{ width: '100%' }}>
+                                                <div className="fw-semibold" style={{ fontSize: '1rem', marginBottom: 2 }}>{doc.title}</div>
+                                                <div className="text-muted" style={{ fontSize: '0.85rem', marginBottom: 2 }}>{doc.date ? new Date(doc.date).toLocaleDateString("id-ID") : "-"}</div>
+                                                <div className="text-muted" style={{ fontSize: '0.85rem' }}>{doc.description}</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                );
+                            });
+                        })()}
+                    </div>
+                </div>
+            )}
+            <TaxFullscreenPictureModal
+                show={showPictureModal}
+                onClose={() => setShowPictureModal(false)}
+                imageSrc={modalImage}
+                title={modalTitle}
+                description={modalDescription}
+            />
+            <TaxDocumentPictureEditModal
+                show={showEditModal}
+                onClose={() => { setShowEditModal(false); setEditDoc(null); }}
+                doc={editDoc}
+                userTokenData={userTokenData}
+                onSuccess={() => { setShowEditModal(false); setEditDoc(null); fetchTaxData(); }}
+            />
+            {/* Mobile: Kembali button rendered immediately before footer */}
+            {!preview && (
+                <div className="d-block d-md-none" style={{ width: '100%', background: 'transparent' }}>
+                    <button
+                        className="btn btn-outline-secondary w-100 mb-2"
+                        style={{ fontSize: '1.1rem' }}
+                        onClick={() => (window.location.href = "/tax")}
+                    >
+                        <i className="bi bi-arrow-left"></i> Kembali
+                    </button>
+                </div>
+            )}
             <footer style={styles.footer}>
                 <div style={styles.container}>
                     <div style={styles.leftSection}>

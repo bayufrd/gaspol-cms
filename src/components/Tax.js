@@ -3,18 +3,29 @@ import axios from "axios";
 import { Line } from "react-chartjs-2";
 import TaxFullscreen from "./TaxFullscreen";
 import TaxDonationDestinationModal from "./TaxDonationDestinationModal";
+import TaxDocumentPictureEditModal from "./TaxDocumentPictureEditModal";
+import Swal from "sweetalert2";
+import TaxDocumentPictureModal from "./TaxDocumentPictureModal";
+import TaxCalculationCustom from "./TaxCalculationCustom";
 
 const Tax = ({ userTokenData }) => {
+    const [showDonationEditModal, setShowDonationEditModal] = useState(false);
+    const [editDonationData, setEditDonationData] = useState(null);
+    const [showDocumentEditModal, setShowDocumentEditModal] = useState(false);
+    const [editDoc, setEditDoc] = useState(null);
     const [taxData, setTaxData] = useState(null);
     // default charts hidden
     const [showTaxChart, setShowTaxChart] = useState(false);
     const [showDonasiChart, setShowDonasiChart] = useState(false);
     // pagination for latest list
+    const [showDocumentModal, setShowDocumentModal] = useState(false);
     const [currentPage, setCurrentPage] = useState(1);
     const pageSize = 5;
     const outletId = userTokenData?.outlet_id;
     const apiBaseUrl = process.env.REACT_APP_API_BASE_URL;
     const [showDonationModal, setShowDonationModal] = useState(false);
+    // Tax Calculation Custom modal
+    const [showCalculationCustom, setShowCalculationCustom] = useState(false);
 
     const fetchTax = async () => {
         if (!outletId) return;
@@ -74,6 +85,7 @@ const Tax = ({ userTokenData }) => {
         ],
     };
 
+
     return (
         <div className="page-heading">
             <div className="page-title">
@@ -98,6 +110,7 @@ const Tax = ({ userTokenData }) => {
 
             <section className="section">
                 <div className="row">
+                    {/* 4 cards */}
                     <div className="col-md-3 mb-1">
                         <div className="card shadow-sm border-0">
                             <div className="card-body text-center">
@@ -122,7 +135,6 @@ const Tax = ({ userTokenData }) => {
                             </div>
                         </div>
                     </div>
-
                     <div className="col-md-3 mb-1">
                         <div className="card shadow-sm border-0">
                             <div className="card-body text-center">
@@ -131,6 +143,24 @@ const Tax = ({ userTokenData }) => {
                             </div>
                         </div>
                     </div>
+                    {/* Customize Calculation button right below 4 cards, minimal margin */}
+                    <div className="col-12 d-flex justify-content-end" style={{ marginTop: '-8px', marginBottom: '8px' }}>
+                        <button
+                            className="btn btn-outline-warning d-flex align-items-center gap-2"
+                            onClick={() => setShowCalculationCustom(true)}
+                        >
+                            <i className="bi bi-pencil-square"></i>
+                            <span>Customize Calculation</span>
+                        </button>
+                    </div>
+                    {/* ...existing code... */}
+                    {/* TaxCalculationCustom Modal */}
+                    <TaxCalculationCustom
+                        show={showCalculationCustom}
+                        onClose={() => setShowCalculationCustom(false)}
+                        outletId={outletId}
+                        onSuccess={fetchTax}
+                    />
 
                     <div className="col-12 mb-1">
                         <div className="card shadow-sm border-0">
@@ -221,18 +251,18 @@ const Tax = ({ userTokenData }) => {
 
                     <div className="col-12 mb-1">
                         <div className="card shadow-sm border-0">
+                            <div className="card-header text-center" style={{ fontWeight: 'bold', fontSize: '1.25rem' }}>
+                                Management Donation
+                            </div>
                             <div className="card-header d-flex justify-content-between align-items-center">
                                 <div className="fw-bold">Management Kas Masuk</div>
                             </div>
-                        </div>
-                    </div>
-
-                    <div className="col-12 mb-1">
-                        <div className="card shadow-sm border-0">
+                            <div className="text-muted text-center mt-2">Belum ada data kas masuk.</div>
                             <div className="card-header d-flex justify-content-between align-items-center">
                                 <div className="fw-bold">Management Penyaluran Donasi</div>
                                 <div>
                                     <button className="btn btn-sm btn-primary" onClick={() => setShowDonationModal(true)}>Tambah Penyaluran</button>
+                                    <button className="btn btn-sm btn-outline-primary ms-2" onClick={() => setShowDocumentModal(true)}>Tambah Dokumen</button>
                                 </div>
                             </div>
                             <div className="card-body">
@@ -251,7 +281,8 @@ const Tax = ({ userTokenData }) => {
                                         </thead>
                                         <tbody>
                                             {taxData.donationList.map((d, i) => (
-                                                <tr key={d.id || i}>
+                                                <tr key={d.id || i} style={{ cursor: 'pointer' }}
+                                                    onClick={() => { setEditDonationData(d); setShowDonationEditModal(true); }}>
                                                     <td>{i + 1}</td>
                                                     <td>{d.date ? new Date(d.date).toLocaleDateString("id-ID") : "-"}</td>
                                                     <td>{d.activity || d.kegiatan || "-"}</td>
@@ -259,6 +290,43 @@ const Tax = ({ userTokenData }) => {
                                                     <td>{d.notes || d.catatan || "-"}</td>
                                                 </tr>
                                             ))}
+                                        </tbody>
+                                    </table>
+                                )}
+                                {/* Document List Table */}
+                                <hr />
+                                <h6 className="fw-bold mt-3">Dokumen Penyaluran</h6>
+                                {(!taxData || !taxData.documentationList || taxData.documentationList.length === 0) ? (
+                                    <div className="text-muted">Belum ada dokumen penyaluran.</div>
+                                ) : (
+                                    <table className="table table-striped">
+                                        <thead>
+                                            <tr>
+                                                <th>No</th>
+                                                <th>Tanggal</th>
+                                                <th>Judul</th>
+                                                <th>Foto</th>
+                                                <th>Deskripsi</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {taxData.documentationList.map((doc, i) => {
+                                                let imgSrc = "-";
+                                                if (doc.image_url) {
+                                                    const cleanPath = doc.image_url.replace(/^\/+/, "");
+                                                    imgSrc = `${apiBaseUrl}/${cleanPath}`;
+                                                }
+                                                return (
+                                                    <tr key={doc.idPrimary || doc.id || i} style={{ cursor: 'pointer' }}
+                                                        onClick={() => { setEditDoc(doc); setShowDocumentEditModal(true); }}>
+                                                        <td>{i + 1}</td>
+                                                        <td>{doc.date ? new Date(doc.date).toLocaleDateString("id-ID") : "-"}</td>
+                                                        <td>{doc.title || "-"}</td>
+                                                        <td>{doc.image_url ? <img src={imgSrc} alt={doc.title} style={{ maxWidth: 80, maxHeight: 80, borderRadius: 8 }} /> : "-"}</td>
+                                                        <td>{doc.description ? (doc.description.length > 60 ? doc.description.slice(0, 60) + '...' : doc.description) : "-"}</td>
+                                                    </tr>
+                                                );
+                                            })}
                                         </tbody>
                                     </table>
                                 )}
@@ -271,6 +339,26 @@ const Tax = ({ userTokenData }) => {
                         onClose={() => setShowDonationModal(false)}
                         userTokenData={userTokenData}
                         onSuccess={() => fetchTax()}
+                    />
+                    <TaxDonationDestinationModal
+                        show={showDonationEditModal}
+                        onClose={() => { setShowDonationEditModal(false); setEditDonationData(null); }}
+                        userTokenData={userTokenData}
+                        onSuccess={() => { setShowDonationEditModal(false); setEditDonationData(null); fetchTax(); }}
+                        editData={editDonationData}
+                    />
+                    <TaxDocumentPictureModal
+                        show={showDocumentModal}
+                        onClose={() => setShowDocumentModal(false)}
+                        userTokenData={userTokenData}
+                        onSuccess={() => { fetchTax(); Swal.fire({ icon: 'success', title: 'Berhasil', text: 'Dokumen berhasil ditambahkan!' }); }}
+                    />
+                    <TaxDocumentPictureEditModal
+                        show={showDocumentEditModal}
+                        onClose={() => { setShowDocumentEditModal(false); setEditDoc(null); }}
+                        doc={editDoc}
+                        userTokenData={userTokenData}
+                        onSuccess={() => { setShowDocumentEditModal(false); setEditDoc(null); fetchTax(); Swal.fire({ icon: 'success', title: 'Berhasil', text: 'Dokumen berhasil diupdate/hapus!' }); }}
                     />
 
                     {/* Preview of fullscreen below */}

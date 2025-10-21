@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import Swal from 'sweetalert2';
 
 const pad = (n) => String(n).padStart(2, '0');
 
@@ -15,26 +16,36 @@ const formatDateForPayload = (localDatetimeValue) => {
     return `${yyyy}-${mm}-${dd} ${hh}:${min}:${ss}`;
 };
 
-const TaxDonationDestinationModal = ({ show, onClose, userTokenData, onSuccess }) => {
+const TaxDonationDestinationModal = ({ show, onClose, userTokenData, onSuccess, editData }) => {
     const [date, setDate] = useState('');
     const [activity, setActivity] = useState('');
     const [amount, setAmount] = useState('');
     const [notes, setNotes] = useState('');
     const [loading, setLoading] = useState(false);
     const apiBaseUrl = process.env.REACT_APP_API_BASE_URL;
+    const isEdit = !!editData;
 
     useEffect(() => {
         if (show) {
-            // initialize defaults
-            const now = new Date();
-            // set input value format for datetime-local: YYYY-MM-DDTHH:MM
-            const local = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}T${pad(now.getHours())}:${pad(now.getMinutes())}`;
-            setDate(local);
-            setActivity('');
-            setAmount('');
-            setNotes('');
+            if (isEdit && editData) {
+                // autofill for edit
+                const d = new Date(editData.date);
+                const local = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+                setDate(local);
+                setActivity(editData.activity || '');
+                setAmount(editData.amount || '');
+                setNotes(editData.notes || '');
+            } else {
+                // initialize defaults
+                const now = new Date();
+                const local = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}T${pad(now.getHours())}:${pad(now.getMinutes())}`;
+                setDate(local);
+                setActivity('');
+                setAmount('');
+                setNotes('');
+            }
         }
-    }, [show]);
+    }, [show, isEdit, editData]);
 
     if (!show) return null;
 
@@ -42,7 +53,7 @@ const TaxDonationDestinationModal = ({ show, onClose, userTokenData, onSuccess }
         e.preventDefault();
         const outletId = userTokenData?.outlet_id;
         if (!outletId) {
-            alert('Tidak dapat mengambil outlet id dari token. Silakan login lagi.');
+            Swal.fire('Error', 'Tidak dapat mengambil outlet id dari token. Silakan login lagi.', 'error');
             return;
         }
         const formattedDate = formatDateForPayload(date);
@@ -53,18 +64,39 @@ const TaxDonationDestinationModal = ({ show, onClose, userTokenData, onSuccess }
             notes: notes || '',
             outlet_id: outletId,
         };
-
         setLoading(true);
         try {
-            await axios.post(`${apiBaseUrl}/tax-donation-distribution?outlet_id=${outletId}`, payload);
+            if (isEdit && editData) {
+                payload.id = editData.id;
+                await axios.patch(`${apiBaseUrl}/tax-donation-distribution`, payload);
+                Swal.fire('Berhasil', 'Penyaluran donasi berhasil diupdate!', 'success');
+            } else {
+                await axios.post(`${apiBaseUrl}/tax-donation-distribution?outlet_id=${outletId}`, payload);
+                Swal.fire('Berhasil', 'Penyaluran donasi berhasil ditambahkan!', 'success');
+            }
             setLoading(false);
             if (onSuccess) onSuccess();
             onClose();
         } catch (err) {
             setLoading(false);
-            console.error('Gagal submit penyaluran donasi:', err);
             const msg = err?.response?.data?.message || err.message || 'Terjadi kesalahan saat mengirim.';
-            alert(msg);
+            Swal.fire('Error', msg, 'error');
+        }
+    };
+
+    const handleDelete = async () => {
+        if (!editData || !editData.id) return;
+        setLoading(true);
+        try {
+            await axios.delete(`${apiBaseUrl}/tax-donation-distribution/${editData.id}`);
+            setLoading(false);
+            if (onSuccess) onSuccess();
+            onClose();
+            Swal.fire('Berhasil', 'Penyaluran donasi berhasil dihapus!', 'success');
+        } catch (err) {
+            setLoading(false);
+            const msg = err?.response?.data?.message || err.message || 'Terjadi kesalahan saat menghapus.';
+            Swal.fire('Error', msg, 'error');
         }
     };
 
@@ -72,7 +104,7 @@ const TaxDonationDestinationModal = ({ show, onClose, userTokenData, onSuccess }
         <div className="modal-backdrop d-flex justify-content-center align-items-center" style={{ position: 'fixed', inset: 0, zIndex: 1050 }}>
             <div className="card" style={{ width: 640, maxWidth: '95%' }}>
                 <div className="card-header d-flex justify-content-between align-items-center">
-                    <strong>Tambah Penyaluran Donasi</strong>
+                    <strong>{isEdit ? 'Edit Penyaluran Donasi' : 'Tambah Penyaluran Donasi'}</strong>
                     <button className="btn btn-sm btn-outline-secondary" onClick={onClose} disabled={loading}>Tutup</button>
                 </div>
                 <form onSubmit={handleSubmit}>
@@ -95,6 +127,9 @@ const TaxDonationDestinationModal = ({ show, onClose, userTokenData, onSuccess }
                         </div>
                     </div>
                     <div className="card-footer text-end">
+                        {isEdit && (
+                            <button type="button" className="btn btn-danger me-auto" onClick={handleDelete} disabled={loading}>Hapus</button>
+                        )}
                         <button type="button" className="btn btn-outline-secondary me-2" onClick={onClose} disabled={loading}>Batal</button>
                         <button type="submit" className="btn btn-primary" disabled={loading}>{loading ? 'Menyimpan...' : 'Simpan'}</button>
                     </div>
