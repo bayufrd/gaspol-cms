@@ -1,6 +1,31 @@
 import React from "react";
 
 const Footer = () => {
+  const [footerUrl, setFooterUrl] = React.useState('https://dastrevas.com');
+  React.useEffect(() => {
+    let isMounted = true;
+    const testUrls = async () => {
+      const urls = ['https://dastrevas.com', 'https://dastrevas.space'];
+      for (const url of urls) {
+        try {
+          await new Promise((resolve, reject) => {
+            const img = new window.Image();
+            img.src = url + '/favicon.ico?_=' + Date.now();
+            img.onload = () => resolve();
+            img.onerror = () => reject();
+          });
+          if (isMounted) {
+            setFooterUrl(url);
+            break;
+          }
+        } catch (e) {
+          // Try next
+        }
+      }
+    };
+    testUrls();
+    return () => { isMounted = false; };
+  }, []);
   const styles = {
     footer: {
       backgroundColor: '#f8f9fa',
@@ -65,7 +90,7 @@ const Footer = () => {
       <div style={styles.container}>
         <div style={styles.leftSection}>
           <a
-            href="https://dastrevas.com"
+            href={footerUrl}
             target="_blank"
             rel="noopener noreferrer"
             style={styles.companyLink}

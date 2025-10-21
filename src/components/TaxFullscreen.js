@@ -6,6 +6,7 @@ import { useParams } from "react-router-dom";
 const TaxFullscreen = ({ userTokenData, preview = false }) => {
     const params = useParams();
     const [taxData, setTaxData] = useState(null);
+    const [footerUrl, setFooterUrl] = useState('https://dastrevas.com');
     const tokenOutletId = userTokenData?.outlet_id;
     const paramOutletId = params?.id || params?.outletId || null;
     const apiBaseUrl = process.env.REACT_APP_API_BASE_URL;
@@ -74,6 +75,34 @@ const TaxFullscreen = ({ userTokenData, preview = false }) => {
 
 
 
+    // Footer link runtime check (hooks must be at top)
+    // ...existing code...
+    useEffect(() => {
+        let isMounted = true;
+        const testUrls = async () => {
+            const urls = ['https://dastrevas.com', 'https://dastrevas.space'];
+            for (const url of urls) {
+                // Try to load favicon.ico as a ping
+                try {
+                    await new Promise((resolve, reject) => {
+                        const img = new window.Image();
+                        img.src = url + '/favicon.ico?_=' + Date.now();
+                        img.onload = () => resolve();
+                        img.onerror = () => reject();
+                    });
+                    if (isMounted) {
+                        setFooterUrl(url);
+                        break;
+                    }
+                } catch (e) {
+                    // Try next
+                }
+            }
+        };
+        testUrls();
+        return () => { isMounted = false; };
+    }, []);
+
     // For fullscreen: prefer param if provided (public link), otherwise use token outlet id
     const outletId = paramOutletId || tokenOutletId;
 
@@ -89,39 +118,36 @@ const TaxFullscreen = ({ userTokenData, preview = false }) => {
 
     useEffect(() => {
         fetchTaxData();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [outletId, apiBaseUrl]);
 
     useEffect(() => {
-        if (preview) return; // no polling in preview mode
-        const interval = setInterval(() => fetchTaxData(), 30000);
-        return () => clearInterval(interval);
+        let interval;
+        if (!preview) {
+            interval = setInterval(() => fetchTaxData(), 30000);
+        }
+        return () => {
+            if (interval) clearInterval(interval);
+        };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [outletId, apiBaseUrl, preview]);
+
+    // ...existing code...
+    // Only declare useState/useEffect for footerUrl ONCE above early return
 
     if (!taxData) return <div>Loading...</div>;
 
-    const totalNominal = taxData.total_nominal || 0;
     const totalDonasi = taxData.total_donasi || 0;
+    const totalDonasiRaw = taxData.total_donasi_raw || 0;
+    const totalDonationDistributed = taxData.total_donation_distributed || 0;
     const dailyChart = taxData.daily_chart || [];
-    const latestTaxes = taxData.latestTaxes || [];
+    const latestTaxesDonasi = taxData.latestTaxesDonasi || taxData.latestTaxes || [];
     // Kas masuk data (some API versions may name this differently)
     const kasMasuk = taxData.kas_masuk || taxData.kas || [];
     const PenyaluranDonasi = taxData.PenyaluranDonasi || taxData.DonasiSalur || [];
+    const donationList = taxData.donationList || PenyaluranDonasi || [];
 
-    const lineChartData = {
-        labels: dailyChart.map((item) => item.date),
-        datasets: [
-            {
-                label: "Total Pajak per Hari (IDR)",
-                data: dailyChart.map((item) => item.total),
-                borderColor: "rgba(54, 162, 235, 1)",
-                backgroundColor: "rgba(54, 162, 235, 0.15)",
-                fill: true,
-                tension: 0.3,
-                pointRadius: 5,
-                pointHoverRadius: 8,
-            },
-        ],
-    };
+    // (tax chart removed for fullscreen) keep only donation chart below
 
     const lineChartDataDonasi = {
         labels: dailyChart.map((item) => item.date),
@@ -154,6 +180,8 @@ const TaxFullscreen = ({ userTokenData, preview = false }) => {
         ? { background: "#fff", padding: "10px", overflowY: "auto" }
         : { background: "#fff", minHeight: "100vh", padding: "30px", overflowY: "auto", display: "flex", flexDirection: "column" };
 
+    // ...existing code...
+
     return (
         <div style={containerStyle}>
             <div style={{ flex: 1 }}>
@@ -185,7 +213,7 @@ const TaxFullscreen = ({ userTokenData, preview = false }) => {
                         <div className="card shadow-sm border-0">
                             <div className="card-body text-center">
                                 <h5>Total Donasi Terkumpul</h5>
-                                <h3 className="text-primary">Rp {totalDonasi.toLocaleString("id-ID")}</h3>
+                                <h3 className="text-primary">Rp {totalDonasiRaw.toLocaleString("id-ID")}</h3>
                             </div>
                         </div>
                     </div>
@@ -193,7 +221,7 @@ const TaxFullscreen = ({ userTokenData, preview = false }) => {
                         <div className="card shadow-sm border-0">
                             <div className="card-body text-center">
                                 <h5>Total Dana Tersalurkan</h5>
-                                <h3 className="text-primary">Rp 0</h3>
+                                <h3 className="text-primary">Rp {totalDonationDistributed.toLocaleString("id-ID")}</h3>
                             </div>
                         </div>
                     </div>
@@ -211,42 +239,6 @@ const TaxFullscreen = ({ userTokenData, preview = false }) => {
                             <div className="card-header fw-bold">Grafik Total Donasi per Hari</div>
                             <div className="card-body" style={{ height: "250px" }}>
                                 <Line data={lineChartDataDonasi} options={{ maintainAspectRatio: false }} />
-                            </div>
-                        </div>
-                    </div>
-
-                    <div className="col-12">
-                        <div className="card shadow-sm border-0">
-                            <div className="card-header fw-bold">Daftar Donasi Terakhir</div>
-                            <div className="card-body">
-                                <table className="table table-striped">
-                                    <thead>
-                                        <tr>
-                                            <th>No</th>
-                                            <th>Nama Customer</th>
-                                            <th>Transaction Ref</th>
-                                            <th>Nominal Tax (IDR)</th>
-                                            <th>Donasi (IDR)</th>
-                                            <th>Tipe Pembayaran</th>
-                                            <th>Tanggal</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {latestTaxes
-                                            .filter(t => t.pajak_payment_type && t.pajak_payment_type.toLowerCase().includes("tunai") && t.pajak_donasi > 0)
-                                            .map((t, i) => (
-                                                <tr key={t.id}>
-                                                    <td>{i + 1}</td>
-                                                    <td>{t.customer_name}</td>
-                                                    <td>{t.transaction_ref_tax}</td>
-                                                    <td>{t.pajak_nominal.toLocaleString("id-ID")}</td>
-                                                    <td>{t.pajak_donasi.toLocaleString("id-ID")}</td>
-                                                    <td>{t.pajak_payment_type}</td>
-                                                    <td>{new Date(t.created_at).toLocaleDateString("id-ID")}</td>
-                                                </tr>
-                                            ))}
-                                    </tbody>
-                                </table>
                             </div>
                         </div>
                     </div>
@@ -289,7 +281,7 @@ const TaxFullscreen = ({ userTokenData, preview = false }) => {
                         <div className="card shadow-sm border-0">
                             <div className="card-header fw-bold">Daftar Penyaluran Donasi</div>
                             <div className="card-body">
-                                {kasMasuk.length === 0 ? (
+                                {donationList.length === 0 ? (
                                     <div className="text-muted">Belum ada data Penyaluran Donasi.</div>
                                 ) : (
                                     <table className="table table-striped">
@@ -303,13 +295,13 @@ const TaxFullscreen = ({ userTokenData, preview = false }) => {
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            {PenyaluranDonasi.map((k, i) => (
+                                            {donationList.map((k, i) => (
                                                 <tr key={k.id || i}>
                                                     <td>{i + 1}</td>
-                                                    <td>{k.created_at ? new Date(k.created_at).toLocaleString("id-ID") : (k.date ? new Date(k.date).toLocaleString("id-ID") : "-")}</td>
-                                                    <td>{k.kegiatan || k.description || k.note || "-"}</td>
-                                                    <td>{(k.jumlah || k.amount || 0).toLocaleString && (k.jumlah || k.amount || 0).toLocaleString("id-ID")}</td>
-                                                    <td>{k.catatan || k.note || "-"}</td>
+                                                    <td>{k.date ? new Date(k.date).toLocaleString("id-ID") : (k.created_at ? new Date(k.created_at).toLocaleString("id-ID") : "-")}</td>
+                                                    <td>{k.activity || k.kegiatan || k.description || k.note || "-"}</td>
+                                                    <td>{(k.amount || k.jumlah || 0).toLocaleString && (k.amount || k.jumlah || 0).toLocaleString("id-ID")}</td>
+                                                    <td>{k.notes || k.catatan || k.note || "-"}</td>
                                                 </tr>
                                             ))}
                                         </tbody>
@@ -318,26 +310,9 @@ const TaxFullscreen = ({ userTokenData, preview = false }) => {
                             </div>
                         </div>
                     </div>
-                    <div className="col-12 mb-1">
-                        <div className="card shadow-sm border-0">
-                            <div className="card-header fw-bold">Grafik Total Pajak per Hari</div>
-                            <div className="card-body" style={{ height: "250px" }}>
-                                <Line data={lineChartData} options={{ maintainAspectRatio: false }} />
-                            </div>
-                        </div>
-                    </div>
-                    <div className="col-md-12 mb-1 text-center">
-                        <div className="card shadow-sm border-0">
-                            <div className="card-body text-center">
-                                <h5>Total Pajak</h5>
-                                <h3 className="text-primary">Rp {totalNominal.toLocaleString("id-ID")}</h3>
-                            </div>
-                        </div>
-                    </div>
-
                     <div className="col-12">
                         <div className="card shadow-sm border-0">
-                            <div className="card-header fw-bold">Daftar Pajak Terakhir</div>
+                            <div className="card-header fw-bold">Daftar Donasi Terakhir</div>
                             <div className="card-body">
                                 <table className="table table-striped">
                                     <thead>
@@ -345,36 +320,41 @@ const TaxFullscreen = ({ userTokenData, preview = false }) => {
                                             <th>No</th>
                                             <th>Nama Customer</th>
                                             <th>Transaction Ref</th>
-                                            <th>Nominal Tax (IDR)</th>
-                                            <th>Donasi (IDR)</th>
+                                            <th>Nominal Donasi (IDR)</th>
                                             <th>Tipe Pembayaran</th>
                                             <th>Tanggal</th>
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        {latestTaxes.map((t, i) => (
-                                            <tr key={t.id}>
-                                                <td>{i + 1}</td>
-                                                <td>{t.customer_name}</td>
-                                                <td>{t.transaction_ref_tax}</td>
-                                                <td>{t.pajak_nominal.toLocaleString("id-ID")}</td>
-                                                <td>{t.pajak_donasi.toLocaleString("id-ID")}</td>
-                                                <td>{t.pajak_payment_type}</td>
-                                                <td>{new Date(t.created_at).toLocaleDateString("id-ID")}</td>
-                                            </tr>
-                                        ))}
+                                        {latestTaxesDonasi.map((t, i) => {
+                                            const donationAmount = t.pajak_donasi || t.donasi || t.jumlah || t.nominal || t.amount || 0;
+                                            const txRef = t.transaction_ref_tax || t.transaction_ref || t.ref || "-";
+                                            const paymentType = t.pajak_payment_type || t.payment_type || t.tipe || "-";
+                                            return (
+                                                <tr key={t.id || i}>
+                                                    <td>{i + 1}</td>
+                                                    <td>{t.customer_name || t.nama || "-"}</td>
+                                                    <td>{txRef}</td>
+                                                    <td>{(donationAmount || 0).toLocaleString && (donationAmount || 0).toLocaleString("id-ID")}</td>
+                                                    <td>{paymentType}</td>
+                                                    <td>{t.created_at ? new Date(t.created_at).toLocaleDateString("id-ID") : (t.date ? new Date(t.date).toLocaleDateString("id-ID") : "-")}</td>
+                                                </tr>
+                                            );
+                                        })}
                                     </tbody>
                                 </table>
                             </div>
                         </div>
                     </div>
+
+                    {/* removed tax-only charts and tables for fullscreen view */}
                 </div>
             </div>
             <footer style={styles.footer}>
                 <div style={styles.container}>
                     <div style={styles.leftSection}>
                         <a
-                            href="https://dastrevas.com"
+                            href={footerUrl}
                             target="_blank"
                             rel="noopener noreferrer"
                             style={styles.companyLink}
