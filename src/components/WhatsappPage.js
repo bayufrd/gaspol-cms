@@ -113,7 +113,14 @@ const WhatsappPage = ({ userTokenData }) => {
     try {
       const response = await axios.get(`${apiBaseUrl}/get-qr`);
       if (response.data.success) {
-        setQrCode(response.data.qr);
+        let qr = response.data.qr;
+        // If server returned a relative path like '/qr.png', convert to absolute using apiBaseUrl
+        if (typeof qr === 'string' && qr.startsWith('/')) {
+          // make sure apiBaseUrl has no trailing slash
+          const base = apiBaseUrl.replace(/\/$/, '');
+          qr = base + qr;
+        }
+        setQrCode(qr);
       }
     } catch (error) {
       console.error('Error fetching QR code:', error);
