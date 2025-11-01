@@ -79,6 +79,7 @@ const Outlet = () => {
                 <thead>
                   <tr>
                     <th>No</th>
+                    <th>Outlet ID</th>
                     <th>Name</th>
                     <th>Address</th>
                     <th>Actions</th>
@@ -88,6 +89,7 @@ const Outlet = () => {
                   {outlets.map((outlet, index) => (
                     <tr key={outlet.id}>
                       <td>{index + 1}</td>
+                      <td>{outlet.id}</td>
                       <td>{outlet.name}</td>
                       <td>{outlet.address}</td>
                       <td>
