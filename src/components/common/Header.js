@@ -1,5 +1,6 @@
 import React from "react";
 import { Link, useNavigate } from "react-router-dom";
+import ProfileModal from "../ProfileModal";
 
 const Header = ({ onToggleSidebar, userTokenData, setIsLoggedIn }) => {
   const navigate = useNavigate();
@@ -44,6 +45,8 @@ const Header = ({ onToggleSidebar, userTokenData, setIsLoggedIn }) => {
       display: 'flex',
       alignItems: 'center',
       gap: '15px',
+      border: 'none',
+      outline: 'none',
     },
     userInfo: {
       textAlign: 'right',
@@ -60,6 +63,7 @@ const Header = ({ onToggleSidebar, userTokenData, setIsLoggedIn }) => {
     },
     userDropdown: {
       position: 'relative',
+      outline: 'none',
     },
     userAvatar: {
       width: '42px',
@@ -78,12 +82,13 @@ const Header = ({ onToggleSidebar, userTokenData, setIsLoggedIn }) => {
       right: 0,
       top: '100%',
       backgroundColor: '#fff',
-      border: '1px solid #e9ecef',
       borderRadius: '4px',
-      boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
       display: 'none',
       minWidth: '200px',
       padding: '10px 0',
+      border: 'none',
+      outline: 'none',
+      boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
     },
     dropdownVisible: {
       display: 'block',
@@ -96,6 +101,10 @@ const Header = ({ onToggleSidebar, userTokenData, setIsLoggedIn }) => {
       color: '#333',
       textDecoration: 'none',
       transition: 'background-color 0.3s ease',
+      border: 'none',
+      outline: 'none',
+      background: 'none',
+      cursor: 'pointer',
     },
     dropdownItemHover: {
       backgroundColor: '#f8f9fa',
@@ -109,6 +118,7 @@ const Header = ({ onToggleSidebar, userTokenData, setIsLoggedIn }) => {
   };
 
   const [isDropdownOpen, setIsDropdownOpen] = React.useState(false);
+  const [isProfileModalOpen, setIsProfileModalOpen] = React.useState(false);
 
   return (
     <header style={styles.header}>
@@ -149,8 +159,11 @@ const Header = ({ onToggleSidebar, userTokenData, setIsLoggedIn }) => {
                   ...(isDropdownOpen ? styles.dropdownVisible : {})
                 }}
               >
-                <Link 
-                  to="/profile" 
+                <button
+                  onClick={() => {
+                    setIsProfileModalOpen(true);
+                    setIsDropdownOpen(false);
+                  }}
                   style={styles.dropdownItem}
                   onMouseEnter={(e) => e.target.style.backgroundColor = styles.dropdownItemHover.backgroundColor}
                   onMouseLeave={(e) => e.target.style.backgroundColor = 'transparent'}
@@ -160,7 +173,7 @@ const Header = ({ onToggleSidebar, userTokenData, setIsLoggedIn }) => {
                     style={styles.dropdownIcon}
                   ></i>
                   My Profile
-                </Link>
+                </button>
                 <button 
                   onClick={handleLogout} 
                   style={{
@@ -168,8 +181,6 @@ const Header = ({ onToggleSidebar, userTokenData, setIsLoggedIn }) => {
                     ...styles.logoutItem,
                     width: '100%',
                     textAlign: 'left',
-                    background: 'none',
-                    border: 'none',
                   }}
                   onMouseEnter={(e) => e.target.style.backgroundColor = styles.dropdownItemHover.backgroundColor}
                   onMouseLeave={(e) => e.target.style.backgroundColor = 'transparent'}
@@ -185,6 +196,11 @@ const Header = ({ onToggleSidebar, userTokenData, setIsLoggedIn }) => {
           </div>
         </div>
       </div>
+      <ProfileModal
+        isOpen={isProfileModalOpen}
+        onClose={() => setIsProfileModalOpen(false)}
+        userTokenData={userTokenData}
+      />
     </header>
   );
 };

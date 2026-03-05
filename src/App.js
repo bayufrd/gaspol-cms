@@ -13,7 +13,7 @@ import Menu from "./components/Menu";
 import User from "./components/User";
 import Login from "./components/Login";
 import Discount from "./components/Discount";
-import Profile from "./components/Profile";
+// import Profile from "./components/Profile";
 import Report from "./components/Report";
 import ServingType from "./components/ServingType";
 import Outlet from "./components/Outlet";
@@ -173,7 +173,7 @@ function App() {
               )}
 
               {/* Profile always available */}
-              <Route path="/profile" element={<Profile userTokenData={userTokenData} />} />
+              {/* <Route path="/profile" element={<Profile userTokenData={userTokenData} />} /> */}
             </Routes>
             {/* <Footer /> */}
           </Layout>

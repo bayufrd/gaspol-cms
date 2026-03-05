@@ -7,6 +7,7 @@ const Discount = ({ userTokenData }) => {
   const [discounts, setDiscounts] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [selectedDiscountId, setSelectedDiscountId] = useState(null);
+  const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
     getDiscounts();
@@ -101,9 +102,17 @@ const Discount = ({ userTokenData }) => {
         <section className="section">
           <div className="card">
             <div className="card-header">
-              <div className="float-lg-end">
+              <div className="d-flex justify-content-between align-items-center flex-wrap">
+                <input
+                  type="text"
+                  className="form-control mb-2 mb-md-0"
+                  placeholder="Cari discount (nama, tanggal mulai, persen, dll.)"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  style={{ maxWidth: '400px', flex: '1 1 auto' }}
+                />
                 <div
-                  className="button btn btn-primary rounded-pill"
+                  className="button btn btn-primary rounded-pill btn-sm ms-2"
                   onClick={() => openModal(null)}
                 >
                   <i className="bi bi-plus"></i> Tambah Data
@@ -112,18 +121,44 @@ const Discount = ({ userTokenData }) => {
             </div>
             <div className="card-body">
               <div style={styles.discountFlow}>
-                {discounts.map((discount, index) => (
+                {discounts
+                  .filter((discount) =>
+                    discount.code?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                    discount.start_date?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                    discount.end_date?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                    discount.value?.toString().includes(searchTerm) ||
+                    discount.updated_at?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                    (discount.is_percent === 1 ? 'persen' : 'nominal').includes(searchTerm.toLowerCase()) ||
+                    (discount.is_discount_cart === 1 ? 'keranjang' : 'peritem').includes(searchTerm.toLowerCase())
+                  )
+                  .map((discount, index) => (
                   <div style={styles.discountCard} key={discount.id}>
-                    <h5>{discount.code || '-'}</h5>
-                    <p>Tipe Diskon: {discount.is_percent === 1 ? "Persen" : "Nominal"}</p>
-                    <p>Diskon untuk: {discount.is_discount_cart === 1 ? "Keranjang" : "Peritem"}</p>
-                    <p>Nilai discount: {discount.is_percent === 1 ? `${discount.value || '-'}%` : `Rp. ${formatNumber(discount.value)}`}</p>
-                    <p>Tanggal mulai diskon: {discount.start_date || '-'}</p>
-                    <p>Tanggal akhir diskon: {discount.end_date || '-'}</p>
-                    <p>Minimal Pembelian: Rp. {formatNumber(discount.min_purchase)}</p>
-                    <p>Maksimal diskon: Rp. {formatNumber(discount.max_discount)}</p>
-                    <p>Data terakhir diperbarui: {discount.updated_at || '-'}</p>
-                    <div style={styles.actionButtons}>
+                    <h5 style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                      <span>{discount.code || '-'}</span>
+                      <span style={{ fontSize: '0.8em', backgroundColor: '#f0f0f0', padding: '2px 6px', borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                        <i className="bi bi-cart"></i> {discount.is_discount_cart === 1 ? "Keranjang" : "Peritem"}
+                      </span>
+                    </h5>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <i className="bi bi-percent" title="Tipe Diskon"></i>
+                        <span>{discount.is_percent === 1 ? "Persen" : "Nominal"}</span>
+                      </div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <i className="bi bi-tag" title="Nilai Discount"></i>
+                        <span>{discount.is_percent === 1 ? `${discount.value || '-'}%` : `Rp. ${formatNumber(discount.value)}`}</span>
+                      </div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <i className="bi bi-cash" title="Minimal - Maksimal Diskon"></i>
+                        <span>Rp. {formatNumber(discount.min_purchase || 0)} - {discount.max_discount && discount.max_discount !== 0 ? `Rp. ${formatNumber(discount.max_discount)}` : 'Tanpa Batasan'}</span>
+                      </div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <i className="bi bi-calendar" title="Tanggal Mulai - Akhir"></i>
+                        <span>{discount.start_date || '-'} - {discount.end_date || '-'}</span>
+                      </div>
+                    </div>
+                    <div style={{ ...styles.actionButtons, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                      <span style={{ color: '#666', fontSize: '0.8em' }}>Terakhir diupdate: {discount.updated_at || '-'}</span>
                       <div
                         className="buttons btn info btn-primary"
                         onClick={() => openModal(discount.id)}

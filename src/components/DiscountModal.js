@@ -108,6 +108,29 @@ export const DiscountModal = ({
       errors.value = "Diskon persentase tidak boleh lebih dari 100%";
     }
 
+    if (Number(discount.value) < 0) {
+      errors.value = "Nilai diskon tidak boleh negatif";
+    }
+    
+    if (Number(discount.value) < 1) {
+      errors.value = "Nilai diskon tidak boleh kurang dari 1";
+    }
+
+    if (discount.min_purchase && Number(discount.min_purchase) < 0) {
+      errors.min_purchase = "Minimal pembelian tidak boleh negatif";
+    }
+
+    if (discount.max_discount && !discount.is_unlimited_max_discount && Number(discount.max_discount) < 0) {
+      errors.max_discount = "Maksimal diskon tidak boleh negatif";
+    }
+
+    if (discount.start_date && discount.end_date) {
+      const startDate = new Date(discount.start_date);
+      const endDate = new Date(discount.end_date);
+      if (endDate < startDate) {
+        errors.end_date = "Tanggal berakhir tidak boleh lebih kecil dari tanggal mulai";
+      }
+    }
 
     setFormErrors(errors);
     return Object.keys(errors).length === 0;
@@ -329,6 +352,7 @@ export const DiscountModal = ({
               <label>Nilai Diskon</label>
               <input
                 type="number"
+                min="0"
                 value={discount.value}
                 onChange={(e) => handleInputChange('value', e.target.value)}
                 className={`form-control ${formErrors.value ? 'is-invalid' : ''}`}
@@ -341,6 +365,7 @@ export const DiscountModal = ({
               <label>Minimal Pembelian</label>
               <input
                 type="number"
+                min="0"
                 value={discount.min_purchase}
                 onChange={(e) => handleInputChange('min_purchase', e.target.value)}
                 className={`form-control ${formErrors.min_purchase ? 'is-invalid' : ''}`}
@@ -366,6 +391,7 @@ export const DiscountModal = ({
                   {!discount.is_unlimited_max_discount && (
                     <input
                       type="number"
+                      min="0"
                       value={discount.max_discount || ''}
                       onChange={(e) => handleInputChange('max_discount', e.target.value)}
                       className={`form-control ${formErrors.max_discount ? 'is-invalid' : ''}`}
