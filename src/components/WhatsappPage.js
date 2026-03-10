@@ -2,7 +2,6 @@
 import React, { useState, useCallback, useEffect } from "react";
 import axios from "axios";
 import Swal from "sweetalert2";
-import localWaStatus from "../temp/wa-connection-status.json";
 
 // Prefer relative paths so CRA dev proxy (or same-origin deployment) avoids CORS.
 // To force using the remote host set REACT_APP_FORCE_REMOTE=true in .env.
@@ -198,7 +197,7 @@ const WhatsappPage = ({ userTokenData }) => {
       console.error('Error fetching WA connection status (network/CORS?), using local fallback:', error);
       // Fallback to local JSON (useful during development when backend blocks CORS)
       try {
-        const data = localWaStatus || {};
+        const data = {};
 
         let qr = '';
         if (data.qrData) {
