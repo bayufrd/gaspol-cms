@@ -2,12 +2,40 @@
 import React, { useState, useCallback, useEffect } from "react";
 import axios from "axios";
 import Swal from "sweetalert2";
+import localWaStatus from "../temp/wa-connection-status.json";
 
-// const apiBaseUrl = 'http://localhost:8090';
-const apiBaseUrl = process.env.REACT_APP_API_WHATSAPP_URL;
+// Prefer relative paths so CRA dev proxy (or same-origin deployment) avoids CORS.
+// To force using the remote host set REACT_APP_FORCE_REMOTE=true in .env.
+const apiBaseUrl = (process.env.REACT_APP_FORCE_REMOTE === 'true' && process.env.REACT_APP_API_WHATSAPP_URL)
+  ? process.env.REACT_APP_API_WHATSAPP_URL
+  : '';
+const WA_APP_TOKEN = process.env.REACT_APP_WHATSAPP_APP_TOKEN || null;
 const apiUrlBaseBackend = process.env.REACT_APP_API_BASE_URL;
 
 const WhatsappPage = ({ userTokenData }) => {
+  // Helper: format timestamp (milliseconds or ISO string) to readable string
+  const formatTimestamp = (ts) => {
+    if (!ts && ts !== 0) return '-';
+    try {
+      let d;
+      if (typeof ts === 'number') d = new Date(ts);
+      else if (/^\d+$/.test(String(ts))) d = new Date(Number(ts));
+      else d = new Date(ts);
+      if (isNaN(d.getTime())) return '-';
+      return d.toLocaleString('id-ID', { timeZone: 'Asia/Jakarta' });
+    } catch (e) {
+      return '-';
+    }
+  };
+
+  const extractDisconnectMessage = (info) => {
+    if (!info) return null;
+    try {
+      return info?.error?.output?.payload?.message || info?.error?.message || info?.message || null;
+    } catch (e) {
+      return null;
+    }
+  };
   const [activeTab, setActiveTab] = useState('config');
   const [qrCode, setQrCode] = useState('');
   const [connectionStatus, setConnectionStatus] = useState({ connected: false, status: 'Menunggu status...', qrAvailable: false });
@@ -24,6 +52,7 @@ const WhatsappPage = ({ userTokenData }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
   const [showModal, setShowModal] = useState(false);
+  const [memberSearch, setMemberSearch] = useState('');
 
   const getMembers = useCallback(async () => {
     setIsLoading(true);
@@ -53,6 +82,19 @@ const WhatsappPage = ({ userTokenData }) => {
       getMembers();
     }
   }, [showModal, getMembers]);
+
+  useEffect(() => {
+    if (!memberSearch) {
+      setFilteredMembers(members);
+      return;
+    }
+    const q = memberSearch.toLowerCase();
+    setFilteredMembers(members.filter(m => {
+      return (m.member_name || '').toLowerCase().includes(q)
+        || (m.member_email || '').toLowerCase().includes(q)
+        || (m.member_phone_number || '').toLowerCase().includes(q);
+    }));
+  }, [memberSearch, members]);
 
   // Styles
   const styles = {
@@ -108,22 +150,79 @@ const WhatsappPage = ({ userTokenData }) => {
     },
   };
 
-  // Functions for QR Code Management
-  const fetchQrCode = async () => {
+  // Functions for WA status and QR Code Management
+  const fetchWaStatus = async () => {
+    // Use plain fetch without credentials to avoid sending cookies/credentials
+    // which conflict with Access-Control-Allow-Origin: * on the server.
     try {
-      const response = await axios.get(`${apiBaseUrl}/get-qr`);
-      if (response.data.success) {
-        let qr = response.data.qr;
-        // If server returned a relative path like '/qr.png', convert to absolute using apiBaseUrl
-        if (typeof qr === 'string' && qr.startsWith('/')) {
-          // make sure apiBaseUrl has no trailing slash
-          const base = apiBaseUrl.replace(/\/$/, '');
-          qr = base + qr;
-        }
-        setQrCode(qr);
+      const url = `${apiBaseUrl}/wa-connection-status`;
+      let data = null;
+      try {
+        const headers = { 'Accept': 'application/json' };
+        if (WA_APP_TOKEN) headers['x-app-token'] = WA_APP_TOKEN;
+        const r = await fetch(url, { method: 'GET', mode: 'cors', credentials: 'omit', headers });
+        if (r.ok) data = await r.json();
+        else throw new Error('Fetch failed with status ' + r.status);
+      } catch (fetchErr) {
+        // fallback to axios if fetch fails (network/CORS) — axios may include headers differently
+        const axiosOptions = { withCredentials: false };
+        if (WA_APP_TOKEN) axiosOptions.headers = { 'x-app-token': WA_APP_TOKEN };
+        const response = await axios.get(url, axiosOptions);
+        data = response.data || {};
       }
+
+      // Determine QR image source: prefer qrData (already data URI), else qrBase64
+      let qr = '';
+      if (data.qrData) {
+        qr = data.qrData;
+      } else if (data.qrBase64) {
+        qr = `data:image/png;base64,${data.qrBase64}`;
+      } else if (data.qrPath) {
+        // fallback: server may return a path like '/qr.png'
+        const base = apiBaseUrl.replace(/\/$/, '');
+        qr = data.qrPath.startsWith('/') ? base + data.qrPath : data.qrPath;
+      }
+
+      setQrCode(qr);
+
+      // Map connection status; keep original payload but ensure `connected` exists
+      setConnectionStatus({
+        connected: !!data.connected,
+        status: data.status || '',
+        qrAvailable: !!(data.qrData || data.qrBase64 || data.qrPath),
+        ...data,
+      });
+
+      return data;
     } catch (error) {
-      console.error('Error fetching QR code:', error);
+      console.error('Error fetching WA connection status (network/CORS?), using local fallback:', error);
+      // Fallback to local JSON (useful during development when backend blocks CORS)
+      try {
+        const data = localWaStatus || {};
+
+        let qr = '';
+        if (data.qrData) {
+          qr = data.qrData;
+        } else if (data.qrBase64) {
+          qr = `data:image/png;base64,${data.qrBase64}`;
+        } else if (data.qrPath) {
+          const base = apiBaseUrl.replace(/\/$/, '');
+          qr = data.qrPath.startsWith('/') ? base + data.qrPath : data.qrPath;
+        }
+
+        setQrCode(qr);
+        setConnectionStatus({
+          connected: !!data.connected,
+          status: data.status || '',
+          qrAvailable: !!(data.qrData || data.qrBase64 || data.qrPath),
+          ...data,
+        });
+
+        return data;
+      } catch (e) {
+        console.error('Local fallback failed:', e);
+        return null;
+      }
     }
   };
 
@@ -139,8 +238,9 @@ const WhatsappPage = ({ userTokenData }) => {
     }).then(async (result) => {
       if (result.isConfirmed) {
         try {
-          await axios.get(`${apiBaseUrl}/reset`);
-          fetchQrCode();
+          const headers = WA_APP_TOKEN ? { headers: { 'x-app-token': WA_APP_TOKEN } } : {};
+          await axios.get(`${apiBaseUrl}/reset`, headers);
+          await fetchWaStatus();
           Swal.fire({
             icon: "success",
             title: "Berhasil",
@@ -159,18 +259,27 @@ const WhatsappPage = ({ userTokenData }) => {
   };
 
   const checkConnectionStatus = async () => {
-    try {
-      const response = await axios.get(`${apiBaseUrl}/wa-connection-status`);
-      setConnectionStatus(response.data);
-    } catch (error) {
-      console.error('Error checking connection status:', error);
-    }
+    // reuse fetchWaStatus to keep mapping consistent and also return the data
+    return await fetchWaStatus();
   };
 
   const fetchLogs = async () => {
     try {
-      const response = await axios.get(`${apiBaseUrl}/logs`);
-      setLogs(response.data);
+      const url = `${apiBaseUrl}/logs`;
+      let data = null;
+      try {
+        const headers = { Accept: 'application/json' };
+        if (WA_APP_TOKEN) headers['x-app-token'] = WA_APP_TOKEN;
+        const r = await fetch(url, { method: 'GET', mode: 'cors', credentials: 'omit', headers });
+        if (r.ok) data = await r.json();
+        else throw new Error('Fetch failed with status ' + r.status);
+      } catch (errFetch) {
+        const axiosOptions = { withCredentials: false };
+        if (WA_APP_TOKEN) axiosOptions.headers = { 'x-app-token': WA_APP_TOKEN };
+        const response = await axios.get(url, axiosOptions);
+        data = response.data;
+      }
+      setLogs(data);
     } catch (error) {
       console.error('Error fetching logs:', error);
     }
@@ -213,12 +322,13 @@ const WhatsappPage = ({ userTokenData }) => {
     }
 
     try {
-      await checkConnectionStatus();
+      const latest = await checkConnectionStatus();
 
-      if (connectionStatus?.qrAvailable) {
+      // if not connected, block sending
+      if (!latest?.connected) {
         Swal.fire({
           title: "Gagal",
-          text: "Scan QR terlebih dahulu atau tautkan WhatsApp dahulu",
+          text: "WhatsApp belum terhubung. Scan QR atau tautkan WhatsApp terlebih dahulu.",
           icon: "error",
         });
         setActiveTab('config');
@@ -268,7 +378,7 @@ const WhatsappPage = ({ userTokenData }) => {
 
   useEffect(() => {
     if (activeTab === 'config') {
-      fetchQrCode();
+      fetchWaStatus();
       checkConnectionStatus();
       fetchLogs();
       const intervalId = setInterval(() => {
@@ -291,7 +401,7 @@ const WhatsappPage = ({ userTokenData }) => {
       </div>
       <div style={styles.tab}>
 
-        <div onClick={() => { setActiveTab('config'); fetchQrCode(); }} style={activeTab === 'config' ? styles.activeTab : {}}> 🛠️ Konfigurasi</div>
+        <div onClick={() => { setActiveTab('config'); fetchWaStatus(); }} style={activeTab === 'config' ? styles.activeTab : {}}> 🛠️ Konfigurasi</div>
         <div onClick={() => setActiveTab('message')} style={activeTab === 'message' ? styles.activeTab : {}}> 📩 Kirim Pesan</div>
         <div onClick={() => setActiveTab('config')} style={activeTab === 'template-pos' ? styles.activeTab : {}}> 🔐 Template POS</div>
         <div onClick={() => setActiveTab('config')} style={activeTab === 'broadcat' ? styles.activeTab : {}}> 🔐 Broadcast Pesan</div>
@@ -303,13 +413,19 @@ const WhatsappPage = ({ userTokenData }) => {
           {qrCode ? <img src={qrCode} alt="QR Code" style={{ maxWidth: '100%', height: 'auto', marginTop: '20px' }} /> : <p>Loading QR Code...</p>}
 
           <div style={{ marginTop: '16px', fontWeight: 'bold', fontSize: '18px', color: '#333' }}>
-            <h4>{connectionStatus.qrAvailable ? " ❌ Disconnected" : " ✅ Connected"}</h4>
-            <p>Status: {connectionStatus.qrAvailable ? "✖ Disconnected" : "✔ Connected"}</p>
-            <p>QR Code: {connectionStatus.qrAvailable ? "✔ Tersedia, Silahkan Scan QR Code" : "✖ Tidak Tersedia, Reset untuk Scan Ulang"}</p>
+            <h4>{connectionStatus.connected ? " ✅ Connected" : " ❌ Disconnected"}</h4>
+            <p>Status: {connectionStatus.connected ? "✔ Connected" : "✖ Disconnected"}</p>
+            <p>QR Code: {qrCode ? "✔ Tersedia, Silahkan Scan/Scan Ulang QR Code" : "✖ Tidak Tersedia"}</p>
+            <p>Terakhir Update: {formatTimestamp(connectionStatus.lastUpdate)}</p>
+            {connectionStatus.lastDisconnectInfo && (
+              <p style={{ fontSize: '13px', color: '#666' }}>
+                Info: {extractDisconnectMessage(connectionStatus.lastDisconnectInfo) || formatTimestamp(connectionStatus.lastDisconnectInfo?.date)}
+              </p>
+            )}
           </div>
 
           <div>
-            <button style={styles.button} onClick={fetchQrCode}> 🔄 Refresh QR Code</button>
+            <button style={styles.button} onClick={() => fetchWaStatus()}> 🔄 Refresh QR Code</button>
             <button style={{ ...styles.button, backgroundColor: '#dc3545' }} onClick={resetLogin}> ⛔ Reset Login</button>
           </div>
 
@@ -397,16 +513,44 @@ const WhatsappPage = ({ userTokenData }) => {
           <div
             style={{
               background: "#fff",
-              padding: "5px",
+              padding: "12px 12px 20px 12px",
               borderRadius: "8px",
               width: "90%",
               maxWidth: "600px",
               maxHeight: "80vh",
               overflowY: "auto",
               boxSizing: "border-box",
+              position: 'relative'
             }}
           >
-            <h3 textAlign="center">Pilih Member</h3>
+            {/* Close button top-right */}
+            <button
+              aria-label="Tutup"
+              onClick={() => setShowModal(false)}
+              style={{
+                position: 'absolute',
+                top: 8,
+                right: 8,
+                background: 'transparent',
+                border: 'none',
+                fontSize: 20,
+                cursor: 'pointer'
+              }}
+            >
+              ✖
+            </button>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+              <h3 style={{ margin: 0, flex: '0 0 auto' }}>Pilih Member</h3>
+              <input
+                type="text"
+                placeholder="Cari nama, email, atau telepon"
+                value={memberSearch}
+                onChange={(e) => setMemberSearch(e.target.value)}
+                style={{ flex: 1, padding: '8px 10px', borderRadius: 6, border: '1px solid #ccc' }}
+              />
+            </div>
+
             {isLoading && <p>Loading...</p>}
             {error && <p style={{ color: "red" }}>{error}</p>}
             {!isLoading && filteredMembers.length === 0 && <p>Tidak ada member</p>}
@@ -448,15 +592,6 @@ const WhatsappPage = ({ userTokenData }) => {
                 ))}
               </tbody>
             </table>
-
-            <div style={{ marginTop: "16px", textAlign: "right" }}>
-              <button
-                style={{ background: "#ccc", padding: "8px 12px", borderRadius: "4px", border: "none" }}
-                onClick={() => setShowModal(false)}
-              >
-                Tutup
-              </button>
-            </div>
           </div>
         </div>
       )}
