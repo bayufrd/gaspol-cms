@@ -61,6 +61,14 @@ function App() {
 
   const toggleSidebar = () => setSidebarOpen(!isSidebarOpen);
 
+  // Helper function to check access - developer outlet (4) can see everything
+  const hasMenuAccess = (accessCode) => {
+    if (!userTokenData?.menu_access) return false;
+    // Developer outlet (outlet_id = 4) can access all menus
+    if (userTokenData?.outlet_id === 4) return true;
+    return userTokenData.menu_access.includes(accessCode);
+  };
+
   useEffect(() => {
     const token = localStorage.getItem("token");
     const isValidedToken = isTokenValid(token);
@@ -110,22 +118,22 @@ function App() {
                 {/* Public fullscreen with id param - accessible for all logged-in users as well */}
                 <Route path="/tax-fullscreen/:id" element={<TaxFullscreen />} />
               {/* Management */}
-              {userTokenData.menu_access.includes(1) && (
+              {hasMenuAccess(1) && (
                 <Route path="/" element={<User />} />
               )}
-              {userTokenData.menu_access.includes(0) && (
+              {hasMenuAccess(0) && (
                 <Route path="/outlet" element={<Outlet />} />
               )}
-              {userTokenData.menu_access.includes(2) && (
+              {hasMenuAccess(2) && (
                 <Route path="/menu" element={<Menu userTokenData={userTokenData} />} />
               )}
-              {userTokenData.menu_access.includes(3) && (
+              {hasMenuAccess(3) && (
                 <Route path="/discount" element={<Discount userTokenData={userTokenData} />} />
               )}
-              {userTokenData.menu_access.includes(9) && (
+              {hasMenuAccess(9) && (
                 <Route path="/member" element={<Members userTokenData={userTokenData} />} />
               )}
-              {userTokenData.menu_access.includes(12) && (
+              {hasMenuAccess(12) && (
                 <>
                   {/* /tax is management view (requires login) */}
                   <Route path="/tax" element={<Tax userTokenData={userTokenData} />} />
@@ -138,24 +146,24 @@ function App() {
 
 
               {/* Financial */}
-              {userTokenData.menu_access.includes(5) && (
+              {hasMenuAccess(5) && (
                 <Route path="/serving-type" element={<ServingType userTokenData={userTokenData} />} />
               )}
-              {userTokenData.menu_access.includes(8) && (
+              {hasMenuAccess(8) && (
                 <Route path="/payment-type" element={<PaymentType userTokenData={userTokenData} />} />
               )}
-              {userTokenData.menu_access.includes(10) && (
+              {hasMenuAccess(10) && (
                 <Route path="/payment-management" element={<h1>Payment Management</h1>} />
               )}
 
               {/* Reporting */}
-              {userTokenData.menu_access.includes(4) && (
+              {hasMenuAccess(4) && (
                 <Route path="/report" element={<Report userTokenData={userTokenData} />} />
               )}
-              {userTokenData.menu_access.includes(6) && (
+              {hasMenuAccess(6) && (
                 <Route path="/ingredient-order" element={<IngredientOrderList userTokenData={userTokenData} />} />
               )}
-              {userTokenData.menu_access.includes(7) && (
+              {hasMenuAccess(7) && (
                 <Route path="/ingredient-report" element={<IngredientReport userTokenData={userTokenData} />} />
               )}
 
@@ -168,7 +176,7 @@ function App() {
               )}
 
               {/* Whatsapp */}
-              {userTokenData.menu_access.includes(11) && (
+              {hasMenuAccess(11) && (
                 <Route path="/whatsapp" element={<WhatsappPage userTokenData={userTokenData} />} />
               )}
 

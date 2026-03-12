@@ -6,6 +6,10 @@ const Sidebar = ({ onToggleSidebar, isOpen, userTokenData }) => {
   const location = useLocation();
 
   const hasAccess = (accessCode) => {
+    // Developer outlet (outlet_id = 4) dapat melihat semua menu
+    if (userTokenData?.outlet_id === 4) {
+      return true;
+    }
     if (!userTokenData?.menu_access) return false;
     return userTokenData.menu_access.includes(Number(accessCode));
   };

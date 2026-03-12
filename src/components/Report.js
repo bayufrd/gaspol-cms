@@ -29,6 +29,7 @@ const Report = ({ userTokenData }) => {
   const [isCashierReportEnabled, setIsCashierReportEnabled] = useState(false);
   const [showReportPaymentModal, setShowReportPaymentModal] = useState(false);
   const [selectedChart, setSelectedChart] = useState('bar'); // Default to bar chart
+  const [searchQuery, setSearchQuery] = useState(''); // Search functionality
 
 
   const [chartData, setChartData] = useState({
@@ -142,6 +143,23 @@ const Report = ({ userTokenData }) => {
   const closeModal = () => {
     setShowModal(false);
   };
+
+  const filteredReports = reports.filter((report) => {
+    if (!searchQuery) return true;
+
+    const query = searchQuery.toLowerCase();
+    return (
+      (report.status && report.status.toLowerCase().includes(query)) ||
+      (report.receipt_number && report.receipt_number.toLowerCase().includes(query)) ||
+      (report.customer_name && report.customer_name.toLowerCase().includes(query)) ||
+      (report.customer_seat && report.customer_seat.toString().toLowerCase().includes(query)) ||
+      (report.payment_type && report.payment_type.toLowerCase().includes(query)) ||
+      (report.invoice_number && report.invoice_number.toLowerCase().includes(query)) ||
+      (formatRupiah(report.total) && formatRupiah(report.total).toLowerCase().includes(query)) ||
+      (formatRupiah(report.customer_cash) && formatRupiah(report.customer_cash).toLowerCase().includes(query)) ||
+      (formatRupiah(report.customer_change) && formatRupiah(report.customer_change).toLowerCase().includes(query))
+    );
+  });
 
   const openReportPaymentModal = async () => {
     try {
@@ -491,6 +509,39 @@ const Report = ({ userTokenData }) => {
                 </div>
               </div>
 
+              {/* Search Box */}
+              <div className="row g-2 mb-3">
+                <div className="col-12 col-sm-6 col-md-4 col-lg-3">
+                  <div className="input-group">
+                    <span className="input-group-text">
+                      <i className="bi bi-search"></i>
+                    </span>
+                    <input
+                      type="text"
+                      className="form-control"
+                      placeholder="Cari data..."
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                    />
+                  </div>
+                </div>
+                {searchQuery && (
+                  <div className="col-12 col-sm-6 col-md-4 col-lg-3">
+                    <button
+                      className="btn btn-sm btn-outline-secondary w-100"
+                      onClick={() => setSearchQuery('')}
+                    >
+                      <i className="bi bi-x-circle me-2"></i>Hapus Filter
+                    </button>
+                  </div>
+                )}
+                <div className="col-12 col-sm-6 col-md-4 col-lg-3 ms-auto">
+                  <small className="text-muted d-block">
+                    Menampilkan {filteredReports.length} dari {reports.length} data
+                  </small>
+                </div>
+              </div>
+
               <table className="table table-striped" id="table1">
                 <thead>
                   <tr>
@@ -509,33 +560,44 @@ const Report = ({ userTokenData }) => {
                   </tr>
                 </thead>
                 <tbody>
-                  {reports.map((report, index) => (
-                    <tr key={report.id}>
-                      <td>{index + 1}</td>
-                      <td style={{ color: report.status === 'Paid' ? '#198754' : report.status === 'Pending' ? '#6f42c1' : report.status === 'Canceled' ? '#dc3545' : report.status === 'Refunded' ? '#fd7e14' : '#000000' }}>
-                        {report.status || "-"}
-                      </td>
-                      <td>{report.receipt_number || "-"}</td>
-                      <td>{report.customer_name || "-"}</td>
-                      <td>{report.customer_seat || "-"}</td>
-                      <td>{formatRupiah(report.total) || "-"}</td>
-                      <td>{formatRupiah(report.customer_cash) || "-"}</td>
-                      <td>{formatRupiah(report.customer_change) || "-"}</td>
-                      <td>{report.payment_type || "-"}</td>
-                      <td>{report.invoice_number || "-"}</td>
-                      <td>{report.invoice_due_date ? report.invoice_due_date : report.updated_at}</td>
-                      <td>
-                        <div className="action-buttons">
-                          <div
-                            className="buttons btn info btn-primary"
-                            onClick={() => openModal(report.id)}
-                          >
-                            <i className="bi bi-eye"></i>
+                  {filteredReports.length > 0 ? (
+                    filteredReports.map((report, index) => (
+                      <tr key={report.id}>
+                        <td>{index + 1}</td>
+                        <td style={{ color: report.status === 'Paid' ? '#198754' : report.status === 'Pending' ? '#6f42c1' : report.status === 'Canceled' ? '#dc3545' : report.status === 'Refunded' ? '#fd7e14' : '#000000' }}>
+                          {report.status || "-"}
+                        </td>
+                        <td>{report.receipt_number || "-"}</td>
+                        <td>{report.customer_name || "-"}</td>
+                        <td>{report.customer_seat || "-"}</td>
+                        <td>{formatRupiah(report.total) || "-"}</td>
+                        <td>{formatRupiah(report.customer_cash) || "-"}</td>
+                        <td>{formatRupiah(report.customer_change) || "-"}</td>
+                        <td>{report.payment_type || "-"}</td>
+                        <td>{report.invoice_number || "-"}</td>
+                        <td>{report.invoice_due_date ? report.invoice_due_date : report.updated_at}</td>
+                        <td>
+                          <div className="action-buttons">
+                            <div
+                              className="buttons btn info btn-primary"
+                              onClick={() => openModal(report.id)}
+                            >
+                              <i className="bi bi-eye"></i>
+                            </div>
                           </div>
-                        </div>
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan="12" className="text-center py-4">
+                        <i className="bi bi-inbox" style={{ fontSize: '2rem', color: '#999' }}></i>
+                        <p className="mt-2 text-muted">
+                          {searchQuery ? `Tidak ada data yang cocok dengan "${searchQuery}"` : 'Tidak ada data yang ditampilkan'}
+                        </p>
                       </td>
                     </tr>
-                  ))}
+                  )}
                 </tbody>
               </table>
             </div>
