@@ -1,5 +1,5 @@
 
-import React, { useState, useCallback, useEffect } from "react";
+import React, { useState, useCallback, useEffect, useRef } from "react";
 import axios from "axios";
 import Swal from "sweetalert2";
 
@@ -65,6 +65,16 @@ const WhatsappPage = ({ userTokenData }) => {
   const [showModal, setShowModal] = useState(false);
   const [memberSearch, setMemberSearch] = useState('');
   const [expandedLogEntry, setExpandedLogEntry] = useState(null);
+
+  // Ref for auto-scroll to bottom on logs container
+  const logsContainerRef = useRef(null);
+
+  // Auto-scroll to bottom when logs change
+  useEffect(() => {
+    if (logsContainerRef.current && logs && logs.length > 0) {
+      logsContainerRef.current.scrollTop = logsContainerRef.current.scrollHeight;
+    }
+  }, [logs]);
 
   const getMembers = useCallback(async () => {
     setIsLoading(true);
@@ -310,23 +320,17 @@ const WhatsappPage = ({ userTokenData }) => {
 
   const fetchLogs = async () => {
     try {
-      const url = `${apiBaseUrl}/logs`;
-      let data = null;
-      try {
-        const headers = { Accept: 'application/json' };
-        if (WA_APP_TOKEN) headers['x-app-token'] = WA_APP_TOKEN;
-        const r = await fetch(url, { method: 'GET', mode: 'cors', credentials: 'omit', headers });
-        if (r.ok) data = await r.json();
-        else throw new Error('Fetch failed with status ' + r.status);
-      } catch (errFetch) {
-        const axiosOptions = { withCredentials: false };
-        if (WA_APP_TOKEN) axiosOptions.headers = { 'x-app-token': WA_APP_TOKEN };
-        const response = await axios.get(url, axiosOptions);
-        data = response.data;
+      const url = `${apiUrlBaseBackend}/whatsapp-log`;
+      const response = await axios.get(url, { withCredentials: false });
+      // API returns { status, message, data: { messages: [...], pagination: {...}, ... } }
+      if (response.data?.status && response.data?.data?.messages) {
+        setLogs(response.data.data.messages);
+      } else {
+        setLogs([]);
       }
-      setLogs(data);
     } catch (error) {
       console.error('Error fetching logs:', error);
+      setLogs([]);
     }
   };
 
@@ -798,109 +802,81 @@ const WhatsappPage = ({ userTokenData }) => {
           </div>
 
           <div style={{ marginTop: '20px' }}>
-            <h5 style={{ textAlign: 'left', marginBottom: '10px' }}><i className="bi bi-chat-left-text" style={{marginRight: '8px'}}></i>Logs</h5>
-            <p style={{ marginTop: 0, marginBottom: '12px', color: '#666', fontSize: '13px', textAlign: 'left' }}>Menampilkan 200 baris terakhir dari log pesan dalam tampilan chat.</p>
+            <h5 style={{ textAlign: 'left', marginBottom: '10px' }}><i className="bi bi-chat-left-text" style={{marginRight: '8px'}}></i>Logs Pesan</h5>
+            <p style={{ marginTop: 0, marginBottom: '12px', color: '#666', fontSize: '13px', textAlign: 'left' }}>Menampilkan log pesan terkirim dalam tampilan chat WhatsApp.</p>
 
-            <div style={{ maxHeight: '420px', overflowY: 'auto', padding: 12, background: '#fafafa', borderRadius: 8, border: '1px solid #eee', textAlign: 'left' }}>
+            <div ref={logsContainerRef} style={{ maxHeight: '420px', overflowY: 'auto', padding: 12, background: '#e5ddd5', borderRadius: 8, border: '1px solid #d1c9bf', textAlign: 'left', backgroundImage: 'url("data:image/svg+xml,%3Csvg width="60" height="60" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg"%3E%3Cg fill="none" fill-rule="evenodd"%3E%3Cg fill="%23d4cdc4" fill-opacity="0.4"%3E%3Cpath d="M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z"/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")' }}>
               {(() => {
-                const entries = parseLogEntries(200);
-                if (!entries || entries.length === 0) return <div style={{ color: '#666' }}>Tidak ada log.</div>;
+                // logs is now an array of message objects from /whatsapp-log API
+                if (!logs || !Array.isArray(logs) || logs.length === 0) {
+                  return <div style={{ color: '#666', textAlign: 'center', padding: '20px' }}>Tidak ada log pesan.</div>;
+                }
 
-                return entries.map((e, idx) => {
-                  const isRight = e.direction === 'right';
-                  const containerStyle = { display: 'flex', justifyContent: isRight ? 'flex-end' : 'flex-start', margin: '8px 0' };
-                  const bubbleBase = {
+                return logs.map((msg, idx) => {
+                  const containerStyle = { display: 'flex', justifyContent: 'flex-end', margin: '8px 0' };
+                  const bubbleStyle = {
                     padding: '8px 12px',
-                    borderRadius: 16,
-                    maxWidth: '72%',
+                    borderRadius: '7.5px',
+                    maxWidth: '75%',
                     whiteSpace: 'pre-wrap',
-                    boxShadow: '0 1px 0 rgba(0,0,0,0.05)'
+                    boxShadow: '0 1px 0.5px rgba(0,0,0,0.13)',
+                    background: '#dcf8c6',
+                    color: '#303030',
+                    position: 'relative',
+                    wordBreak: 'break-word'
                   };
 
-                  const leftBubble = { ...bubbleBase, background: '#ffffff', color: '#111', border: '1px solid #eee' };
-                  const rightBubble = { ...bubbleBase, background: '#dcf8c6', color: '#111', border: '1px solid #c6e6a9' };
-                  const postLeftBubble = { ...bubbleBase, background: '#e9f2ff', color: '#0b66ff', border: '1px solid #d6e9ff' };
-
-                  const tagPill = {
-                    display: 'inline-block',
-                    padding: '4px 8px',
-                    borderRadius: 12,
-                    fontSize: 12,
-                    color: '#0b66ff',
-                    background: '#eef6ff',
-                    border: '1px solid #d6e9ff'
+                  const phoneStyle = {
+                    fontSize: 11,
+                    color: '#075e54',
+                    fontWeight: '600',
+                    marginBottom: 4
                   };
+
+                  const timeStyle = {
+                    fontSize: 11,
+                    color: '#667781',
+                    marginTop: 4,
+                    textAlign: 'right',
+                    display: 'flex',
+                    justifyContent: 'flex-end',
+                    alignItems: 'center',
+                    gap: 4
+                  };
+
+                  const content = msg.content || '';
+                  const isLongMsg = content.length > 200;
+                  const isExpanded = expandedLogEntry === idx;
+                  const displayContent = isExpanded ? content : (isLongMsg ? content.substring(0, 200) + '...' : content);
 
                   return (
-                    <div key={idx} style={containerStyle}>
-                      <div style={{ display: 'flex', alignItems: 'flex-end', gap: 8 }}>
-                        {!isRight && (
-                          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 6 }}>
-                            <div style={tagPill}>{e.tag}{e.count > 1 ? ` (${e.count})` : ''}</div>
-                          </div>
+                    <div key={msg.id || idx} style={containerStyle}>
+                      <div style={bubbleStyle}>
+                        {msg.phoneNumber && (
+                          <div style={phoneStyle}>📱 +{msg.phoneNumber}</div>
                         )}
-
-                        <div style={isRight ? rightBubble : (e.isPostReq ? postLeftBubble : leftBubble)}>
-                          {(() => {
-                            const text = e.text || '';
-                            const textLen = text.length;
-                            let previewLen = 150;
-                            if (/^connection closed/i.test(text)) {
-                              const colonIdx = text.indexOf(':');
-                              if (colonIdx > 0 && colonIdx < 100) {
-                                previewLen = colonIdx + 1;
-                              }
-                            }
-                            else if (/^🔄 koneksi terputus/i.test(text)) {
-                              const ellipsisIdx = text.indexOf('...');
-                              if (ellipsisIdx > 0) {
-                                previewLen = ellipsisIdx + 3;
-                              } else {
-                                previewLen = Math.min(50, textLen);
-                              }
-                            }
-                            else if (/^detail backup/i.test(text)) {
-                              const colonIdx = text.indexOf(':');
-                              if (colonIdx > 0) {
-                                previewLen = colonIdx + 1;
-                              } else {
-                                previewLen = Math.min(20, textLen);
-                              }
-                            }
-                            const isLongMsg = textLen > previewLen;
-                            const isExpanded = expandedLogEntry === idx;
-                            const displayText = isExpanded ? text : (isLongMsg ? text.substring(0, previewLen) + '...' : text);
-                            return (
-                              <>
-                                <div style={{ fontSize: 13, lineHeight: '1.3', whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>{displayText}</div>
-                                {isLongMsg && (
-                                  <button
-                                    onClick={() => setExpandedLogEntry(isExpanded ? null : idx)}
-                                    style={{
-                                      background: 'transparent',
-                                      border: 'none',
-                                      color: '#0b66ff',
-                                      cursor: 'pointer',
-                                      fontSize: 12,
-                                      marginTop: 6,
-                                      padding: 0,
-                                      textDecoration: 'underline'
-                                    }}
-                                  >
-                                    {isExpanded ? 'Sembunyikan' : 'Lihat Selengkapnya'}
-                                  </button>
-                                )}
-                                <div style={{ fontSize: 11, color: '#666', marginTop: 6, textAlign: isRight ? 'right' : 'left' }}>{e.lastTimestamp || e.firstTimestamp}</div>
-                              </>
-                            );
-                          })()}
+                        <div style={{ fontSize: 14, lineHeight: '1.4' }}>{displayContent}</div>
+                        {isLongMsg && (
+                          <button
+                            onClick={() => setExpandedLogEntry(isExpanded ? null : idx)}
+                            style={{
+                              background: 'transparent',
+                              border: 'none',
+                              color: '#075e54',
+                              cursor: 'pointer',
+                              fontSize: 12,
+                              marginTop: 4,
+                              padding: 0,
+                              textDecoration: 'underline'
+                            }}
+                          >
+                            {isExpanded ? 'Sembunyikan' : 'Lihat Selengkapnya'}
+                          </button>
+                        )}
+                        <div style={timeStyle}>
+                          <span>{msg.timestamp || '-'}</span>
+                          <span style={{ color: '#53bdeb' }}>✓✓</span>
                         </div>
-
-                        {isRight && (
-                          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 6 }}>
-                            <div style={tagPill}>{e.tag}{e.count > 1 ? ` (${e.count})` : ''}</div>
-                          </div>
-                        )}
                       </div>
                     </div>
                   );
@@ -910,7 +886,10 @@ const WhatsappPage = ({ userTokenData }) => {
 
             <div style={{ marginTop: 12, display: 'flex', gap: 8 }}>
               <button style={styles.button} onClick={() => { fetchLogs(); Swal.fire({ icon: 'success', title: 'Refresh', text: 'Log diperbarui', timer: 1200, showConfirmButton: false }); }}><i className="bi bi-arrow-clockwise" style={{marginRight: '6px'}}></i>Refresh</button>
-              <button style={{ ...styles.button, backgroundColor: '#6c757d' }} onClick={() => { navigator?.clipboard?.writeText(getLogLines().slice(-200).join('\n')).then(()=>{ Swal.fire({ icon:'success', title: 'Disalin', text: '200 baris terakhir disalin ke clipboard', toast: true, position: 'top-end', showConfirmButton:false, timer:1500 }) }).catch(()=>{ Swal.fire({ icon:'error', title:'Gagal', text:'Tidak dapat menyalin ke clipboard' }) }) }}><i className="bi bi-clipboard" style={{marginRight: '6px'}}></i>Salin</button>
+              <button style={{ ...styles.button, backgroundColor: '#6c757d' }} onClick={() => { 
+                const logText = logs.map(m => `[${m.timestamp}] ${m.phoneNumber ? '+' + m.phoneNumber : ''}: ${m.content}`).join('\n');
+                navigator?.clipboard?.writeText(logText).then(()=>{ Swal.fire({ icon:'success', title: 'Disalin', text: 'Log pesan disalin ke clipboard', toast: true, position: 'top-end', showConfirmButton:false, timer:1500 }) }).catch(()=>{ Swal.fire({ icon:'error', title:'Gagal', text:'Tidak dapat menyalin ke clipboard' }) }) 
+              }}><i className="bi bi-clipboard" style={{marginRight: '6px'}}></i>Salin</button>
             </div>
           </div>
         </div>
