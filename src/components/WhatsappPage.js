@@ -721,9 +721,9 @@ const WhatsappPage = ({ userTokenData }) => {
       fetchWaStatus();
       checkConnectionStatus();
       fetchLogs();
+      // Auto-refresh hanya untuk status koneksi, bukan logs
       const intervalId = setInterval(() => {
         checkConnectionStatus();
-        fetchLogs();
       }, 5000);
       return () => clearInterval(intervalId);
     }
