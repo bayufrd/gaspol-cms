@@ -16,7 +16,7 @@ const Sidebar = ({ onToggleSidebar, isOpen, userTokenData }) => {
 
   const menuSections = [
     {
-      title: "Management",
+      title: "MANAGEMENT",
       items: [
         { accessCode: 1, icon: "bi-people-fill", label: "Management Users", path: "/" },
         { accessCode: 0, icon: "bi-building", label: "Management Outlet", path: "/outlet" },
@@ -27,7 +27,7 @@ const Sidebar = ({ onToggleSidebar, isOpen, userTokenData }) => {
       ]
     },
     {
-      title: "Financial",
+      title: "FINANCIAL",
       items: [
         { accessCode: 5, icon: "bi-currency-exchange", label: "Serving Types", path: "/serving-type" },
         { accessCode: 8, icon: "bi-bank", label: "Payment Types", path: "/payment-type" },
@@ -35,7 +35,7 @@ const Sidebar = ({ onToggleSidebar, isOpen, userTokenData }) => {
       ]
     },
     {
-      title: "Reporting",
+      title: "REPORTING",
       items: [
         { accessCode: 4, icon: "bi-book", label: "Reports", path: "/report" },
         { accessCode: 6, icon: "bi-clipboard-check", label: "Ingredients Order", path: "/ingredient-order" },
@@ -43,11 +43,18 @@ const Sidebar = ({ onToggleSidebar, isOpen, userTokenData }) => {
       ]
     },
     {
-      title: "Whatsapp Management",
+      title: "WHATSAPP MANAGEMENT",
       items: [
         { accessCode: 11, icon: "bi-whatsapp", label: "Whatsapp", path: "/whatsapp" }
       ]
-    }
+    },
+    // Revenue Generator - Only for outlet 0 and 4
+    ...(userTokenData?.outlet_id === 0 || userTokenData?.outlet_id === 4 ? [{
+      title: "DEVELOPER TOOLS",
+      items: [
+        { accessCode: 99, icon: "bi-gear-wide-connected", label: "Revenue Generator", path: "/revenue-generator" }
+      ]
+    }] : [])
   ];
 
   const warehouseMenus = [

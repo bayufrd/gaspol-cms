@@ -2,6 +2,16 @@ import React from "react";
 
 const Footer = () => {
   const [footerUrl, setFooterUrl] = React.useState('https://dastrevas.com');
+  const [isMobile, setIsMobile] = React.useState(window.innerWidth <= 768);
+
+  React.useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth <= 768);
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
   React.useEffect(() => {
     let isMounted = true;
     const testUrls = async () => {
@@ -26,6 +36,7 @@ const Footer = () => {
     testUrls();
     return () => { isMounted = false; };
   }, []);
+
   const styles = {
     footer: {
       backgroundColor: '#f8f9fa',
@@ -38,8 +49,10 @@ const Footer = () => {
       margin: '0 auto',
       padding: '0 15px',
       display: 'flex',
+      flexDirection: isMobile ? 'column' : 'row',
       justifyContent: 'space-between',
       alignItems: 'center',
+      gap: isMobile ? '15px' : '0',
     },
     leftSection: {
       display: 'flex',
@@ -72,16 +85,26 @@ const Footer = () => {
       margin: 0,
       marginLeft: '10px',
     },
-    downloadLink: {
-      display: 'flex',
+    downloadButton: {
+      display: 'inline-flex',
       alignItems: 'center',
-      gap: '6px',
+      gap: '8px',
+      padding: isMobile ? '8px 14px' : '10px 18px',
+      backgroundColor: '#0078D4',
+      color: '#ffffff',
       textDecoration: 'none',
-      color: '#2575fc',
+      borderRadius: '8px',
       fontWeight: '500',
+      fontSize: isMobile ? '12px' : '14px',
+      boxShadow: '0 2px 6px rgba(0, 120, 212, 0.3)',
+      transition: 'all 0.3s ease',
     },
-    icon: {
-      fontSize: '18px',
+    windowsIcon: {
+      width: isMobile ? '16px' : '18px',
+      height: isMobile ? '16px' : '18px',
+    },
+    downloadIcon: {
+      fontSize: isMobile ? '14px' : '16px',
     },
   };
 
@@ -106,14 +129,32 @@ const Footer = () => {
             </div>
             <p style={styles.companyText}>2023 © Akhari Tech x Dastrevas</p>
           </a>
-
-          <a
-            href="https://gaspollmanagementcenter.com/server/setup.exe"
-            style={styles.downloadLink}
-          >
-            <span style={styles.icon}>⬇</span> Download KASIR Installer Setup (Windows)
-          </a>
         </div>
+
+        <a
+          href="https://gaspollmanagementcenter.com/server/setup.exe"
+          style={styles.downloadButton}
+          onMouseOver={(e) => {
+            e.currentTarget.style.backgroundColor = '#005a9e';
+            e.currentTarget.style.transform = 'translateY(-2px)';
+            e.currentTarget.style.boxShadow = '0 4px 12px rgba(0, 120, 212, 0.4)';
+          }}
+          onMouseOut={(e) => {
+            e.currentTarget.style.backgroundColor = '#0078D4';
+            e.currentTarget.style.transform = 'translateY(0)';
+            e.currentTarget.style.boxShadow = '0 2px 6px rgba(0, 120, 212, 0.3)';
+          }}
+        >
+          <i className="bi bi-download" style={styles.downloadIcon}></i>
+          {isMobile ? 'Kasir Installer' : 'Download Kasir Installer'}
+          <svg 
+            style={styles.windowsIcon} 
+            viewBox="0 0 24 24" 
+            fill="currentColor"
+          >
+            <path d="M0 3.449L9.75 2.1v9.451H0m10.949-9.602L24 0v11.4H10.949M0 12.6h9.75v9.451L0 20.699M10.949 12.6H24V24l-12.9-1.801"/>
+          </svg>
+        </a>
       </div>
     </footer>
   );

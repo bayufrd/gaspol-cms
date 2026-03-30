@@ -26,6 +26,7 @@ import Members from "./components/Member";
 import WhatsappPage from "./components/WhatsappPage";
 import Tax from "./components/Tax";
 import TaxFullscreen from "./components/TaxFullscreen";
+import RevenueGenerator from "./components/RevenueGenerator";
 
 function Layout({ children, userTokenData, toggleSidebar, isSidebarOpen, setIsLoggedIn }) {
   const location = useLocation();
@@ -178,6 +179,11 @@ function App() {
               {/* Whatsapp */}
               {hasMenuAccess(11) && (
                 <Route path="/whatsapp" element={<WhatsappPage userTokenData={userTokenData} />} />
+              )}
+
+              {/* Revenue Generator - Only for outlet 0 and 4 */}
+              {(userTokenData.outlet_id === 0 || userTokenData.outlet_id === 4) && (
+                <Route path="/revenue-generator" element={<RevenueGenerator userTokenData={userTokenData} />} />
               )}
 
               {/* Profile always available */}
