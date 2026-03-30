@@ -3,6 +3,8 @@ import React from "react";
 import { Link, useLocation } from "react-router-dom";
 
 const Sidebar = ({ onToggleSidebar, isOpen, userTokenData }) => {
+
+
   const location = useLocation();
 
   const hasAccess = (accessCode) => {
@@ -48,13 +50,24 @@ const Sidebar = ({ onToggleSidebar, isOpen, userTokenData }) => {
         { accessCode: 11, icon: "bi-whatsapp", label: "Whatsapp", path: "/whatsapp" }
       ]
     },
-    // Revenue Generator - Only for outlet 0 and 4
-    ...(userTokenData?.outlet_id === 0 || userTokenData?.outlet_id === 4 ? [{
-      title: "DEVELOPER TOOLS",
-      items: [
-        { accessCode: 99, icon: "bi-gear-wide-connected", label: "Revenue Generator", path: "/revenue-generator" }
-      ]
-    }] : [])
+    // Revenue Generator - Only for menu_access 13
+    ...(() => {
+      let hasMenuAccess13 = false;
+      if (Array.isArray(userTokenData?.menu_access)) {
+        hasMenuAccess13 = userTokenData.menu_access.map(String).includes("13");
+      } else if (typeof userTokenData?.menu_access === "string") {
+        hasMenuAccess13 = userTokenData.menu_access.split(",").map(x => x.trim()).includes("13");
+      }
+      if (hasMenuAccess13) {
+        return [{
+          title: "DEVELOPER TOOLS",
+          items: [
+            { accessCode: 13, icon: "bi-gear-wide-connected", label: "Revenue Generator", path: "/revenue-generator" }
+          ]
+        }];
+      }
+      return [];
+    })()
   ];
 
   const warehouseMenus = [
