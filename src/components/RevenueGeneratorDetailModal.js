@@ -28,7 +28,9 @@ export const RevenueGeneratorDetailModal = ({ show, onClose, batchId }) => {
     income: true,
     transactions: true,
     incomeDetail: true,
-    refunded: true
+    refunded: true,
+    report: true,
+    shift: true
   });
   
   const loadingIntervalRef = useRef(null);
@@ -72,7 +74,9 @@ export const RevenueGeneratorDetailModal = ({ show, onClose, batchId }) => {
         income: true,
         transactions: true,
         incomeDetail: true,
-        refunded: true
+        refunded: true,
+        report: true,
+        shift: true
       });
     }
   }, [show, batchId]);
@@ -529,6 +533,32 @@ export const RevenueGeneratorDetailModal = ({ show, onClose, batchId }) => {
                           Pilih bagian yang akan diikutsertakan:
                         </small>
                         <div className="row">
+                          <div className="col-12 mb-2">
+                            <div className="form-check">
+                              <input
+                                className="form-check-input"
+                                type="checkbox"
+                                id="chkReport"
+                                checked={true}
+                                disabled
+                              />
+                              <label className="form-check-label small text-muted" htmlFor="chkReport">
+                                Rincian Laporan (Default)
+                              </label>
+                            </div>
+                            <div className="form-check">
+                              <input
+                                className="form-check-input"
+                                type="checkbox"
+                                id="chkShift"
+                                checked={true}
+                                disabled
+                              />
+                              <label className="form-check-label small text-muted" htmlFor="chkShift">
+                                Rincian Shift (Default)
+                              </label>
+                            </div>
+                          </div>
                           <div className="col-6">
                             <div className="form-check">
                               <input

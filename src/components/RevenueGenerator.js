@@ -14,6 +14,7 @@ const RevenueGenerator = ({ userTokenData }) => {
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const [targetRevenue, setTargetRevenue] = useState("");
   const [usePpn, setUsePpn] = useState(true);
+  const [ppnPercent, setPpnPercent] = useState(10);
   const [weekendBoost, setWeekendBoost] = useState(true);
   const [bookingMode, setBookingMode] = useState(true);
   const [generateRefunds, setGenerateRefunds] = useState(true);
@@ -198,6 +199,7 @@ const RevenueGenerator = ({ userTokenData }) => {
         year: parseInt(selectedYear),
         target_revenue: parseFloat(targetRevenue.replace(/\./g, "")),
         use_ppn: usePpn,
+        ppn_percent: ppnPercent,
         weekend_boost: weekendBoost,
         booking_mode: bookingMode,
         generate_refunds: generateRefunds,
@@ -587,13 +589,27 @@ const RevenueGenerator = ({ userTokenData }) => {
                         onChange={(e) => setUsePpn(e.target.checked)}
                       />
                       <label className="form-check-label" htmlFor="usePpn">
-                        <strong>Gunakan PPN (11%)</strong>
+                        <strong>Gunakan PPN</strong>
                         <br/>
                         <small className="text-muted">
-                          Menambahkan pajak 11% ke setiap transaksi. <strong>TIDAK berlaku</strong> untuk pembayaran online delivery (GoFood, GrabFood, ShopeeFood) karena sudah include.
+                          Menambahkan pajak ke setiap transaksi. <strong>TIDAK berlaku</strong> untuk pembayaran online delivery (GoFood, GrabFood, ShopeeFood) karena sudah include. Default: 10%.
                         </small>
                       </label>
                     </div>
+                    {usePpn && (
+                      <div className="mt-2">
+                        <label className="form-label">Persentase PPN (%)</label>
+                        <input
+                          type="number"
+                          className="form-control"
+                          min={0}
+                          max={100}
+                          value={ppnPercent}
+                          onChange={(e) => setPpnPercent(parseFloat(e.target.value || 0))}
+                        />
+                        <small className="text-muted">Masukkan persentase PPN yang ingin diterapkan (mis. 10)</small>
+                      </div>
+                    )}
                     <div className="form-check form-switch">
                       <input 
                         className="form-check-input" 
