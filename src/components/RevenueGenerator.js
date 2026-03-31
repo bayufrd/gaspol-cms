@@ -25,6 +25,10 @@ const RevenueGenerator = ({ userTokenData }) => {
   const [logs, setLogs] = useState([]);
   const [previewData, setPreviewData] = useState(null);
   const [loadingPreview, setLoadingPreview] = useState(false);
+  const [templateMenus, setTemplateMenus] = useState([]);
+  const [excludedMenuIds, setExcludedMenuIds] = useState([]);
+  const [showAdvancedOptions, setShowAdvancedOptions] = useState(false);
+  const [menuSearchQuery, setMenuSearchQuery] = useState('');
   
   // UI states
   const [loading, setLoading] = useState(false);
@@ -75,6 +79,7 @@ const RevenueGenerator = ({ userTokenData }) => {
   useEffect(() => {
     fetchOutlets();
     fetchLogs();
+    fetchTemplateMenus();
   }, []);
 
   // Debounce preview calculation when inputs change
@@ -110,7 +115,8 @@ const RevenueGenerator = ({ userTokenData }) => {
           outlet_id: selectedOutlet,
           month: selectedMonth,
           year: selectedYear,
-          target_revenue: parseFloat(targetRevenue.replace(/\./g, ""))
+          target_revenue: parseFloat(targetRevenue.replace(/\./g, "")),
+          excluded_menu_ids: excludedMenuIds.join(',')
         }
       });
 
@@ -133,6 +139,18 @@ const RevenueGenerator = ({ userTokenData }) => {
       }
     } catch (error) {
       console.error("Error fetching outlets:", error);
+    }
+  };
+
+  // Fetch template menus for optional exclusion
+  const fetchTemplateMenus = async () => {
+    try {
+      const response = await axios.get(`${apiBaseUrl}/revenue-generator/template-menus`);
+      if (response.data.success) {
+        setTemplateMenus(response.data.data || []);
+      }
+    } catch (error) {
+      console.error('Error fetching template menus:', error);
     }
   };
 
@@ -204,6 +222,7 @@ const RevenueGenerator = ({ userTokenData }) => {
         booking_mode: bookingMode,
         generate_refunds: generateRefunds,
         generate_expenditures: generateExpenditures,
+        excluded_menu_ids: excludedMenuIds,
         user_id: userTokenData?.id,
         username: userTokenData?.username || userTokenData?.name
       });
@@ -595,6 +614,79 @@ const RevenueGenerator = ({ userTokenData }) => {
                           Menambahkan pajak ke setiap transaksi. <strong>TIDAK berlaku</strong> untuk pembayaran online delivery (GoFood, GrabFood, ShopeeFood) karena sudah include. Default: 10%.
                         </small>
                       </label>
+                    </div>
+                    <div className="mt-2">
+                      <div className="d-flex justify-content-between align-items-center">
+                        <label className="form-label mb-0">Kecualikan Menu (opsional)</label>
+                        <button type="button" className="btn btn-sm btn-link" onClick={() => setShowAdvancedOptions(v => !v)}>
+                          {showAdvancedOptions ? 'Sembunyikan Opsi Lainnya' : 'Opsi Tambahan Lainnya'}
+                        </button>
+                      </div>
+
+                      {showAdvancedOptions ? (
+                        <>
+                          <div>
+                            <input
+                              type="text"
+                              className="form-control mb-2"
+                              placeholder="Cari menu..."
+                              value={menuSearchQuery}
+                              onChange={(e) => setMenuSearchQuery(e.target.value)}
+                            />
+
+                            <div style={{ maxHeight: 220, overflowY: 'auto', border: '1px solid #e9ecef', borderRadius: 4, padding: 8 }}>
+                              {templateMenus.filter(m => {
+                                if (!menuSearchQuery) return true;
+                                const q = menuSearchQuery.toLowerCase();
+                                return (m.name || '').toLowerCase().includes(q) || (m.details && m.details.some(d => (d.varian || '').toLowerCase().includes(q)));
+                              }).map(m => (
+                                <div key={m.id} className="form-check" style={{ padding: '2px 6px' }}>
+                                  <input
+                                    className="form-check-input"
+                                    type="checkbox"
+                                    id={`exclude-menu-${m.id}`}
+                                    checked={excludedMenuIds.includes(m.id)}
+                                    onChange={(e) => {
+                                      if (e.target.checked) {
+                                        setExcludedMenuIds(prev => Array.from(new Set([...prev, m.id])));
+                                      } else {
+                                        setExcludedMenuIds(prev => prev.filter(x => x !== m.id));
+                                      }
+                                    }}
+                                  />
+                                  <label className="form-check-label ms-2" htmlFor={`exclude-menu-${m.id}`} style={{ cursor: 'pointer' }}>
+                                    {m.name}{m.details && m.details.length ? ` (${m.details.map(d=>d.varian).join(', ')})` : ''}
+                                  </label>
+                                </div>
+                              ))}
+                              {templateMenus.length === 0 && <div className="text-muted">Tidak ada menu template.</div>}
+                            </div>
+
+                            {/* Selected chips */}
+                            <div className="mt-2">
+                              {excludedMenuIds.length === 0 ? (
+                                <small className="text-muted">Belum ada menu yang dipilih.</small>
+                              ) : (
+                                <div className="d-flex flex-wrap gap-2">
+                                  {excludedMenuIds.map(id => {
+                                    const m = templateMenus.find(x => x.id === id);
+                                    return (
+                                      <span key={id} className="badge bg-secondary d-inline-flex align-items-center">
+                                        <span style={{marginRight:8}}>{m ? m.name : `ID:${id}`}</span>
+                                        <button type="button" className="btn-close btn-close-white btn-sm" onClick={() => setExcludedMenuIds(prev => prev.filter(x => x !== id))} aria-label="Remove" />
+                                      </span>
+                                    );
+                                  })}
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        </>
+                      ) : (
+                        <div className="mt-2">
+                          <small className="text-muted">Klik "Opsi Tambahan Lainnya" untuk memilih menu yang ingin dikecualikan.</small>
+                        </div>
+                      )}
                     </div>
                     {usePpn && (
                       <div className="mt-2">
