@@ -12,6 +12,9 @@ export const RevenueGeneratorDetailModal = ({ show, onClose, batchId }) => {
   const [selectedTransaction, setSelectedTransaction] = useState(null);
   const [loadingDetail, setLoadingDetail] = useState(false);
   const [loadingDetailProgress, setLoadingDetailProgress] = useState(0);
+  const [selectedRefund, setSelectedRefund] = useState(null);
+  const [loadingRefundDetail, setLoadingRefundDetail] = useState(false);
+  const [loadingRefundDetailProgress, setLoadingRefundDetailProgress] = useState(0);
   const [refundsData, setRefundsData] = useState([]);
   const [expendituresData, setExpendituresData] = useState([]);
   const [loadingRefunds, setLoadingRefunds] = useState(false);
@@ -182,6 +185,27 @@ export const RevenueGeneratorDetailModal = ({ show, onClose, batchId }) => {
       setTimeout(() => {
         setLoadingDetail(false);
         setLoadingDetailProgress(0);
+      }, 200);
+    }
+  };
+
+  const fetchRefundDetail = async (refundId) => {
+    setLoadingRefundDetail(true);
+    setLoadingRefundDetailProgress(0);
+    const interval = startLoadingProgress(setLoadingRefundDetailProgress);
+    try {
+      const response = await axios.get(`${apiBaseUrl}/revenue-generator/refund-detail/${refundId}`);
+      if (response.data.success) {
+        setSelectedRefund(response.data.data);
+      }
+    } catch (error) {
+      console.error("Error fetching refund detail:", error);
+    } finally {
+      clearInterval(interval);
+      setLoadingRefundDetailProgress(100);
+      setTimeout(() => {
+        setLoadingRefundDetail(false);
+        setLoadingRefundDetailProgress(0);
       }, 200);
     }
   };
@@ -1026,6 +1050,131 @@ export const RevenueGeneratorDetailModal = ({ show, onClose, batchId }) => {
                 {/* Refunds Tab Content */}
                 {activeTab === 'refunds' && (
                   <div className="table-responsive">
+                    {/* Refund Detail Panel (similar to transaction detail) */}
+                    {selectedRefund && (
+                      <div className="card mb-3 border-warning">
+                        <div className="card-header bg-warning text-dark d-flex justify-content-between align-items-center">
+                          <h6 className="mb-0">
+                            <i className="bi bi-receipt-cutoff me-2"></i>
+                            Refund Detail: {selectedRefund.receipt_number}
+                          </h6>
+                          <button 
+                            className="btn btn-sm btn-close" 
+                            onClick={() => setSelectedRefund(null)}
+                            disabled={loadingRefundDetail}
+                          ></button>
+                        </div>
+                        <div className="card-body">
+                          <div style={{ maxHeight: '400px', overflowY: 'auto' }}>
+                            {loadingRefundDetail ? (
+                              <div className="text-center py-4">
+                                <div className="spinner-border text-warning" role="status">
+                                  <span className="visually-hidden">Loading...</span>
+                                </div>
+                                <p className="mt-2">Loading refund detail... {loadingRefundDetailProgress}%</p>
+                                <div className="progress" style={{ height: '5px' }}>
+                                  <div className="progress-bar bg-warning" style={{ width: `${loadingRefundDetailProgress}%` }}></div>
+                                </div>
+                              </div>
+                            ) : (
+                              <>
+                                <div className="row g-2 mb-3">
+                                  <div className="col-md-6">
+                                    <small className="text-muted d-block">Refund ID</small>
+                                    <strong>#{selectedRefund.refund_id}</strong>
+                                  </div>
+                                  <div className="col-md-6">
+                                    <small className="text-muted d-block">Transaction Ref</small>
+                                    <code>{selectedRefund.receipt_number}</code>
+                                  </div>
+                                  <div className="col-md-6">
+                                    <small className="text-muted d-block">Customer</small>
+                                    <strong>{selectedRefund.customer_name}</strong>
+                                  </div>
+                                  <div className="col-md-6">
+                                    <small className="text-muted d-block">Seat</small>
+                                    {selectedRefund.customer_seat || '-'}
+                                  </div>
+                                  <div className="col-md-6">
+                                    <small className="text-muted d-block">Refund Reason</small>
+                                    <span className="badge bg-danger">{selectedRefund.refund_reason}</span>
+                                  </div>
+                                  <div className="col-md-6">
+                                    <small className="text-muted d-block">Payment Type</small>
+                                    <span className="badge bg-secondary">{selectedRefund.payment_type}</span>
+                                  </div>
+                                  <div className="col-md-6">
+                                    <small className="text-muted d-block">Refund Date</small>
+                                    {new Date(selectedRefund.refund_created_at).toLocaleDateString('id-ID', {
+                                      day: '2-digit',
+                                      month: 'short',
+                                      year: 'numeric',
+                                      hour: '2-digit',
+                                      minute: '2-digit'
+                                    })}
+                                  </div>
+                                  <div className="col-md-6">
+                                    <small className="text-muted d-block">Transaction Date</small>
+                                    {new Date(selectedRefund.transaction_created_at).toLocaleDateString('id-ID', {
+                                      day: '2-digit',
+                                      month: 'short',
+                                      year: 'numeric',
+                                      hour: '2-digit',
+                                      minute: '2-digit'
+                                    })}
+                                  </div>
+                                </div>
+
+                                <h6 className="border-bottom pb-2 mb-2">
+                                  <i className="bi bi-box-seam me-2"></i>
+                                  Refunded Items ({selectedRefund.items?.length || 0})
+                                </h6>
+                                {selectedRefund.items && selectedRefund.items.length > 0 ? (
+                                  <table className="table table-sm table-striped">
+                                    <thead>
+                                      <tr>
+                                        <th>Menu</th>
+                                        <th>Varian</th>
+                                        <th className="text-center">Qty Refund</th>
+                                        <th className="text-end">Harga</th>
+                                        <th className="text-end">Total Refund</th>
+                                      </tr>
+                                    </thead>
+                                    <tbody>
+                                      {selectedRefund.items.map((item, idx) => (
+                                        <tr key={idx}>
+                                          <td>
+                                            {item.menu_name}
+                                            {item.menu_type && <small className="text-muted d-block">{item.menu_type}</small>}
+                                          </td>
+                                          <td>{item.varian || '-'}</td>
+                                          <td className="text-center">
+                                            {item.qty_refund_item}
+                                            <small className="text-muted d-block">of {item.original_qty}</small>
+                                          </td>
+                                          <td className="text-end">Rp {formatRupiah(item.price)}</td>
+                                          <td className="text-end text-danger">-Rp {formatRupiah(item.total_refund_price)}</td>
+                                        </tr>
+                                      ))}
+                                    </tbody>
+                                    <tfoot className="table-warning">
+                                      <tr>
+                                        <th colSpan="4">Total Refund</th>
+                                        <th className="text-end text-danger">-Rp {formatRupiah(selectedRefund.total_refund)}</th>
+                                      </tr>
+                                    </tfoot>
+                                  </table>
+                                ) : (
+                                  <p className="text-muted">Tidak ada item (Full refund)</p>
+                                )}
+                              </>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Refunds Table */}
                     {loadingRefunds ? (
                       <div style={{ textAlign: "center", padding: "20px" }}>
                         <h5>Loading Refunds... {loadingRefundsProgress}%</h5>
@@ -1048,7 +1197,12 @@ export const RevenueGeneratorDetailModal = ({ show, onClose, batchId }) => {
                         </thead>
                         <tbody>
                           {refundsData.map((refund, index) => (
-                            <tr key={refund.refund_id}>
+                            <tr 
+                              key={refund.refund_id}
+                              onClick={() => !loadingRefundDetail && fetchRefundDetail(refund.refund_id)}
+                              style={{ cursor: 'pointer' }}
+                              className={selectedRefund?.refund_id === refund.refund_id ? 'table-warning' : ''}
+                            >
                               <td>{index + 1}</td>
                               <td><code style={{ fontSize: '0.75rem' }}>{refund.receipt_number}</code></td>
                               <td>{refund.customer_name}</td>
