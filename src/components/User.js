@@ -88,7 +88,9 @@ const User = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {users.map((user, index) => (
+                  {users
+                    .filter(user => user.outlet_id !== 4 && user.outlet_name !== 'Development Testing')
+                    .map((user, index) => (
                     <tr key={user.id}>
                       <td>{index + 1}</td>
                       <td>{user.name}</td>

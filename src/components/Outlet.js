@@ -86,7 +86,9 @@ const Outlet = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {outlets.map((outlet, index) => (
+                  {outlets
+                    .filter(outlet => outlet.id !== 4 && outlet.name !== 'Development Testing')
+                    .map((outlet, index) => (
                     <tr key={outlet.id}>
                       <td>{index + 1}</td>
                       <td>{outlet.id}</td>

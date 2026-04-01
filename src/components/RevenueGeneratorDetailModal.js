@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
+import Swal from "sweetalert2";
 
 const apiBaseUrl = process.env.REACT_APP_API_BASE_URL;
 
@@ -21,6 +22,8 @@ export const RevenueGeneratorDetailModal = ({ show, onClose, batchId }) => {
   // Print states - for new tab
   const [showCashierInput, setShowCashierInput] = useState(false);
   const [cashierNames, setCashierNames] = useState(['']);
+  const [inputValues, setInputValues] = useState(['']); // Local state for immediate input response
+  const debounceTimerRef = useRef(null);
   
   // Section checkboxes for download - default all checked
   const [downloadSections, setDownloadSections] = useState({
@@ -68,6 +71,7 @@ export const RevenueGeneratorDetailModal = ({ show, onClose, batchId }) => {
       setRefundsData([]);
       setExpendituresData([]);
       setCashierNames(['']);
+      setInputValues(['']);
       setShowCashierInput(false);
       setDownloadSections({
         expenditure: true,
@@ -164,7 +168,7 @@ export const RevenueGeneratorDetailModal = ({ show, onClose, batchId }) => {
   const fetchTransactionDetail = async (transactionId) => {
     setLoadingDetail(true);
     setLoadingDetailProgress(0);
-    const stopProgress = startLoadingProgress(setLoadingDetailProgress);
+    const interval = startLoadingProgress(setLoadingDetailProgress);
     try {
       const response = await axios.get(`${apiBaseUrl}/revenue-generator/transaction-detail/${transactionId}`);
       if (response.data.success) {
@@ -173,7 +177,7 @@ export const RevenueGeneratorDetailModal = ({ show, onClose, batchId }) => {
     } catch (error) {
       console.error("Error fetching transaction detail:", error);
     } finally {
-      stopProgress();
+      clearInterval(interval);
       setLoadingDetailProgress(100);
       setTimeout(() => {
         setLoadingDetail(false);
@@ -182,29 +186,53 @@ export const RevenueGeneratorDetailModal = ({ show, onClose, batchId }) => {
     }
   };
 
-  // Cashier name management
+  // Cashier name management with debounce
   const addCashierName = () => {
     setCashierNames([...cashierNames, '']);
+    setInputValues([...inputValues, '']);
   };
 
   const removeCashierName = (index) => {
     if (cashierNames.length > 1) {
       const newNames = cashierNames.filter((_, i) => i !== index);
+      const newInputs = inputValues.filter((_, i) => i !== index);
       setCashierNames(newNames);
+      setInputValues(newInputs);
     }
   };
 
   const updateCashierName = (index, value) => {
-    const newNames = [...cashierNames];
-    newNames[index] = value;
-    setCashierNames(newNames);
+    // Update input immediately for responsive typing
+    const newInputs = [...inputValues];
+    newInputs[index] = value;
+    setInputValues(newInputs);
+    
+    // Clear previous debounce timer
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current);
+    }
+    
+    // Debounce state update by 500ms to reduce re-renders
+    debounceTimerRef.current = setTimeout(() => {
+      const newNames = [...cashierNames];
+      newNames[index] = value;
+      setCashierNames(newNames);
+    }, 500);
   };
 
   // Handle print with cashier names - opens server-rendered HTML in new tab
   const handlePrintLaporanKasir = () => {
     const validCashierNames = cashierNames.filter(name => name.trim() !== '');
     if (validCashierNames.length === 0) {
-      alert('Harap isi minimal 1 nama kasir');
+      Swal.fire({
+        icon: 'warning',
+        title: 'Nama Kasir Kosong',
+        text: 'Harap isi minimal 1 nama kasir',
+        toast: true,
+        position: 'top-end',
+        showConfirmButton: false,
+        timer: 3000
+      });
       return;
     }
 
@@ -216,7 +244,51 @@ export const RevenueGeneratorDetailModal = ({ show, onClose, batchId }) => {
     const printWindow = window.open(printUrl, '_blank');
     
     if (!printWindow) {
-      alert('Popup diblokir oleh browser. Silakan izinkan popup untuk situs ini.');
+      Swal.fire({
+        icon: 'error',
+        title: 'Popup Diblokir',
+        text: 'Popup diblokir oleh browser. Silakan izinkan popup untuk situs ini.',
+        toast: true,
+        position: 'top-end',
+        showConfirmButton: false,
+        timer: 3000
+      });
+    }
+  };
+
+  // Handle thermal print - 58mm thermal printer format
+  const handlePrintThermal = () => {
+    const validCashierNames = cashierNames.filter(name => name.trim() !== '');
+    if (validCashierNames.length === 0) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Nama Kasir Kosong',
+        text: 'Harap isi minimal 1 nama kasir',
+        toast: true,
+        position: 'top-end',
+        showConfirmButton: false,
+        timer: 3000
+      });
+      return;
+    }
+
+    // Build URL with cashier names as query param
+    const cashiersParam = encodeURIComponent(validCashierNames.join(','));
+    const printUrl = `${apiBaseUrl}/revenue-generator/print-thermal/${batchId}?cashiers=${cashiersParam}`;
+    
+    // Open server-rendered thermal page in new tab
+    const printWindow = window.open(printUrl, '_blank');
+    
+    if (!printWindow) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Popup Diblokir',
+        text: 'Popup diblokir oleh browser. Silakan izinkan popup untuk situs ini.',
+        toast: true,
+        position: 'top-end',
+        showConfirmButton: false,
+        timer: 3000
+      });
     }
   };
 
@@ -250,46 +322,40 @@ export const RevenueGeneratorDetailModal = ({ show, onClose, batchId }) => {
             ) : batchData ? (
               <div>
                 {/* Header Info - Outlet, Periode, Status */}
-                <div className="card mb-4 shadow-sm">
-                  <div className="card-body">
-                    <div className="row align-items-center">
+                <div className="card mb-3 shadow-sm">
+                  <div className="card-body py-2 px-3">
+                    <div className="row align-items-center g-2">
                       <div className="col-md-4">
                         <div className="d-flex align-items-center">
-                          <div className="rounded-circle bg-primary bg-opacity-10 p-3 me-3">
-                            <i className="bi bi-shop text-primary" style={{ fontSize: '1.5rem' }}></i>
-                          </div>
+                          <i className="bi bi-shop text-primary me-2" style={{ fontSize: '1rem' }}></i>
                           <div>
-                            <small className="text-muted d-block">Outlet</small>
-                            <h5 className="mb-0 fw-bold">{batchData.outlet_name}</h5>
+                            <small className="text-muted d-block" style={{ fontSize: '0.7rem', lineHeight: '1' }}>Outlet</small>
+                            <strong style={{ fontSize: '0.95rem' }}>{batchData.outlet_name}</strong>
                           </div>
                         </div>
                       </div>
                       <div className="col-md-3">
                         <div className="d-flex align-items-center">
-                          <div className="rounded-circle bg-info bg-opacity-10 p-3 me-3">
-                            <i className="bi bi-calendar3 text-info" style={{ fontSize: '1.5rem' }}></i>
-                          </div>
+                          <i className="bi bi-calendar3 text-info me-2" style={{ fontSize: '1rem' }}></i>
                           <div>
-                            <small className="text-muted d-block">Periode</small>
-                            <h5 className="mb-0 fw-bold">
+                            <small className="text-muted d-block" style={{ fontSize: '0.7rem', lineHeight: '1' }}>Periode</small>
+                            <strong style={{ fontSize: '0.95rem' }}>
                               {months.find(m => m.value === batchData.target_month)?.label} {batchData.target_year}
-                            </h5>
+                            </strong>
                           </div>
                         </div>
                       </div>
                       <div className="col-md-3">
                         <div className="d-flex align-items-center">
-                          <div className="rounded-circle bg-success bg-opacity-10 p-3 me-3">
-                            <i className="bi bi-bullseye text-success" style={{ fontSize: '1.5rem' }}></i>
-                          </div>
+                          <i className="bi bi-bullseye text-success me-2" style={{ fontSize: '1rem' }}></i>
                           <div>
-                            <small className="text-muted d-block">Target Revenue</small>
-                            <h5 className="mb-0 fw-bold text-success">Rp {formatRupiah(batchData.target_revenue)}</h5>
+                            <small className="text-muted d-block" style={{ fontSize: '0.7rem', lineHeight: '1' }}>Target Revenue</small>
+                            <strong className="text-success" style={{ fontSize: '0.95rem' }}>Rp {formatRupiah(batchData.target_revenue)}</strong>
                           </div>
                         </div>
                       </div>
                       <div className="col-md-2 text-center">
-                        <span className={`badge fs-6 px-3 py-2 ${batchData.status === 'active' ? 'bg-success' : 'bg-secondary'}`}>
+                        <span className={`badge px-2 py-1 ${batchData.status === 'active' ? 'bg-success' : 'bg-secondary'}`} style={{ fontSize: '0.75rem' }}>
                           <i className={`bi ${batchData.status === 'active' ? 'bi-check-circle' : 'bi-x-circle'} me-1`}></i>
                           {batchData.status === 'active' ? 'Active' : 'Rolled Back'}
                         </span>
@@ -299,143 +365,133 @@ export const RevenueGeneratorDetailModal = ({ show, onClose, batchId }) => {
                 </div>
 
                 {/* Revenue Summary Cards */}
-                <div className="row mb-4 g-3">
+                <div className="row mb-3 g-2">
                   <div className="col-md-4">
-                    <div className="card h-100 border-0 shadow-sm" style={{ borderLeft: '4px solid #17a2b8' }}>
-                      <div className="card-body">
-                        <div className="d-flex justify-content-between align-items-start">
+                    <div className="card h-100 border-0 shadow-sm" style={{ borderLeft: '3px solid #17a2b8' }}>
+                      <div className="card-body py-2 px-3">
+                        <div className="d-flex justify-content-between align-items-center">
                           <div>
-                            <p className="text-muted mb-1 small">Revenue Existing</p>
-                            <h4 className="mb-0 fw-bold" style={{ color: '#17a2b8' }}>Rp {formatRupiah(batchData.existing_revenue)}</h4>
+                            <p className="text-muted mb-0" style={{ fontSize: '0.7rem' }}>Revenue Existing</p>
+                            <h5 className="mb-0 fw-bold" style={{ color: '#17a2b8', fontSize: '1.1rem' }}>Rp {formatRupiah(batchData.existing_revenue)}</h5>
                           </div>
-                          <div className="rounded-circle p-2" style={{ backgroundColor: 'rgba(23, 162, 184, 0.1)' }}>
-                            <i className="bi bi-database text-info" style={{ fontSize: '1.25rem' }}></i>
-                          </div>
+                          <i className="bi bi-database text-info" style={{ fontSize: '1rem' }}></i>
                         </div>
                       </div>
                     </div>
                   </div>
                   <div className="col-md-4">
-                    <div className="card h-100 border-0 shadow-sm" style={{ borderLeft: '4px solid #28a745' }}>
-                      <div className="card-body">
-                        <div className="d-flex justify-content-between align-items-start">
+                    <div className="card h-100 border-0 shadow-sm" style={{ borderLeft: '3px solid #28a745' }}>
+                      <div className="card-body py-2 px-3">
+                        <div className="d-flex justify-content-between align-items-center">
                           <div>
-                            <p className="text-muted mb-1 small">Revenue Generated</p>
-                            <h4 className="mb-0 fw-bold text-success">Rp {formatRupiah(batchData.generated_revenue)}</h4>
+                            <p className="text-muted mb-0" style={{ fontSize: '0.7rem' }}>Revenue Generated</p>
+                            <h5 className="mb-0 fw-bold text-success" style={{ fontSize: '1.1rem' }}>Rp {formatRupiah(batchData.generated_revenue)}</h5>
                           </div>
-                          <div className="rounded-circle p-2" style={{ backgroundColor: 'rgba(40, 167, 69, 0.1)' }}>
-                            <i className="bi bi-lightning-charge text-success" style={{ fontSize: '1.25rem' }}></i>
-                          </div>
+                          <i className="bi bi-lightning-charge text-success" style={{ fontSize: '1rem' }}></i>
                         </div>
                       </div>
                     </div>
                   </div>
                   <div className="col-md-4">
-                    <div className="card h-100 border-0 shadow-sm" style={{ borderLeft: '4px solid #007bff' }}>
-                      <div className="card-body">
-                        <div className="d-flex justify-content-between align-items-start">
+                    <div className="card h-100 border-0 shadow-sm" style={{ borderLeft: '3px solid #007bff' }}>
+                      <div className="card-body py-2 px-3">
+                        <div className="d-flex justify-content-between align-items-center">
                           <div>
-                            <p className="text-muted mb-1 small">Total Revenue</p>
-                            <h4 className="mb-0 fw-bold text-primary">Rp {formatRupiah(batchData.actual_total_revenue)}</h4>
+                            <p className="text-muted mb-0" style={{ fontSize: '0.7rem' }}>Total Revenue</p>
+                            <h5 className="mb-0 fw-bold text-primary" style={{ fontSize: '1.1rem' }}>Rp {formatRupiah(batchData.actual_total_revenue)}</h5>
                           </div>
-                          <div className="rounded-circle p-2" style={{ backgroundColor: 'rgba(0, 123, 255, 0.1)' }}>
-                            <i className="bi bi-wallet2 text-primary" style={{ fontSize: '1.25rem' }}></i>
-                          </div>
+                          <i className="bi bi-wallet2 text-primary" style={{ fontSize: '1rem' }}></i>
                         </div>
                       </div>
                     </div>
                   </div>
                 </div>
 
-                {/* Stats Grid */}
-                <div className="card mb-4 shadow-sm">
-                  <div className="card-header bg-white py-3">
-                    <h6 className="mb-0 fw-bold">
-                      <i className="bi bi-bar-chart-line me-2 text-primary"></i>
-                      Statistik Data
-                    </h6>
-                  </div>
-                  <div className="card-body">
-                    <div className="row g-3">
-                      <div className="col-4 col-md-2">
-                        <div className="text-center p-3 rounded" style={{ backgroundColor: '#f8f9fa' }}>
-                          <i className="bi bi-receipt d-block mb-2" style={{ fontSize: '1.75rem', color: '#6c757d' }}></i>
-                          <h4 className="mb-0 fw-bold">{formatRupiah(batchData.total_transactions_created || 0)}</h4>
-                          <small className="text-muted">Transaksi</small>
-                        </div>
+                {/* Stats Grid - List Format */}
+                <div className="mb-3 p-2 border rounded bg-light">
+                  <h6 className="mb-2 fw-bold" style={{ fontSize: '0.85rem' }}>
+                    <i className="bi bi-bar-chart-line me-1 text-primary" style={{ fontSize: '0.85rem' }}></i>
+                    Statistik Data
+                  </h6>
+                  <div className="row g-1">
+                    <div className="col-md-6">
+                      <div className="d-flex justify-content-between align-items-center py-1 px-2" style={{ fontSize: '0.85rem' }}>
+                        <span className="text-muted">
+                          <i className="bi bi-receipt me-1" style={{ fontSize: '0.8rem' }}></i>
+                          Transaksi
+                        </span>
+                        <strong>{formatRupiah(batchData.total_transactions_created || 0)}</strong>
                       </div>
-                      <div className="col-4 col-md-2">
-                        <div className="text-center p-3 rounded" style={{ backgroundColor: '#f8f9fa' }}>
-                          <i className="bi bi-cart3 d-block mb-2" style={{ fontSize: '1.75rem', color: '#6c757d' }}></i>
-                          <h4 className="mb-0 fw-bold">{formatRupiah(batchData.total_carts_created || 0)}</h4>
-                          <small className="text-muted">Carts</small>
-                        </div>
+                    </div>
+                    <div className="col-md-6">
+                      <div className="d-flex justify-content-between align-items-center py-1 px-2" style={{ fontSize: '0.85rem' }}>
+                        <span className="text-muted">
+                          <i className="bi bi-cart3 me-1" style={{ fontSize: '0.8rem' }}></i>
+                          Carts
+                        </span>
+                        <strong>{formatRupiah(batchData.total_carts_created || 0)}</strong>
                       </div>
-                      <div className="col-4 col-md-2">
-                        <div className="text-center p-3 rounded" style={{ backgroundColor: '#f8f9fa' }}>
-                          <i className="bi bi-box-seam d-block mb-2" style={{ fontSize: '1.75rem', color: '#6c757d' }}></i>
-                          <h4 className="mb-0 fw-bold">{formatRupiah(batchData.total_cart_details_created || 0)}</h4>
-                          <small className="text-muted">Items</small>
-                        </div>
+                    </div>
+                    <div className="col-md-6">
+                      <div className="d-flex justify-content-between align-items-center py-1 px-2" style={{ fontSize: '0.85rem' }}>
+                        <span className="text-muted">
+                          <i className="bi bi-box-seam me-1" style={{ fontSize: '0.8rem' }}></i>
+                          Items
+                        </span>
+                        <strong>{formatRupiah(batchData.total_cart_details_created || 0)}</strong>
                       </div>
-                      <div className="col-4 col-md-2">
-                        <div className="text-center p-3 rounded" style={{ backgroundColor: '#fff3cd' }}>
-                          <i className="bi bi-arrow-return-left d-block mb-2" style={{ fontSize: '1.75rem', color: '#ffc107' }}></i>
-                          <h4 className="mb-0 fw-bold text-warning">{batchData.total_refunds_created || 0}</h4>
-                          <small className="text-muted">Refund</small>
-                        </div>
+                    </div>
+                    <div className="col-md-6">
+                      <div className="d-flex justify-content-between align-items-center py-1 px-2" style={{ fontSize: '0.85rem' }}>
+                        <span className="text-warning">
+                          <i className="bi bi-arrow-return-left me-1" style={{ fontSize: '0.8rem' }}></i>
+                          Refund
+                        </span>
+                        <strong className="text-warning">{batchData.total_refunds_created || 0}</strong>
                       </div>
-                      <div className="col-4 col-md-2">
-                        <div className="text-center p-3 rounded" style={{ backgroundColor: '#f8d7da' }}>
-                          <i className="bi bi-cash-stack d-block mb-2" style={{ fontSize: '1.75rem', color: '#dc3545' }}></i>
-                          <h4 className="mb-0 fw-bold text-danger">{batchData.total_expenditures_created || 0}</h4>
-                          <small className="text-muted">Pengeluaran</small>
-                        </div>
+                    </div>
+                    <div className="col-md-6">
+                      <div className="d-flex justify-content-between align-items-center py-1 px-2" style={{ fontSize: '0.85rem' }}>
+                        <span className="text-danger">
+                          <i className="bi bi-cash-stack me-1" style={{ fontSize: '0.8rem' }}></i>
+                          Pengeluaran
+                        </span>
+                        <strong className="text-danger">{batchData.total_expenditures_created || 0}</strong>
                       </div>
-                      <div className="col-4 col-md-2">
-                        <div className="text-center p-3 rounded" style={{ backgroundColor: '#e2e3e5' }}>
-                          <i className="bi bi-person-badge d-block mb-2" style={{ fontSize: '1.75rem', color: '#495057' }}></i>
-                          <h6 className="mb-0 fw-bold text-truncate" title={batchData.generated_by_username || 'System'}>
-                            {batchData.generated_by_username || 'System'}
-                          </h6>
-                          <small className="text-muted">Created By</small>
-                        </div>
+                    </div>
+                    <div className="col-md-6">
+                      <div className="d-flex justify-content-between align-items-center py-1 px-2" style={{ fontSize: '0.85rem' }}>
+                        <span className="text-muted">
+                          <i className="bi bi-person-badge me-1" style={{ fontSize: '0.8rem' }}></i>
+                          Created By
+                        </span>
+                        <strong className="text-truncate" style={{ maxWidth: '150px' }} title={batchData.generated_by_username || 'System'}>
+                          {batchData.generated_by_username || 'System'}
+                        </strong>
                       </div>
                     </div>
                   </div>
                 </div>
 
-                {/* Refund & Expenditure Summary */}
+                {/* Refund & Expenditure Summary - List Format */}
                 {(batchData.total_refund_amount > 0 || batchData.total_expenditure_amount > 0) && (
-                  <div className="row mb-4 g-3">
+                  <div className="mb-3 p-2 border rounded" style={{ backgroundColor: '#fff8f0' }}>
                     {batchData.total_refund_amount > 0 && (
-                      <div className="col-md-6">
-                        <div className="card h-100 border-0 shadow-sm" style={{ backgroundColor: '#fff3cd' }}>
-                          <div className="card-body d-flex align-items-center">
-                            <div className="rounded-circle bg-warning bg-opacity-25 p-3 me-3">
-                              <i className="bi bi-arrow-counterclockwise text-warning" style={{ fontSize: '1.5rem' }}></i>
-                            </div>
-                            <div>
-                              <p className="text-muted mb-1 small">Total Refund</p>
-                              <h4 className="mb-0 fw-bold text-warning">- Rp {formatRupiah(batchData.total_refund_amount)}</h4>
-                            </div>
-                          </div>
-                        </div>
+                      <div className="d-flex justify-content-between align-items-center py-1 px-2 mb-1">
+                        <span className="text-warning" style={{ fontSize: '0.85rem' }}>
+                          <i className="bi bi-arrow-counterclockwise me-1" style={{ fontSize: '0.8rem' }}></i>
+                          Total Refund
+                        </span>
+                        <strong className="text-warning" style={{ fontSize: '0.9rem' }}>- Rp {formatRupiah(batchData.total_refund_amount)}</strong>
                       </div>
                     )}
                     {batchData.total_expenditure_amount > 0 && (
-                      <div className="col-md-6">
-                        <div className="card h-100 border-0 shadow-sm" style={{ backgroundColor: '#f8d7da' }}>
-                          <div className="card-body d-flex align-items-center">
-                            <div className="rounded-circle bg-danger bg-opacity-25 p-3 me-3">
-                              <i className="bi bi-cash-coin text-danger" style={{ fontSize: '1.5rem' }}></i>
-                            </div>
-                            <div>
-                              <p className="text-muted mb-1 small">Total Pengeluaran</p>
-                              <h4 className="mb-0 fw-bold text-danger">- Rp {formatRupiah(batchData.total_expenditure_amount)}</h4>
-                            </div>
-                          </div>
-                        </div>
+                      <div className="d-flex justify-content-between align-items-center py-1 px-2">
+                        <span className="text-danger" style={{ fontSize: '0.85rem' }}>
+                          <i className="bi bi-cash-coin me-1" style={{ fontSize: '0.8rem' }}></i>
+                          Total Pengeluaran
+                        </span>
+                        <strong className="text-danger" style={{ fontSize: '0.9rem' }}>- Rp {formatRupiah(batchData.total_expenditure_amount)}</strong>
                       </div>
                     )}
                   </div>
@@ -473,11 +529,11 @@ export const RevenueGeneratorDetailModal = ({ show, onClose, batchId }) => {
                     style={{ cursor: 'pointer' }}
                     onClick={() => setShowCashierInput(!showCashierInput)}
                   >
-                    <h6 className="mb-0">
-                      <i className="bi bi-printer me-2"></i>
+                    <h6 className="mb-0 text-white">
+                      <i className="bi bi-printer me-2 text-white"></i>
                       Print Laporan Kasir
                     </h6>
-                    <span>{showCashierInput ? '▼' : '►'}</span>
+                    <span className="text-white">{showCashierInput ? '▼' : '►'}</span>
                   </div>
                   {showCashierInput && (
                     <div className="card-body">
@@ -487,7 +543,7 @@ export const RevenueGeneratorDetailModal = ({ show, onClose, batchId }) => {
                           <strong>Nama Kasir</strong>
                           <small className="text-muted ms-2">(bisa lebih dari satu)</small>
                         </label>
-                        {cashierNames.map((name, index) => (
+                        {inputValues.map((name, index) => (
                           <div key={index} className="input-group mb-2">
                             <span className="input-group-text">{index + 1}</span>
                             <input
@@ -497,7 +553,7 @@ export const RevenueGeneratorDetailModal = ({ show, onClose, batchId }) => {
                               value={name}
                               onChange={(e) => updateCashierName(index, e.target.value)}
                             />
-                            {cashierNames.length > 1 && (
+                            {inputValues.length > 1 && (
                               <button 
                                 className="btn btn-outline-danger"
                                 type="button"
@@ -519,11 +575,20 @@ export const RevenueGeneratorDetailModal = ({ show, onClose, batchId }) => {
                       </div>
                       <button 
                         type="button" 
-                        className="btn btn-success w-100 mb-3"
+                        className="btn btn-success w-100 mb-2"
                         onClick={handlePrintLaporanKasir}
                       >
                         <i className="bi bi-printer me-1"></i>
                         Lihat Laporan Kasir (Buka di Tab Baru)
+                      </button>
+
+                      <button 
+                        type="button" 
+                        className="btn btn-outline-success w-100 mb-3"
+                        onClick={handlePrintThermal}
+                      >
+                        <i className="bi bi-receipt me-1"></i>
+                        Print Thermal 58mm
                       </button>
                       
                       {/* Section Checkboxes for Download */}
@@ -635,7 +700,15 @@ export const RevenueGeneratorDetailModal = ({ show, onClose, batchId }) => {
                             onClick={() => {
                               const validNames = cashierNames.filter(n => n.trim());
                               if (validNames.length === 0) {
-                                alert('Harap isi minimal 1 nama kasir');
+                                Swal.fire({
+                                  icon: 'warning',
+                                  title: 'Nama Kasir Kosong',
+                                  text: 'Harap isi minimal 1 nama kasir',
+                                  toast: true,
+                                  position: 'top-end',
+                                  showConfirmButton: false,
+                                  timer: 3000
+                                });
                                 return;
                               }
                               const cashiersParam = encodeURIComponent(validNames.join(','));
@@ -654,7 +727,15 @@ export const RevenueGeneratorDetailModal = ({ show, onClose, batchId }) => {
                             onClick={() => {
                               const validNames = cashierNames.filter(n => n.trim());
                               if (validNames.length === 0) {
-                                alert('Harap isi minimal 1 nama kasir');
+                                Swal.fire({
+                                  icon: 'warning',
+                                  title: 'Nama Kasir Kosong',
+                                  text: 'Harap isi minimal 1 nama kasir',
+                                  toast: true,
+                                  position: 'top-end',
+                                  showConfirmButton: false,
+                                  timer: 3000
+                                });
                                 return;
                               }
                               const cashiersParam = encodeURIComponent(validNames.join(','));
@@ -673,7 +754,15 @@ export const RevenueGeneratorDetailModal = ({ show, onClose, batchId }) => {
                             onClick={() => {
                               const validNames = cashierNames.filter(n => n.trim());
                               if (validNames.length === 0) {
-                                alert('Harap isi minimal 1 nama kasir');
+                                Swal.fire({
+                                  icon: 'warning',
+                                  title: 'Nama Kasir Kosong',
+                                  text: 'Harap isi minimal 1 nama kasir',
+                                  toast: true,
+                                  position: 'top-end',
+                                  showConfirmButton: false,
+                                  timer: 3000
+                                });
                                 return;
                               }
                               const cashiersParam = encodeURIComponent(validNames.join(','));
@@ -785,7 +874,6 @@ export const RevenueGeneratorDetailModal = ({ show, onClose, batchId }) => {
                               <th>Payment</th>
                               <th>Total</th>
                               <th>Tanggal</th>
-                              <th>Aksi</th>
                             </tr>
                           </thead>
                           <tbody>
@@ -794,6 +882,7 @@ export const RevenueGeneratorDetailModal = ({ show, onClose, batchId }) => {
                                 key={trx.transaction_id}
                                 className={selectedTransaction?.transaction_id === trx.transaction_id ? 'table-primary' : ''}
                                 style={{ cursor: 'pointer' }}
+                                onClick={() => !loadingDetail && fetchTransactionDetail(trx.transaction_id)}
                               >
                                 <td>{index + 1}</td>
                                 <td><code style={{ fontSize: '0.75rem' }}>{trx.receipt_number}</code></td>
@@ -809,15 +898,6 @@ export const RevenueGeneratorDetailModal = ({ show, onClose, batchId }) => {
                                     hour: '2-digit',
                                     minute: '2-digit'
                                   })}
-                                </td>
-                                <td>
-                                  <button 
-                                    className="btn btn-sm btn-info"
-                                    onClick={() => fetchTransactionDetail(trx.transaction_id)}
-                                    disabled={loadingDetail}
-                                  >
-                                    <i className="bi bi-eye"></i>
-                                  </button>
                                 </td>
                               </tr>
                             ))}

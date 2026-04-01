@@ -546,7 +546,7 @@ const RevenueGenerator = ({ userTokenData }) => {
                       </option>
                     ))}
                   </select>
-                  <small className="text-muted">Hanya outlet ID 4 dan di atas 11 yang bisa dipilih</small>
+                  <small className="text-muted">Hanya outlet ID 4 dan di atas 12 yang bisa dipilih</small>
                 </div>
 
                 {/* Month Selection */}
@@ -595,178 +595,181 @@ const RevenueGenerator = ({ userTokenData }) => {
                   </div>
                 </div>
 
-                {/* Options */}
-                <div className="col-md-6 mb-3">
-                  <label className="form-label">Opsi Tambahan</label>
-                  <div className="d-flex flex-column gap-2">
-                    <div className="form-check form-switch">
-                      <input 
-                        className="form-check-input" 
-                        type="checkbox" 
-                        id="usePpn"
-                        checked={usePpn}
-                        onChange={(e) => setUsePpn(e.target.checked)}
-                      />
-                      <label className="form-check-label" htmlFor="usePpn">
-                        <strong>Gunakan PPN</strong>
-                        <br/>
-                        <small className="text-muted">
-                          Menambahkan pajak ke setiap transaksi. <strong>TIDAK berlaku</strong> untuk pembayaran online delivery (GoFood, GrabFood, ShopeeFood) karena sudah include. Default: 10%.
-                        </small>
-                      </label>
-                    </div>
-                    <div className="mt-2">
-                      <div className="d-flex justify-content-between align-items-center">
-                        <label className="form-label mb-0">Kecualikan Menu (opsional)</label>
-                        <button type="button" className="btn btn-sm btn-link" onClick={() => setShowAdvancedOptions(v => !v)}>
-                          {showAdvancedOptions ? 'Sembunyikan Opsi Lainnya' : 'Opsi Tambahan Lainnya'}
-                        </button>
+                {/* Opsi Tambahan */}
+                <div className="col-12 mb-3">
+                  <button 
+                    className="btn btn-outline-secondary w-100" 
+                    onClick={() => setShowAdvancedOptions(!showAdvancedOptions)}
+                  >
+                    {showAdvancedOptions ? 'Sembunyikan Opsi Tambahan' : 'Tampilkan Opsi Tambahan'}
+                  </button>
+                  {showAdvancedOptions && (
+                    <div className="mt-3 p-3 border rounded">
+                      {/* Gunakan PPN */}
+                      <div className="form-check form-switch mb-3">
+                        <input 
+                          className="form-check-input" 
+                          type="checkbox" 
+                          id="usePpn"
+                          checked={usePpn}
+                          onChange={(e) => setUsePpn(e.target.checked)}
+                        />
+                        <label className="form-check-label" htmlFor="usePpn">
+                          <strong>Gunakan PPN</strong>
+                          <br/>
+                          <small className="text-muted">
+                            Menambahkan pajak ke setiap transaksi. <strong>TIDAK berlaku</strong> untuk pembayaran online delivery (GoFood, GrabFood, ShopeeFood) karena sudah include. Default: 10%.
+                          </small>
+                        </label>
                       </div>
-
-                      {showAdvancedOptions ? (
-                        <>
-                          <div>
-                            <input
-                              type="text"
-                              className="form-control mb-2"
-                              placeholder="Cari menu..."
-                              value={menuSearchQuery}
-                              onChange={(e) => setMenuSearchQuery(e.target.value)}
-                            />
-
-                            <div style={{ maxHeight: 220, overflowY: 'auto', border: '1px solid #e9ecef', borderRadius: 4, padding: 8 }}>
-                              {templateMenus.filter(m => {
-                                if (!menuSearchQuery) return true;
-                                const q = menuSearchQuery.toLowerCase();
-                                return (m.name || '').toLowerCase().includes(q) || (m.details && m.details.some(d => (d.varian || '').toLowerCase().includes(q)));
-                              }).map(m => (
-                                <div key={m.id} className="form-check" style={{ padding: '2px 6px' }}>
-                                  <input
-                                    className="form-check-input"
-                                    type="checkbox"
-                                    id={`exclude-menu-${m.id}`}
-                                    checked={excludedMenuIds.includes(m.id)}
-                                    onChange={(e) => {
-                                      if (e.target.checked) {
-                                        setExcludedMenuIds(prev => Array.from(new Set([...prev, m.id])));
-                                      } else {
-                                        setExcludedMenuIds(prev => prev.filter(x => x !== m.id));
-                                      }
-                                    }}
-                                  />
-                                  <label className="form-check-label ms-2" htmlFor={`exclude-menu-${m.id}`} style={{ cursor: 'pointer' }}>
-                                    {m.name}{m.details && m.details.length ? ` (${m.details.map(d=>d.varian).join(', ')})` : ''}
-                                  </label>
-                                </div>
-                              ))}
-                              {templateMenus.length === 0 && <div className="text-muted">Tidak ada menu template.</div>}
-                            </div>
-
-                            {/* Selected chips */}
-                            <div className="mt-2">
-                              {excludedMenuIds.length === 0 ? (
-                                <small className="text-muted">Belum ada menu yang dipilih.</small>
-                              ) : (
-                                <div className="d-flex flex-wrap gap-2">
-                                  {excludedMenuIds.map(id => {
-                                    const m = templateMenus.find(x => x.id === id);
-                                    return (
-                                      <span key={id} className="badge bg-secondary d-inline-flex align-items-center">
-                                        <span style={{marginRight:8}}>{m ? m.name : `ID:${id}`}</span>
-                                        <button type="button" className="btn-close btn-close-white btn-sm" onClick={() => setExcludedMenuIds(prev => prev.filter(x => x !== id))} aria-label="Remove" />
-                                      </span>
-                                    );
-                                  })}
-                                </div>
-                              )}
-                            </div>
-                          </div>
-                        </>
-                      ) : (
-                        <div className="mt-2">
-                          <small className="text-muted">Klik "Opsi Tambahan Lainnya" untuk memilih menu yang ingin dikecualikan.</small>
+                      {usePpn && (
+                        <div className="mb-3">
+                          <label className="form-label">Persentase PPN (%)</label>
+                          <input
+                            type="number"
+                            className="form-control"
+                            min={0}
+                            max={100}
+                            value={ppnPercent}
+                            onChange={(e) => setPpnPercent(parseFloat(e.target.value || 0))}
+                          />
+                          <small className="text-muted">Masukkan persentase PPN yang ingin diterapkan (mis. 10)</small>
                         </div>
                       )}
-                    </div>
-                    {usePpn && (
-                      <div className="mt-2">
-                        <label className="form-label">Persentase PPN (%)</label>
+
+                      {/* Kecualikan Menu */}
+                      <div className="mb-3">
+                        <label className="form-label">Kecualikan Menu (opsional)</label>
                         <input
-                          type="number"
-                          className="form-control"
-                          min={0}
-                          max={100}
-                          value={ppnPercent}
-                          onChange={(e) => setPpnPercent(parseFloat(e.target.value || 0))}
+                          type="text"
+                          className="form-control mb-2"
+                          placeholder="Cari menu..."
+                          value={menuSearchQuery}
+                          onChange={(e) => setMenuSearchQuery(e.target.value)}
                         />
-                        <small className="text-muted">Masukkan persentase PPN yang ingin diterapkan (mis. 10)</small>
+                        <div style={{ maxHeight: 220, overflowY: 'auto', border: '1px solid #e9ecef', borderRadius: 4, padding: 8 }}>
+                          {templateMenus.filter(m => {
+                            if (!menuSearchQuery) return true;
+                            const q = menuSearchQuery.toLowerCase();
+                            return (m.name || '').toLowerCase().includes(q) || (m.details && m.details.some(d => (d.varian || '').toLowerCase().includes(q)));
+                          }).map(m => (
+                            <div key={m.id} className="form-check" style={{ padding: '2px 6px' }}>
+                              <input
+                                className="form-check-input"
+                                type="checkbox"
+                                id={`exclude-menu-${m.id}`}
+                                checked={excludedMenuIds.includes(m.id)}
+                                onChange={(e) => {
+                                  if (e.target.checked) {
+                                    setExcludedMenuIds(prev => Array.from(new Set([...prev, m.id])));
+                                  } else {
+                                    setExcludedMenuIds(prev => prev.filter(x => x !== m.id));
+                                  }
+                                }}
+                              />
+                              <label className="form-check-label ms-2" htmlFor={`exclude-menu-${m.id}`} style={{ cursor: 'pointer' }}>
+                                {m.name}{m.details && m.details.length ? ` (${m.details.map(d=>d.varian).join(', ')})` : ''}
+                              </label>
+                            </div>
+                          ))}
+                          {templateMenus.length === 0 && <div className="text-muted">Tidak ada menu template.</div>}
+                        </div>
+                        <div className="mt-2">
+                          {excludedMenuIds.length === 0 ? (
+                            <small className="text-muted">Belum ada menu yang dipilih.</small>
+                          ) : (
+                            <div className="d-flex flex-wrap gap-2">
+                              {excludedMenuIds.map(id => {
+                                const m = templateMenus.find(x => x.id === id);
+                                return (
+                                  <span key={id} className="badge bg-secondary d-inline-flex align-items-center">
+                                    <span style={{marginRight:8}}>{m ? m.name : `ID:${id}`}</span>
+                                    <button type="button" className="btn-close btn-close-white btn-sm" onClick={() => setExcludedMenuIds(prev => prev.filter(x => x !== id))} aria-label="Remove" />
+                                  </span>
+                                );
+                              })}
+                            </div>
+                          )}
+                        </div>
                       </div>
-                    )}
-                    <div className="form-check form-switch">
-                      <input 
-                        className="form-check-input" 
-                        type="checkbox" 
-                        id="weekendBoost"
-                        checked={weekendBoost}
-                        onChange={(e) => setWeekendBoost(e.target.checked)}
-                      />
-                      <label className="form-check-label" htmlFor="weekendBoost">
-                        <strong>Weekend Lebih Ramai</strong>
-                        <br/>
-                        <small className="text-muted">
-                          Distribusi transaksi di hari Sabtu & Minggu akan 1.5x - 2.5x lebih banyak dari hari biasa, menyesuaikan pola bisnis real.
-                        </small>
-                      </label>
+
+                      {/* Weekend Boost */}
+                      <div className="form-check form-switch mb-3">
+                        <input 
+                          className="form-check-input" 
+                          type="checkbox" 
+                          id="weekendBoost"
+                          checked={weekendBoost}
+                          onChange={(e) => setWeekendBoost(e.target.checked)}
+                          disabled
+                        />
+                        <label className="form-check-label" htmlFor="weekendBoost">
+                          <strong>Weekend Lebih Ramai</strong>
+                          <br/>
+                          <small className="text-muted">
+                            Distribusi transaksi di hari Sabtu & Minggu akan 1.5x - 2.5x lebih banyak dari hari biasa, menyesuaikan pola bisnis real.
+                          </small>
+                        </label>
+                      </div>
+
+                      {/* Booking Mode */}
+                      <div className="form-check form-switch mb-3">
+                        <input 
+                          className="form-check-input" 
+                          type="checkbox" 
+                          id="bookingMode"
+                          checked={bookingMode}
+                          onChange={(e) => setBookingMode(e.target.checked)}
+                          disabled
+                        />
+                        <label className="form-check-label" htmlFor="bookingMode">
+                          <strong>Mode Booking</strong>
+                          <br/>
+                          <small className="text-muted">
+                            Menambahkan beberapa transaksi besar (booking/reservasi) dengan jumlah item lebih banyak per transaksi, biasanya untuk acara atau group dining.
+                          </small>
+                        </label>
+                      </div>
+
+                      {/* Generate Refunds */}
+                      <div className="form-check form-switch mb-3">
+                        <input 
+                          className="form-check-input" 
+                          type="checkbox" 
+                          id="generateRefunds"
+                          checked={generateRefunds}
+                          onChange={(e) => setGenerateRefunds(e.target.checked)}
+                          disabled
+                        />
+                        <label className="form-check-label" htmlFor="generateRefunds">
+                          <strong>Generate Refund</strong>
+                          <br/>
+                          <small className="text-muted">
+                            Membuat data refund palsu (1-3 refund per hari) dari transaksi yang sudah di-generate, dengan alasan refund acak.
+                          </small>
+                        </label>
+                      </div>
+
+                      {/* Generate Expenditures */}
+                      <div className="form-check form-switch mb-3">
+                        <input 
+                          className="form-check-input" 
+                          type="checkbox" 
+                          id="generateExpenditures"
+                          checked={generateExpenditures}
+                          onChange={(e) => setGenerateExpenditures(e.target.checked)}
+                          disabled
+                        />
+                        <label className="form-check-label" htmlFor="generateExpenditures">
+                          <strong>Generate Pengeluaran</strong>
+                          <br/>
+                          <small className="text-muted">
+                            Membuat data pengeluaran palsu (2-5 pengeluaran per hari) dengan nominal Rp 5.000 - Rp 200.000 dan deskripsi acak seperti "Beli gas LPG", "Beli minyak goreng", dll.
+                          </small>
+                        </label>
+                      </div>
                     </div>
-                    <div className="form-check form-switch">
-                      <input 
-                        className="form-check-input" 
-                        type="checkbox" 
-                        id="bookingMode"
-                        checked={bookingMode}
-                        onChange={(e) => setBookingMode(e.target.checked)}
-                      />
-                      <label className="form-check-label" htmlFor="bookingMode">
-                        <strong>Mode Booking</strong>
-                        <br/>
-                        <small className="text-muted">
-                          Menambahkan beberapa transaksi besar (booking/reservasi) dengan jumlah item lebih banyak per transaksi, biasanya untuk acara atau group dining.
-                        </small>
-                      </label>
-                    </div>
-                    <div className="form-check form-switch">
-                      <input 
-                        className="form-check-input" 
-                        type="checkbox" 
-                        id="generateRefunds"
-                        checked={generateRefunds}
-                        onChange={(e) => setGenerateRefunds(e.target.checked)}
-                      />
-                      <label className="form-check-label" htmlFor="generateRefunds">
-                        <strong>Generate Refund</strong>
-                        <br/>
-                        <small className="text-muted">
-                          Membuat data refund palsu (1-3 refund per hari) dari transaksi yang sudah di-generate, dengan alasan refund acak.
-                        </small>
-                      </label>
-                    </div>
-                    <div className="form-check form-switch">
-                      <input 
-                        className="form-check-input" 
-                        type="checkbox" 
-                        id="generateExpenditures"
-                        checked={generateExpenditures}
-                        onChange={(e) => setGenerateExpenditures(e.target.checked)}
-                      />
-                      <label className="form-check-label" htmlFor="generateExpenditures">
-                        <strong>Generate Pengeluaran</strong>
-                        <br/>
-                        <small className="text-muted">
-                          Membuat data pengeluaran palsu (2-5 pengeluaran per hari) dengan nominal Rp 5.000 - Rp 200.000 dan deskripsi acak seperti "Beli gas LPG", "Beli minyak goreng", dll.
-                        </small>
-                      </label>
-                    </div>
-                  </div>
+                  )}
                 </div>
               </div>
 

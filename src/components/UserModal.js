@@ -272,7 +272,9 @@ export const UserModal = ({
                     }
                   >
                     {outlets &&
-                      outlets.map((outlet) => (
+                      outlets
+                        .filter(outlet => outlet.id !== 4 && outlet.name !== 'Development Testing')
+                        .map((outlet) => (
                         <option key={outlet.id} value={outlet.id}>
                           {outlet.name}
                         </option>

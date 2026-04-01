@@ -32,7 +32,7 @@ Revenue Generator adalah fitur untuk men-generate transaksi secara otomatis guna
 - ✅ Print report
 - ✅ **Format receipt/invoice sesuai pattern existing**
 - ✅ **Generate fake refunds (1-3 per hari)**
-- ✅ **Generate fake expenditures (2-5 per hari)**
+- ✅ **Generate fake expenditures (mingguan: Kas RT + Beli es batu, sekitar Rp 300.000/minggu)**
 - ✅ **Print Laporan Kasir dengan input nama kasir (multiple)**
 + ✅ **Download report dalam format PDF, Excel, dan Word** (tabel sesuai tampilan print, mapping qty/nominal sudah benar)
 + ✅ **Checklist section**: Pilih bagian laporan yang ingin di-download (Rincian Shift, Rincian Laporan, Expenditure, Transaksi, dll)
@@ -45,7 +45,7 @@ Revenue Generator adalah fitur untuk men-generate transaksi secara otomatis guna
 
 | Opsi | Deskripsi |
 |------|-----------|
-| **Gunakan PPN (11%)** | Menambahkan pajak 11% ke setiap transaksi. **TIDAK berlaku** untuk pembayaran online delivery (GoFood, GrabFood, ShopeeFood) karena sudah include. |
+| **Gunakan PPN (customizable)** | Menambahkan pajak PPN ke setiap transaksi dengan persentase yang dapat dikustom (parameter `ppn_percent`). Default ketika `use_ppn` aktif adalah 10%. **TIDAK berlaku** untuk pembayaran online delivery (GoFood, GrabFood, ShopeeFood) karena sudah include. |
 | **Weekend Lebih Ramai** | Distribusi transaksi di hari Sabtu & Minggu akan 1.5x - 2.5x lebih banyak dari hari biasa, menyesuaikan pola bisnis real. |
 | **Mode Booking** | Menambahkan beberapa transaksi besar (booking/reservasi) dengan jumlah item lebih banyak per transaksi, biasanya untuk acara atau group dining. |
 | **Generate Refund** | Membuat data refund palsu (1-3 refund per hari) dari transaksi yang sudah di-generate, dengan alasan refund acak. |
@@ -398,6 +398,30 @@ Ambil semua log generate.
   "data": [
     {
       "id": 1,
+
+--
+
+### POST `/revenue-generator/preview-detailed`
+
+Menjalankan dry-run (tanpa menulis ke database) untuk menghasilkan sample transaksi per-hari. Endpoint ini berguna untuk memverifikasi bahwa harga menu yang digunakan adalah harga template dari Outlet ID 3 (termasuk varian), PPN diterapkan sesuai pengaturan, serta untuk melihat contoh cart, cartDetails, dan transactions yang akan dihasilkan.
+
+Request Body (JSON):
+- `outlet_id` (required)
+- `month` (required)
+- `year` (required)
+- `target_revenue` (required)
+- `use_ppn` (optional, default false)
+- `ppn_percent` (optional, default 10 when use_ppn=true)
+- `weekend_boost` (optional, default true)
+- `booking_mode` (optional, default false)
+- `price_adjustment_percent` (optional, default 0)
+- `min_transaction_value` (optional, default 50000)
+- `daily_tx_min` (optional, default 50)
+- `daily_tx_max` (optional, default 150)
+- `sample_days` (optional, default 3) - berapa hari contoh yang dikembalikan
+
+Response: JSON berisi sample days, masing-masing memuat `carts`, `cartDetails`, `transactions`, dan `actualTotal`. Gunakan ini untuk memverifikasi harga menu (contoh: pastikan item "Ayam JOWO" menggunakan harga Rp 20.000 jika tersedia di template outlet 3).
+
       "outlet_id": 4,
       "outlet_name": "Outlet Name",
       "target_month": 2,
@@ -478,6 +502,7 @@ Generate transaksi.
   "year": 2026,
   "target_revenue": 100000000,
   "use_ppn": false,
+  "ppn_percent": 10,
   "weekend_boost": true,
   "booking_mode": false,
   "generate_refunds": true,
@@ -504,6 +529,11 @@ Generate transaksi.
   }
 }
 ```
+
+  Notes:
+  - `ppn_percent` (optional): jika diberikan, akan digunakan sebagai persentase PPN untuk transaksi (default 10% jika `use_ppn` = true). Contoh: `ppn_percent: 10`.
+  - `min_transaction_value` (optional): nilai minimum per transaksi (default Rp 10.000). Jika hari memiliki target kecil sehingga jumlah transaksi minimal tidak tercapai, jumlah transaksi akan disesuaikan.
+  - `daily_tx_min` / `daily_tx_max` (optional): rentang jumlah transaksi per hari (default 50 - 100).
 
 ### 6. POST `/revenue-generator/rollback/:id`
 Rollback batch (soft delete).
