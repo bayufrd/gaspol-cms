@@ -537,6 +537,18 @@ export const RevenueGeneratorDetailModal = ({ show, onClose, batchId }) => {
                       <span className={`badge ${batchData.booking_mode ? 'bg-success' : 'bg-secondary'}`}>
                         {batchData.booking_mode ? '✓' : '✗'} Booking Mode
                       </span>
+                      <span className={`badge ${batchData.generate_refunds ? 'bg-success' : 'bg-secondary'}`}>
+                        {batchData.generate_refunds ? '✓' : '✗'} Generate Refunds
+                      </span>
+                      <span className={`badge ${batchData.generate_expenditures ? 'bg-success' : 'bg-secondary'}`}>
+                        {batchData.generate_expenditures ? '✓' : '✗'} Generate Expenditures
+                      </span>
+                      {(batchData.math_perfect_mode === 1 || batchData.math_perfect_mode === true) && (
+                        <span className="badge bg-warning text-dark">
+                          <i className="bi bi-lightning-charge-fill me-1"></i>
+                          Math Perfect Mode 🧪
+                        </span>
+                      )}
                       {batchData.price_adjustment_percent !== 0 && (
                         <span className="badge bg-info">
                           Price Adj: {batchData.price_adjustment_percent}%

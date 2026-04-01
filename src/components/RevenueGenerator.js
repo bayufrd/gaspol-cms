@@ -19,6 +19,7 @@ const RevenueGenerator = ({ userTokenData }) => {
   const [bookingMode, setBookingMode] = useState(true);
   const [generateRefunds, setGenerateRefunds] = useState(true);
   const [generateExpenditures, setGenerateExpenditures] = useState(true);
+  const [mathPerfectMode, setMathPerfectMode] = useState(false);
   
   // Data states
   const [outlets, setOutlets] = useState([]);
@@ -222,6 +223,7 @@ const RevenueGenerator = ({ userTokenData }) => {
         booking_mode: bookingMode,
         generate_refunds: generateRefunds,
         generate_expenditures: generateExpenditures,
+        math_perfect_mode: mathPerfectMode,
         excluded_menu_ids: excludedMenuIds,
         user_id: userTokenData?.id,
         username: userTokenData?.username || userTokenData?.name
@@ -765,6 +767,25 @@ const RevenueGenerator = ({ userTokenData }) => {
                           <br/>
                           <small className="text-muted">
                             Membuat data pengeluaran palsu (2-5 pengeluaran per hari) dengan nominal Rp 5.000 - Rp 200.000 dan deskripsi acak seperti "Beli gas LPG", "Beli minyak goreng", dll.
+                          </small>
+                        </label>
+                      </div>
+
+                      {/* Math Perfect Mode */}
+                      <div className="form-check form-switch mb-3">
+                        <input 
+                          className="form-check-input" 
+                          type="checkbox" 
+                          id="mathPerfectMode"
+                          checked={mathPerfectMode}
+                          onChange={(e) => setMathPerfectMode(e.target.checked)}
+                        />
+                        <label className="form-check-label" htmlFor="mathPerfectMode">
+                          <strong>Math Perfect Mode</strong> <span className="badge bg-warning text-dark">Experimental</span>
+                          <br/>
+                          <small className="text-muted">
+                            Mode eksperimental yang mencapai target EXACT dengan formula: <strong>Target = Transaksi - Refund</strong> (tanpa expenditure). 
+                            Algoritma akan mencari kombinasi menu yang tepat untuk mencapai nilai target yang presisi. Expenditure tetap ada tapi tidak dihitung dalam pencapaian target.
                           </small>
                         </label>
                       </div>

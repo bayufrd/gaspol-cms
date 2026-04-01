@@ -50,6 +50,7 @@ Revenue Generator adalah fitur untuk men-generate transaksi secara otomatis guna
 | **Mode Booking** | Menambahkan beberapa transaksi besar (booking/reservasi) dengan jumlah item lebih banyak per transaksi, biasanya untuk acara atau group dining. |
 | **Generate Refund** | Membuat data refund palsu (1-3 refund per hari) dari transaksi yang sudah di-generate, dengan alasan refund acak. |
 | **Generate Pengeluaran** | Membuat data pengeluaran palsu (2-5 pengeluaran per hari) dengan nominal Rp 5.000 - Rp 200.000 dan deskripsi acak. |
+| **Math Perfect Mode** 🧪 | Mode eksperimental yang mencapai target EXACT dengan formula: **Target = Transaksi - Refund** (tanpa expenditure). Algoritma akan mencari kombinasi menu yang tepat untuk mencapai nilai target yang presisi. Expenditure tetap ada tapi tidak dihitung dalam pencapaian target. |
 | **Checklist Section Download** | Pilih bagian laporan yang ingin di-download (Rincian Shift, Rincian Laporan, Expenditure, Transaksi, dll) |
 | **Validasi Nama Kasir** | Minimal 1 nama kasir wajib diisi untuk print/download laporan kasir |
 | **Loading Spinner Preview** | Terdapat spinner saat proses kalkulasi preview |
@@ -101,10 +102,12 @@ CREATE TABLE IF NOT EXISTS generated_revenue_logs (
     total_expenditure_amount DECIMAL(15,2) DEFAULT 0,
     
     use_ppn TINYINT(1) DEFAULT 0 COMMENT 'Apakah pakai PPN',
+    ppn_percent DECIMAL(5,2) DEFAULT 10 COMMENT 'Persentase PPN jika use_ppn aktif',
     weekend_boost TINYINT(1) DEFAULT 0 COMMENT 'Weekend lebih ramai',
     booking_mode TINYINT(1) DEFAULT 0 COMMENT 'Ada transaksi booking besar',
     generate_refunds TINYINT(1) DEFAULT 0 COMMENT 'Generate fake refunds',
     generate_expenditures TINYINT(1) DEFAULT 0 COMMENT 'Generate fake expenditures',
+    math_perfect_mode TINYINT(1) DEFAULT 0 COMMENT 'Mode eksperimental: Target = Transaction - Refund (tanpa expenditure)',
     price_adjustment_percent DECIMAL(5,2) DEFAULT 0 COMMENT 'Persentase adjustment harga dari outlet 3',
     
     generated_by_user_id INT,
@@ -163,10 +166,12 @@ ADD COLUMN generated_batch_id INT DEFAULT NULL;
 | total_expenditures_created | INT | Jumlah pengeluaran dibuat |
 | total_expenditure_amount | DECIMAL(15,2) | Total nominal pengeluaran |
 | use_ppn | TINYINT(1) | Flag penggunaan PPN |
+| ppn_percent | DECIMAL(5,2) | Persentase PPN (default 10) |
 | weekend_boost | TINYINT(1) | Flag weekend lebih ramai |
 | booking_mode | TINYINT(1) | Flag mode booking |
 | generate_refunds | TINYINT(1) | Flag generate refund |
 | generate_expenditures | TINYINT(1) | Flag generate pengeluaran |
+| math_perfect_mode | TINYINT(1) | Flag Math Perfect Mode (experimental) |
 | price_adjustment_percent | DECIMAL(5,2) | Persentase adjustment harga |
 | generated_by_user_id | INT | User ID yang generate |
 | generated_by_username | VARCHAR(100) | Username yang generate |
@@ -273,6 +278,37 @@ Endpoints:
 - `getTransactionsByBatch` - GET transaksi per batch
 - `getDailyBreakdown` - GET breakdown harian
 - `getSummaryByMonth` - GET summary bulanan
+
+**Algoritma Math Perfect Mode:**
+
+Ketika `math_perfect_mode = true`, sistem menggunakan algoritma khusus:
+
+1. **Generate Transactions** - Buat transaksi untuk mencapai gross target
+2. **Calculate Actual Omset** - Hitung total transaksi yang sudah dibuat
+3. **Smart Adjustment Loop** - Iterasi sampai `Target = Transaksi - Refund`:
+   
+   a. **Jika Kelebihan** (omset > target):
+      - Cari item atau kombinasi item yang = selisih kelebihan
+      - Buat refund untuk item tersebut
+      - Jika tidak ada item yang pas, cari kombinasi multiple items
+   
+   b. **Jika Kurang** (omset < target):
+      - **Opsi 1**: Tambah transaksi baru dengan item yang = selisih kekurangan
+      - **Opsi 2**: Swap item di transaksi existing (hapus item murah, tambah item lebih mahal)
+      - Cari menu dengan harga yang tepat untuk mencapai target
+   
+4. **Generate Expenditures** - Buat pengeluaran (hanya untuk tampilan, tidak affect target)
+
+**Perbedaan dengan Normal Mode:**
+
+| Aspek | Normal Mode | Math Perfect Mode |
+|-------|-------------|-------------------|
+| Formula Target | Transaction - Refund - Expenditure | Transaction - Refund |
+| Role Expenditure | Digunakan untuk fine-tuning target | Hanya untuk tampilan, diabaikan |
+| Precision | Menggunakan expenditure sebagai fallback | Harus EXACT tanpa fallback |
+| Algoritma | Phase 1-5 dengan expenditure adjustment | Smart item matching tanpa expenditure |
+
+
 
 #### 3. Routes: `src/routes.js` (DIUBAH)
 
@@ -777,6 +813,14 @@ npm run start
 
 13. **UI/UX Batch Detail Modern**: Tampilan detail batch lebih rapi, informatif, dan responsif
 
+14. **Math Perfect Mode** 🧪: Mode eksperimental yang mencapai target revenue EXACT dengan formula **Target = Transaksi - Refund** (tanpa menghitung expenditure). Dalam mode ini:
+  - Expenditure tetap di-generate untuk tampilan realistis
+  - Expenditure TIDAK dihitung dalam pencapaian target omset
+  - Algoritma akan mencari kombinasi menu yang tepat untuk mencapai nilai target presisi
+  - Laporan (HTML/PDF/Excel/DOCX) akan menampilkan formula berbeda sesuai mode
+  - Jika kurang 500: cari menu 500 atau swap item untuk mendapat selisih 500
+  - Jika kelebihan 500: refund item yang totalnya 500
+
 ---
 
 ## Daftar File
@@ -804,11 +848,13 @@ npm run start
 ---
 
 **Dokumentasi dibuat:** 31 Maret 2026  
-**Versi:** 2.1.0  
+**Versi:** 2.2.0  
 **Update:**
+- **Math Perfect Mode** 🧪: Mode eksperimental untuk mencapai target EXACT tanpa expenditure
 - Penambahan fitur download report (PDF/Excel/Word) dengan checklist section
 - Mapping qty/nominal sudah benar di semua format
 - Validasi kasir pada print/download
 - Penghapusan random expenditure tertentu
 - Loading spinner pada preview kalkulasi
 - UI/UX batch detail lebih modern
+- Formula omset berbeda untuk Math Perfect Mode vs Normal Mode
