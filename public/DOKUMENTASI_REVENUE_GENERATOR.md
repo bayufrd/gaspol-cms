@@ -342,25 +342,147 @@ route.post("/revenue-generator/rollback/:id", revenueGenerator.rollbackBatch);
 
 Lokasi: `gaspol-cms/src/components/RevenueGenerator.js`
 
-Fitur:
-- Form input (outlet, bulan, tahun, target revenue)
-- Opsi toggle (PPN, weekend boost, booking mode, generate refunds, generate expenditures)
-- Preview kalkulasi sebelum generate
-- Tabel riwayat generate (dengan info refund & expenditure)
-- Tombol detail dan rollback
+**State Management:**
+```javascript
+// Form states
+const [selectedOutlet, setSelectedOutlet] = useState("");
+const [selectedMonth, setSelectedMonth] = useState("");
+const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
+const [targetRevenue, setTargetRevenue] = useState("");
+const [usePpn, setUsePpn] = useState(true);
+const [ppnPercent, setPpnPercent] = useState(10);
+const [weekendBoost, setWeekendBoost] = useState(true);
+const [bookingMode, setBookingMode] = useState(true);
+const [generateRefunds, setGenerateRefunds] = useState(true);
+const [generateExpenditures, setGenerateExpenditures] = useState(true);
+const [mathPerfectMode, setMathPerfectMode] = useState(false); // 🧪 New!
+
+// Data states
+const [outlets, setOutlets] = useState([]);
+const [logs, setLogs] = useState([]);
+const [previewData, setPreviewData] = useState(null);
+const [templateMenus, setTemplateMenus] = useState([]);
+const [excludedMenuIds, setExcludedMenuIds] = useState([]);
+```
+
+**Fitur Utama:**
+- ✅ Form input (outlet, bulan, tahun, target revenue)
+- ✅ Opsi toggle (PPN customizable, weekend boost, booking mode, generate refunds, generate expenditures)
+- ✅ **Math Perfect Mode** 🧪 (checkbox experimental)
+- ✅ Preview kalkulasi sebelum generate (dengan loading spinner)
+- ✅ Exclude menu dari template
+- ✅ Tabel riwayat generate (dengan info refund & expenditure)
+- ✅ Tombol detail dan rollback
+- ✅ Hard delete untuk cleanup
+
+**API Calls dari Frontend:**
+```javascript
+// 1. Fetch outlets
+GET /revenue-generator/outlets
+
+// 2. Fetch template menus
+GET /revenue-generator/template-menus
+
+// 3. Preview kalkulasi
+GET /revenue-generator/preview?outlet_id=X&month=Y&year=Z&target_revenue=N
+
+// 4. Generate revenue
+POST /revenue-generator/generate
+{
+  outlet_id, month, year, target_revenue,
+  use_ppn, ppn_percent,
+  weekend_boost, booking_mode,
+  generate_refunds, generate_expenditures,
+  math_perfect_mode,  // 🧪 New parameter!
+  excluded_menu_ids,
+  user_id, username
+}
+
+// 5. Fetch logs
+GET /revenue-generator/logs?outlet_id=X
+
+// 6. Rollback batch
+POST /revenue-generator/rollback/:id
+{
+  user_id, username
+}
+
+// 7. Hard delete
+DELETE /revenue-generator/hard-delete/:id
+{
+  admin_password, user_id, username
+}
+```
 
 #### 2. Modal: `src/components/RevenueGeneratorDetailModal.js` (BARU)
 
 Lokasi: `gaspol-cms/src/components/RevenueGeneratorDetailModal.js`
 
-Fitur:
-- Summary cards (outlet, periode, target, status)
-- Revenue breakdown (existing, generated, total)
-- Stats (transaksi, carts, items, refunds, expenditures)
-- Opsi yang digunakan
-- Tab daily summary, transactions, refunds, dan expenditures
-- **Print Laporan Kasir** dengan input nama kasir (multiple)
-- Print detail functionality
+**State Management:**
+```javascript
+const [batchData, setBatchData] = useState(null);
+const [activeTab, setActiveTab] = useState('summary');
+const [selectedTransaction, setSelectedTransaction] = useState(null);
+const [selectedRefund, setSelectedRefund] = useState(null);
+const [refundsData, setRefundsData] = useState([]);
+const [expendituresData, setExpendituresData] = useState([]);
+const [cashierNames, setCashierNames] = useState(['']);
+const [downloadSections, setDownloadSections] = useState({
+  expenditure: true, income: true, transactions: true,
+  incomeDetail: true, refunded: true, report: true, shift: true
+});
+```
+
+**Fitur Utama:**
+- ✅ Summary cards (outlet, periode, target, status)
+- ✅ Revenue breakdown (existing, generated, total)
+- ✅ Stats (transaksi, carts, items, refunds, expenditures)
+- ✅ **Opsi yang digunakan** dengan badge:
+  - ✓/✗ PPN
+  - ✓/✗ Weekend Boost
+  - ✓/✗ Booking Mode
+  - ✓/✗ Generate Refunds
+  - ✓/✗ Generate Expenditures
+  - ⚡ **Math Perfect Mode 🧪** (badge kuning jika aktif)
+  - Price Adjustment (jika tidak 0%)
+- ✅ Tab: Summary, Transactions, Refunds, Expenditures
+- ✅ **Clickable transaction rows** - klik untuk lihat detail items
+- ✅ **Clickable refund rows** - klik untuk lihat detail items yang di-refund
+- ✅ **Print Laporan Kasir** dengan input nama kasir (multiple)
+- ✅ **Download report** (PDF, Excel, DOCX) dengan checklist section
+
+**API Calls dari Modal:**
+```javascript
+// 1. Fetch batch detail
+GET /revenue-generator/logs/:id
+
+// 2. Fetch transactions
+GET /revenue-generator/transactions/:id
+
+// 3. Fetch transaction detail with items
+GET /revenue-generator/transaction-detail/:transaction_id
+
+// 4. Fetch refunds
+GET /revenue-generator/refunds/:id
+
+// 5. Fetch refund detail with items
+GET /revenue-generator/refund-detail/:refund_id
+
+// 6. Fetch expenditures
+GET /revenue-generator/expenditures/:id
+
+// 7. Download PDF
+GET /revenue-generator/download/pdf/:id?cashiers=X,Y&sections=...
+
+// 8. Download Excel
+GET /revenue-generator/download/excel/:id?cashiers=X,Y&sections=...
+
+// 9. Download DOCX
+GET /revenue-generator/download/word/:id?cashiers=X,Y&sections=...
+
+// 10. Print HTML (new tab)
+GET /revenue-generator/print/:id?cashiers=X,Y
+```
 
 #### 3. Sidebar: `src/components/common/Sidebar.js` (DIUBAH)
 
@@ -543,33 +665,79 @@ Generate transaksi.
   "booking_mode": false,
   "generate_refunds": true,
   "generate_expenditures": true,
+  "math_perfect_mode": false,
+  "excluded_menu_ids": [123, 456],
   "user_id": 1,
   "username": "admin"
 }
 ```
 
-**Response:**
+**Response (Normal Mode):**
 ```json
 {
   "success": true,
   "message": "Revenue berhasil di-generate!",
   "data": {
     "batch_id": 1,
-    "transactions_created": 3500,
-    "generated_revenue": 20000000,
+    "outlet_id": 4,
+    "month": 2,
+    "year": 2026,
+    "target_revenue": 100000000,
+    "existing_revenue": 80000000,
+    "generated_revenue": 20500000,
     "actual_total_revenue": 100000000,
+    "final_omset": 20000000,
+    "omset_difference": 0,
+    "is_math_perfect_mode": false,
+    "gap_analysis": null,
+    "transactions_created": 3500,
     "refunds_created": 60,
     "total_refund_amount": 500000,
     "expenditures_created": 90,
-    "total_expenditure_amount": 3000000
+    "total_expenditure_amount": 300000
   }
 }
 ```
 
-  Notes:
-  - `ppn_percent` (optional): jika diberikan, akan digunakan sebagai persentase PPN untuk transaksi (default 10% jika `use_ppn` = true). Contoh: `ppn_percent: 10`.
-  - `min_transaction_value` (optional): nilai minimum per transaksi (default Rp 10.000). Jika hari memiliki target kecil sehingga jumlah transaksi minimal tidak tercapai, jumlah transaksi akan disesuaikan.
-  - `daily_tx_min` / `daily_tx_max` (optional): rentang jumlah transaksi per hari (default 50 - 100).
+**Response (Math Perfect Mode dengan Gap):**
+```json
+{
+  "success": true,
+  "message": "Revenue di-generate dengan gap Rp 6.000 (kelebihan)",
+  "data": {
+    "batch_id": 2,
+    "outlet_id": 4,
+    "target_revenue": 50000000,
+    "final_omset": 50006000,
+    "omset_difference": 6000,
+    "is_math_perfect_mode": true,
+    "gap_analysis": {
+      "gap_amount": 6000,
+      "gap_percentage": "0.0120",
+      "cheapest_menu_price": 15000,
+      "cheapest_menu_name": "Es Teh Manis",
+      "reason": "Omset kelebihan Rp 6.000. Menu termurah: Rp 15.000 (Es Teh Manis). Gap lebih kecil dari harga menu termurah, tidak bisa di-refund lagi."
+    },
+    "transactions_created": 2500,
+    "refunds_created": 45
+  }
+}
+```
+
+**Parameter Details:**
+- `ppn_percent` (optional): Persentase PPN (default 10% jika `use_ppn` = true)
+- `math_perfect_mode` (optional): Mode eksperimental untuk exact matching (default false)
+- `excluded_menu_ids` (optional): Array ID menu yang tidak ingin digunakan
+- `min_transaction_value` (optional): Nilai minimum per transaksi (default Rp 10.000)
+- `daily_tx_min` / `daily_tx_max` (optional): Rentang jumlah transaksi per hari (default 50 - 100)
+
+**Gap Analysis (Math Perfect Mode):**
+Jika Math Perfect Mode aktif dan ada gap, response akan include analisis:
+- `gap_amount`: Selisih dari target (positif = kelebihan, negatif = kurang)
+- `gap_percentage`: Persentase gap dari target
+- `cheapest_menu_price`: Harga menu termurah yang tersedia
+- `cheapest_menu_name`: Nama menu termurah
+- `reason`: Penjelasan kenapa gap terjadi dan apakah bisa di-fix
 
 ### 6. POST `/revenue-generator/rollback/:id`
 Rollback batch (soft delete).
@@ -674,6 +842,76 @@ Ambil daftar pengeluaran per batch.
 }
 ```
 
+### 14. GET `/revenue-generator/transaction-detail/:transaction_id`
+Ambil detail transaksi dengan items (menu yang dibeli).
+
+**Response:**
+```json
+{
+  "success": true,
+  "data": {
+    "transaction_id": 123,
+    "receipt_number": "DT-PixucoDT-33-20260125-121200",
+    "customer_name": "PixucoDT",
+    "payment_type": "Cash",
+    "subtotal": 100000,
+    "total": 110000,
+    "ppn": 10000,
+    "created_at": "2026-01-25 12:12:00",
+    "items": [
+      {
+        "menu_name": "Nasi Goreng",
+        "varian": "Reguler",
+        "serving_type": "Dine In",
+        "qty": 2,
+        "price": 25000,
+        "total_price": 50000
+      },
+      {
+        "menu_name": "Es Teh Manis",
+        "varian": null,
+        "serving_type": "Dine In",
+        "qty": 2,
+        "price": 5000,
+        "total_price": 10000
+      }
+    ]
+  }
+}
+```
+
+### 15. GET `/revenue-generator/refund-detail/:refund_id`
+Ambil detail refund dengan items yang di-refund.
+
+**Response:**
+```json
+{
+  "success": true,
+  "data": {
+    "refund_id": 45,
+    "transaction_id": 123,
+    "receipt_number": "DT-PixucoDT-33-20260125-121200",
+    "customer_name": "PixucoDT",
+    "refund_reason": "Pesanan salah",
+    "payment_type": "Cash",
+    "total_refund": 25000,
+    "transaction_created_at": "2026-01-25 12:12:00",
+    "refund_created_at": "2026-01-25 14:30:00",
+    "items": [
+      {
+        "menu_name": "Nasi Goreng",
+        "varian": "Reguler",
+        "qty_ordered": 2,
+        "qty_refunded": 1,
+        "price": 25000,
+        "total_refund_price": 25000,
+        "refund_reason_item": "Pesanan salah"
+      }
+    ]
+  }
+}
+```
+
 ---
 
 ## Cara Penggunaan
@@ -743,9 +981,71 @@ npm run start
    - **Refund details** (jika ada)
    - **Expenditures** (jika ada)
 
+### Langkah 7: Menggunakan Math Perfect Mode 🧪
+
+**Kapan menggunakan Math Perfect Mode:**
+- Saat membutuhkan target revenue yang EXACT (presisi tinggi)
+- Saat expenditure tidak boleh mengurangi target omset
+- Saat ingin omset = transaksi - refund (tanpa expenditure)
+
+**Cara menggunakan:**
+1. Centang checkbox **"Math Perfect Mode"** di bagian "Opsi Tambahan"
+2. Badge "Experimental" akan muncul di sebelah checkbox
+3. Generate revenue seperti biasa
+4. Sistem akan:
+   - Generate transaksi untuk mencapai target
+   - Menggunakan refund untuk menyerap surplus (bukan expenditure)
+   - Mencari kombinasi menu yang tepat untuk exact match
+   - Expenditure tetap di-generate tapi tidak mengurangi omset
+5. Cek response untuk melihat `gap_analysis`:
+   - Jika gap = 0: Target tercapai sempurna ✅
+   - Jika ada gap: Lihat `reason` untuk penjelasan (menu termurah, dll)
+
+**Formula:**
+- **Normal Mode**: `Target = Transaction - Refund - Expenditure`
+- **Math Perfect Mode**: `Target = Transaction - Refund` (Expenditure diabaikan)
+
+**Cash Calculation (Laporan):**
+- **Normal Mode**: 
+  - Cash Rill = Tunai masuk
+  - Cash Seharusnya = Cash Rill + Expenditure
+- **Math Perfect Mode**: 
+  - Cash Rill = Tunai masuk - Expenditure (kas fisik di laci)
+  - Cash Seharusnya = Cash Rill + Expenditure (validasi)
+
+**Catatan Penting:**
+- Expenditure tetap muncul di laporan (untuk realistis)
+- Semua expenditure genap kelipatan 1000 (tidak ada 250, 500, 750)
+- Phase 5 lebih agresif mencari exact match (tolerance 0, bukan 1000)
+- Gap analysis akan muncul di response jika tidak exact
+
 ---
 
 ## Troubleshooting
+
+### Error: "Math Perfect Mode - Gap tidak tercapai"
+**Penyebab:** Tidak bisa mencapai exact match karena kombinasi menu tidak pas
+
+**Analisis Gap:**
+- Cek `gap_analysis` di response:
+  ```json
+  {
+    "gap_amount": 6000,
+    "gap_percentage": "0.0120",
+    "cheapest_menu_price": 15000,
+    "cheapest_menu_name": "Es Teh Manis",
+    "reason": "Omset kelebihan Rp 6.000. Menu termurah: Rp 15.000..."
+  }
+  ```
+- Jika gap < harga menu termurah: Tidak bisa di-refund/adjust lagi
+- Jika gap > harga menu termurah: Seharusnya bisa di-fix, cek transaksi tersedia
+
+**Solusi:**
+1. Rollback dan generate ulang (beda random seed, beda hasil)
+2. Adjust target sedikit (misal dari 100jt jadi 99.95jt)
+3. Tambah/kurangi menu template (exclude menu tertentu)
+4. Gunakan Normal Mode jika precision tidak critical
+
 ### Error: "Gagal download report (PDF/Excel/Word)"
 **Solusi:**
 - Pastikan sudah memilih minimal 1 section pada checklist download
@@ -755,7 +1055,6 @@ npm run start
 ### Error: "Validasi kasir tidak terpenuhi"
 **Solusi:**
 - Minimal 1 nama kasir wajib diisi untuk print/download laporan kasir
-
 
 ### Error: "Tidak ada menu template dari outlet 3"
 **Solusi:** Pastikan outlet ID 3 memiliki menu yang aktif (`is_active = 1`)

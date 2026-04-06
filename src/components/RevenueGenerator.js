@@ -4,6 +4,7 @@ import Swal from "sweetalert2";
 import flatpickr from "flatpickr";
 import "flatpickr/dist/flatpickr.min.css";
 import { RevenueGeneratorDetailModal } from "./RevenueGeneratorDetailModal";
+import { RevenueGeneratorDocModal } from "./RevenueGeneratorDocModal";
 
 const apiBaseUrl = process.env.REACT_APP_API_BASE_URL;
 
@@ -41,6 +42,7 @@ const RevenueGenerator = ({ userTokenData }) => {
   // Modal states
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [selectedBatchId, setSelectedBatchId] = useState(null);
+  const [showDocModal, setShowDocModal] = useState(false);
   
   // Refs
   const loadingIntervalRef = useRef(null);
@@ -517,6 +519,17 @@ const RevenueGenerator = ({ userTokenData }) => {
             <div className="col-12 col-md-6 order-md-1 order-last mb-3">
               <h3>Revenue Generator</h3>
               <p className="text-subtitle text-muted">Generate transaksi</p>
+            </div>
+            <div className="col-12 col-md-6 order-md-2 order-first">
+              <nav aria-label="breadcrumb" className="breadcrumb-header float-start float-lg-end">
+                <button 
+                  className="btn btn-primary"
+                  onClick={() => setShowDocModal(true)}
+                >
+                  <i className="bi bi-book me-2"></i>
+                  Dokumentasi
+                </button>
+              </nav>
             </div>
           </div>
         </div>
@@ -1009,6 +1022,12 @@ const RevenueGenerator = ({ userTokenData }) => {
         show={showDetailModal}
         onClose={() => setShowDetailModal(false)}
         batchId={selectedBatchId}
+      />
+
+      {/* Documentation Modal */}
+      <RevenueGeneratorDocModal 
+        show={showDocModal}
+        onHide={() => setShowDocModal(false)}
       />
     </div>
   );

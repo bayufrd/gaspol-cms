@@ -37,6 +37,16 @@ export const ReportPaymentModal = ({
   const [showTransactions, setShowTransactions] = useState(false);
   const [showDetailIncome, setShowDetailIncome] = useState(false);
   const [showRefunds, setShowRefunds] = useState(false);
+  const [showDownloadModal, setShowDownloadModal] = useState(false);
+  const [downloadSections, setDownloadSections] = useState({
+    shift: true,
+    expenditure: true,
+    laporan: true,
+    pemasukan: true,
+    transaksi: true,
+    detailPemasukan: true,
+    pengeluaranRefunded: true,
+  });
   const isFetchingRef = useRef(false);
 
   useEffect(() => {
@@ -252,166 +262,64 @@ export const ReportPaymentModal = ({
   //   shiftNumber,
   //   onClose,
   // ]);
+
+  const handleExportPDF = () => {
+    if (!paymentReport) return;
+    
+    const params = new URLSearchParams({
+      outlet_id: userTokenData.outlet_id,
+      start_date: startDate,
+      end_date: endDate,
+      is_shift: shiftNumber || 0,
+      sections: JSON.stringify(downloadSections),
+    });
+    
+    window.open(`${apiBaseUrl}/report/download-pdf?${params.toString()}`, '_blank');
+  };
+
+  const handleExportDOCX = () => {
+    if (!paymentReport) return;
+    
+    const params = new URLSearchParams({
+      outlet_id: userTokenData.outlet_id,
+      start_date: startDate,
+      end_date: endDate,
+      is_shift: shiftNumber || 0,
+      sections: JSON.stringify(downloadSections),
+    });
+    
+    window.open(`${apiBaseUrl}/report/download-docx?${params.toString()}`, '_blank');
+  };
+
   const handleExportExcel = () => {
     if (!paymentReport) return;
+    
+    const params = new URLSearchParams({
+      outlet_id: userTokenData.outlet_id,
+      start_date: startDate,
+      end_date: endDate,
+      is_shift: shiftNumber || 0,
+      sections: JSON.stringify(downloadSections),
+    });
+    
+    window.open(`${apiBaseUrl}/report/download-excel?${params.toString()}`, '_blank');
+  };
 
-    // Buat workbook baru
-    const workbook = XLSX.utils.book_new();
-
-    // Tambah worksheet untuk Rincian Shift
-    const shiftDetailsData = [
-      {
-        'Cashier Name': shiftDetails.casher_name || "-",
-        'Actual Ending Cash': shiftDetails.actual_ending_cash || "-",
-        'Cash Difference': shiftDetails.cash_difference || "-",
-        'Expected Ending Cash': shiftDetails.expected_ending_cash || "-",
-        'Total Discount': shiftDetails.total_discount || "-",
-        'Total Amount Shift': shiftDetails.total_amount || "-",
-        'Total Expense': expenditures?.totalExpense || "-",
-      },
-    ];
-
-    const shiftWorksheet = XLSX.utils.json_to_sheet(shiftDetailsData);
-    XLSX.utils.book_append_sheet(workbook, shiftWorksheet, "Shift Details");
-
-    // Tambah worksheet untuk Rincian Expenditures
-    if (expenditures) {
-      const expendituresData = expenditures.lists.map(expense => ({
-        'Description': expense.description || "-",
-        'Nominal': expense.nominal || "-",
-      }));
-
-      const expendituresWorksheet = XLSX.utils.json_to_sheet(expendituresData);
-      XLSX.utils.book_append_sheet(workbook, expendituresWorksheet, "Expenditures");
-    }
-
-    // Tambah worksheet untuk Rincian Laporan
-    const paymentReportsData = Object.entries(paymentReport.payment_reports).map(([jenisLaporan, totalLaporan]) => ({
-      'Jenis Laporan': toPascalCaseWithSpaces(jenisLaporan),
-      'Total Laporan': totalLaporan,
-    }));
-
-    const paymentReportsWorksheet = XLSX.utils.json_to_sheet(paymentReportsData);
-    XLSX.utils.book_append_sheet(workbook, paymentReportsWorksheet, "Payment Reports");
-
-    // Tambah worksheet untuk Pemasukan
-    const incomeData = groupedCartDetails.map(item => ({
-      'Menu Type': item.menu_type,
-      'Menu Name': item.menu_name,
-      'Varian': item.varian || "-",
-      'Total Sold Quantity': item.total_quantity,
-      'Total Amount': item.total_price,
-    }));
-
-    const incomeWorksheet = XLSX.utils.json_to_sheet(incomeData);
-    XLSX.utils.book_append_sheet(workbook, incomeWorksheet, "Income");
-
-    // Tambah worksheet untuk Detail Income Marged
-    const detailIncomeMargedData = paymentReport.cart_details.reduce((acc, cartDetail) => {
-      const key = `${cartDetail.menu_name}-${cartDetail.varian || ""}`;
-
-      if (!acc[key]) {
-        acc[key] = {
-          'Menu Type': cartDetail.menu_type || "-",
-          'Menu Name': cartDetail.menu_name || "-",
-          'Varian': cartDetail.varian || "-",
-          'qtyTot': 0,               // Kunci unik untuk quantity
-          'Menu Price': cartDetail.price || 0,
-          'total_priceTot': 0,       // Kunci unik untuk total price
-        };
-      }
-
-      acc[key]['qtyTot'] += cartDetail.qty || 0;             // Menjumlahkan quantity
-      acc[key]['total_priceTot'] += cartDetail.total_price || 0; // Menjumlahkan total price
-
-      return acc;
-    }, {});
-
-    // Mengubah objek menjadi array untuk worksheet
-    const detailIncomeMargedArray = Object.values(detailIncomeMargedData).map(item => ({
-      'Menu Type': item['Menu Type'],
-      'Menu Name': item['Menu Name'],
-      'Varian': item['Varian'],
-      'Total Quantity': item['qtyTot'],         // Mengambil dari kunci unik
-      'Menu Price': item['Menu Price'],
-      'Total Price': item['total_priceTot'],    // Mengambil dari kunci unik
-    }));
-
-    const detailIncomeMargedWorksheet = XLSX.utils.json_to_sheet(detailIncomeMargedArray);
-    XLSX.utils.book_append_sheet(workbook, detailIncomeMargedWorksheet, "Detail Income Marged");
-
-    // Tambah worksheet untuk Semua Transaksi
-    const transactionData = paymentReport.transactions.map(transaction => ({
-      'Invoice Number': transaction.invoice_number || "-",
-      'Payment Type': transaction.payment_type || "-",
-      'Time to Make Payment': transaction.invoice_due_date || "-",
-      'Discount Code': transaction.transaction_discount_code || "-",
-      'Discount Type': transaction.discount_type === 1
-        ? "Discount Cart"
-        : transaction.discount_type === 2
-          ? "Discount Per-Item"
-          : "-",
-      'Subtotal': transaction.subtotal || "-",
-      'Total': transaction.total || "-",
-      'Total Refund': transaction.total_refund || "-",
-      'Last Time For Refund': transaction.refund_updated_at || "-"
-    }));
-
-    const transactionWorksheet = XLSX.utils.json_to_sheet(transactionData);
-    XLSX.utils.book_append_sheet(workbook, transactionWorksheet, "All Transactions");
-
-    // Tambah worksheet untuk Detail Income
-    const detailIncomeData = paymentReport.cart_details.map(cartDetail => ({
-      'Menu Type': cartDetail.menu_type || "-",
-      'Menu Name': cartDetail.menu_name || "-",
-      'Varian': cartDetail.varian || "-",
-      'Serving Type': cartDetail.serving_type_name || "-",
-      'Note Item': cartDetail.note_item || "-",
-      'Quantity': cartDetail.qty || "-",
-      'Menu Price': cartDetail.price || "-",
-      'Discount Code': cartDetail.discount_code || "-",
-      'Discounts Value': cartDetail.discounts_value || "-",
-      'Discounts Type': cartDetail.discounts_is_percent === 0
-        ? "Potongan"
-        : cartDetail.discounts_is_percent === 1
-          ? "Persen"
-          : "-",
-      'Discounted Price': cartDetail.discounted_price || "-",
-      'Total Price': cartDetail.total_price || "-",
-    }));
-
-    const detailIncomeWorksheet = XLSX.utils.json_to_sheet(detailIncomeData);
-    XLSX.utils.book_append_sheet(workbook, detailIncomeWorksheet, "Detail Income");
-
-    // Tambah worksheet untuk Pengeluaran
-    if (paymentReport.refund && paymentReport.refund[0]) {
-      const refundsData = paymentReport.refund[0].map(refund => ({
-        'Menu Type': refund.menu_type || "-",
-        'Menu Name': refund.menu_name || "-",
-        'Varian': refund.varian || "-",
-        'Serving Type': refund.serving_type_name || "-",
-        'Note Item': refund.note_item || "-",
-        'Quantity Refund Item': refund.qty_refund_item || "-",
-        'Menu Price': refund.menu_price || "-",
-        'Discount Code': refund.discount_code || "-",
-        'Discounts Value': refund.discounts_value || "-",
-        'Discounts Type': refund.discounts_is_percent === 0
-          ? "Potongan"
-          : refund.discounts_is_percent === 1
-            ? "Persen"
-            : "-",
-        'Discounted Price': refund.discounted_price || "-",
-        'Refund Reason Item': refund.refund_reason_item || "-",
-        'Payment Type Refund': refund.payment_type_name || "-",
-        'Total Refund Price': refund.total_refund_price || "-",
-      }));
-
-      const refundsWorksheet = XLSX.utils.json_to_sheet(refundsData);
-      XLSX.utils.book_append_sheet(workbook, refundsWorksheet, "Refunds");
-    }
-
-    // Buat file Excel dan unduh
-    XLSX.writeFile(workbook, `${filePdfName}.xlsx`);
+  const handlePrintThermal = () => {
+    if (!paymentReport) return;
+    
+    const params = new URLSearchParams({
+      outlet_id: userTokenData.outlet_id,
+      start_date: startDate,
+      end_date: endDate,
+      is_shift: shiftNumber || 0,
+      sections: JSON.stringify(downloadSections),
+    });
+    
+    const thermalWindow = window.open(`${apiBaseUrl}/report/print-thermal?${params.toString()}`, 'thermal', 'width=400,height=600');
+    setTimeout(() => {
+      thermalWindow.print();
+    }, 1000);
   };
 
   const handleDiscountType = (
@@ -517,21 +425,14 @@ export const ReportPaymentModal = ({
                     "Laporan Kasir"
                   </h4>
 
-                  <div className="d-flex align-items-center">
+                  <div className="d-flex align-items-center gap-2">
                     <button
                       type="button"
-                      className="btn btn-primary me-2"
-                      onClick={handlePrintPDF}
+                      className="btn btn-primary"
+                      onClick={() => setShowDownloadModal(true)}
+                      title="Download Data"
                     >
-                      Print PDF
-                    </button>
-
-                    <button
-                      type="button"
-                      className="btn btn-success me-2" // tambahkan kelas untuk tombol export
-                      onClick={handleExportExcel}
-                    >
-                      Export Excel
+                      📥 Download Data
                     </button>
 
                     <button
@@ -541,7 +442,7 @@ export const ReportPaymentModal = ({
                       aria-label="Close"
                       onClick={onClose}
                     >
-                      Close
+                      ✕ Close
                     </button>
                   </div>
                 </div>
@@ -574,23 +475,15 @@ export const ReportPaymentModal = ({
                               <thead>
                                 <tr>
                                   <th>Casher Name</th>
-                                  <th>Actual Ending Cash</th>
-                                  <th>Cash Difference</th>
-                                  <th>Expected Ending Cash</th>
                                   <th>Total Discount</th>
                                   <th>Total Amount Shift</th>
-                                  <th>Total Expense</th>
                                 </tr>
                               </thead>
                               <tbody>
                                 <tr>
                                   <td>{shiftDetails.casher_name || "-"}</td>
-                                  <td>{formatRupiah(shiftDetails.actual_ending_cash) || "-"}</td>
-                                  <td>{formatRupiah(shiftDetails.cash_difference) || "-"}</td>
-                                  <td>{formatRupiah(shiftDetails.expected_ending_cash) || "-"}</td>
                                   <td>{formatRupiah(shiftDetails.total_discount) || "-"}</td>
                                   <td>{formatRupiah(shiftDetails.total_amount) || "-"}</td>
-                                  <td>{expenditures ? formatRupiah(expenditures.totalExpense) : "-"}</td>
                                 </tr>
                               </tbody>
                             </table>
@@ -620,6 +513,10 @@ export const ReportPaymentModal = ({
                                         <td>{formatRupiah(expense.nominal) || "-"}</td>
                                       </tr>
                                     ))}
+                                    <tr style={{ fontWeight: 'bold', backgroundColor: '#f0f0f0' }}>
+                                      <td>Total</td>
+                                      <td>{formatRupiah(expenditures.totalExpense)}</td>
+                                    </tr>
                                   </tbody>
                                 </table>)}
                             </>
@@ -686,6 +583,10 @@ export const ReportPaymentModal = ({
                                   <td>{formatRupiah(item.total_price)}</td>
                                 </tr>
                               ))}
+                              <tr style={{ fontWeight: 'bold', backgroundColor: '#f0f0f0' }}>
+                                <td colSpan="4">Total</td>
+                                <td>{formatRupiah(groupedCartDetails.reduce((sum, item) => sum + (item.total_price || 0), 0))}</td>
+                              </tr>
                             </tbody>
                           </table>
                         </div>)}
@@ -810,6 +711,13 @@ export const ReportPaymentModal = ({
                                       </td>
                                     </tr>
                                   ))}
+                                <tr style={{ fontWeight: 'bold', backgroundColor: '#f0f0f0' }}>
+                                  <td colSpan="5">Total</td>
+                                  <td>{formatRupiah(paymentReport.transactions.reduce((sum, t) => sum + (t.subtotal || 0), 0))}</td>
+                                  <td>{formatRupiah(paymentReport.transactions.reduce((sum, t) => sum + (t.total || 0), 0))}</td>
+                                  <td>{formatRupiah(paymentReport.transactions.reduce((sum, t) => sum + (t.total_refund || 0), 0))}</td>
+                                  <td colSpan="2"></td>
+                                </tr>
                               </tbody>
                             </table>
                           ) : (
@@ -871,6 +779,10 @@ export const ReportPaymentModal = ({
                                 </tr>
                               )
                             )}
+                            <tr style={{ fontWeight: 'bold', backgroundColor: '#f0f0f0' }}>
+                              <td colSpan="11">Total</td>
+                              <td>{formatRupiah(paymentReport.cart_details.reduce((sum, item) => sum + (item.total_price || 0), 0))}</td>
+                            </tr>
                           </tbody>
                         </table>)}
                       <br></br>
@@ -927,6 +839,10 @@ export const ReportPaymentModal = ({
                                   <td>{refund.total_refund_price || "-"}</td>
                                 </tr>
                               ))}
+                              <tr style={{ fontWeight: 'bold', backgroundColor: '#f0f0f0' }}>
+                                <td colSpan="13">Total</td>
+                                <td>{formatRupiah(paymentReport.refund[0].reduce((sum, r) => sum + (r.total_refund_price || 0), 0))}</td>
+                              </tr>
                             </tbody>
                           </table>
                         ) : (
@@ -942,6 +858,237 @@ export const ReportPaymentModal = ({
             </div>
           </div>
           <div className={show ? "modal-backdrop fade show" : undefined}></div>
+
+          {/* Download Data Modal */}
+          <div
+            className={`modal fade text-left ${showDownloadModal ? "show" : ""}`}
+            id="downloadDataModal"
+            role="dialog"
+            aria-labelledby="downloadModalLabel"
+            aria-modal={showDownloadModal ? "true" : undefined}
+            aria-hidden={showDownloadModal ? undefined : "true"}
+            style={{
+              display: showDownloadModal ? "block" : "none",
+              zIndex: "1050",
+            }}
+          >
+            <div className="modal-dialog modal-dialog-centered" role="document">
+              <div className="modal-content">
+                <div className="modal-header">
+                  <h5 className="modal-title" id="downloadModalLabel">
+                    📥 Download Data
+                  </h5>
+                  <button
+                    type="button"
+                    className="btn-close"
+                    aria-label="Close"
+                    onClick={() => setShowDownloadModal(false)}
+                  ></button>
+                </div>
+                <div className="modal-body">
+                  {/* Shift Info */}
+                  <div className="mb-3 p-2 border rounded bg-light">
+                    <small className="text-muted d-block mb-2">
+                      <strong>Shift :</strong> {selectedShift}
+                    </small>
+                    <small className="text-muted d-block">
+                      {startDateShift === endDateShift
+                        ? `"${startDateShift}"`
+                        : `"${startDateShift}" -- s/d -- "${endDateShift}"`}
+                    </small>
+                  </div>
+
+                  {/* Section Checkboxes */}
+                  <div className="mb-3 p-2 border rounded bg-light">
+                    <small className="text-muted d-block mb-2">
+                      <i className="bi bi-check2-square me-1"></i>
+                      Pilih bagian yang akan diikutsertakan:
+                    </small>
+                    <div className="row">
+                      <div className="col-12 mb-2">
+                        <div className="form-check">
+                          <input
+                            className="form-check-input"
+                            type="checkbox"
+                            id="chkShift"
+                            checked={true}
+                            disabled
+                          />
+                          <label className="form-check-label small text-muted" htmlFor="chkShift">
+                            ► Rincian Shift (Default ON tidak bisa di off)
+                          </label>
+                        </div>
+                        <div className="form-check">
+                          <input
+                            className="form-check-input"
+                            type="checkbox"
+                            id="chkLaporan"
+                            checked={true}
+                            disabled
+                          />
+                          <label className="form-check-label small text-muted" htmlFor="chkLaporan">
+                            ► Rincian Laporan (Default ON tidak bisa di off)
+                          </label>
+                        </div>
+                      </div>
+                      <div className="col-6">
+                        <div className="form-check">
+                          <input
+                            className="form-check-input"
+                            type="checkbox"
+                            id="chkExpenditure"
+                            checked={downloadSections.expenditure}
+                            onChange={(e) =>
+                              setDownloadSections((prev) => ({
+                                ...prev,
+                                expenditure: e.target.checked,
+                              }))
+                            }
+                          />
+                          <label className="form-check-label small" htmlFor="chkExpenditure">
+                            ► Rincian Expenditure / Pengeluaran
+                          </label>
+                        </div>
+                        <div className="form-check">
+                          <input
+                            className="form-check-input"
+                            type="checkbox"
+                            id="chkPemasukan"
+                            checked={downloadSections.pemasukan}
+                            onChange={(e) =>
+                              setDownloadSections((prev) => ({
+                                ...prev,
+                                pemasukan: e.target.checked,
+                              }))
+                            }
+                          />
+                          <label className="form-check-label small" htmlFor="chkPemasukan">
+                            ► Rincian Pemasukan
+                          </label>
+                        </div>
+                        <div className="form-check">
+                          <input
+                            className="form-check-input"
+                            type="checkbox"
+                            id="chkTransaksi"
+                            checked={downloadSections.transaksi}
+                            onChange={(e) =>
+                              setDownloadSections((prev) => ({
+                                ...prev,
+                                transaksi: e.target.checked,
+                              }))
+                            }
+                          />
+                          <label className="form-check-label small" htmlFor="chkTransaksi">
+                            ► Semua Transaksi
+                          </label>
+                        </div>
+                      </div>
+                      <div className="col-6">
+                        <div className="form-check">
+                          <input
+                            className="form-check-input"
+                            type="checkbox"
+                            id="chkDetailPemasukan"
+                            checked={downloadSections.detailPemasukan}
+                            onChange={(e) =>
+                              setDownloadSections((prev) => ({
+                                ...prev,
+                                detailPemasukan: e.target.checked,
+                              }))
+                            }
+                          />
+                          <label className="form-check-label small" htmlFor="chkDetailPemasukan">
+                            ► Detail Pemasukan
+                          </label>
+                        </div>
+                        <div className="form-check">
+                          <input
+                            className="form-check-input"
+                            type="checkbox"
+                            id="chkPengeluaranRefunded"
+                            checked={downloadSections.pengeluaranRefunded}
+                            onChange={(e) =>
+                              setDownloadSections((prev) => ({
+                                ...prev,
+                                pengeluaranRefunded: e.target.checked,
+                              }))
+                            }
+                          />
+                          <label className="form-check-label small" htmlFor="chkPengeluaranRefunded">
+                            ► Pengeluaran / Refunded
+                          </label>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Download Format Buttons */}
+                  <div className="row g-2">
+                    <div className="col-6">
+                      <button
+                        type="button"
+                        className="btn btn-primary w-100"
+                        onClick={() => {
+                          handleExportPDF();
+                          setShowDownloadModal(false);
+                        }}
+                      >
+                        <i className="bi bi-file-pdf me-1"></i> PDF
+                      </button>
+                    </div>
+                    <div className="col-6">
+                      <button
+                        type="button"
+                        className="btn btn-info w-100"
+                        onClick={() => {
+                          handleExportDOCX();
+                          setShowDownloadModal(false);
+                        }}
+                      >
+                        <i className="bi bi-file-word me-1"></i> DOCX
+                      </button>
+                    </div>
+                    <div className="col-6">
+                      <button
+                        type="button"
+                        className="btn btn-warning w-100"
+                        onClick={() => {
+                          handlePrintThermal();
+                          setShowDownloadModal(false);
+                        }}
+                      >
+                        <i className="bi bi-receipt me-1"></i> Thermal
+                      </button>
+                    </div>
+                    <div className="col-6">
+                      <button
+                        type="button"
+                        className="btn btn-success w-100"
+                        onClick={() => {
+                          handleExportExcel();
+                          setShowDownloadModal(false);
+                        }}
+                      >
+                        <i className="bi bi-file-spreadsheet me-1"></i> Excel
+                      </button>
+                    </div>
+                  </div>
+                </div>
+                <div className="modal-footer">
+                  <button
+                    type="button"
+                    className="btn btn-secondary"
+                    onClick={() => setShowDownloadModal(false)}
+                  >
+                    Close
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+          {showDownloadModal && <div className="modal-backdrop fade show"></div>}
+
           <ReportDetailModal
             show={showDetailPaymentModal}
             onClose={() => setShowDetailPaymentModal(false)}
