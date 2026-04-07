@@ -1,25 +1,47 @@
-import React, { useState, useEffect } from "react";
+﻿import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { PaymentTypeModal } from "./PaymentTypeModal";
-import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
+import { useTheme } from "../contexts/ThemeContext";
+import Swal from "sweetalert2";
+import "../styles/payment-type-module.css";
 
 const apiBaseUrl = process.env.REACT_APP_API_BASE_URL;
 
 const PaymentType = ({ userTokenData }) => {
+  const { isDark } = useTheme();
   const [paymentTypes, setPaymentTypes] = useState([]);
   const [paymentCategories, setPaymentCategories] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [selectedPaymentTypeId, setSelectedPaymentTypeId] = useState(null);
-  const [isOrderChanged, setIsOrderChanged] = useState(false); // Track order change
-  const [dragMode, setDragMode] = useState(false); // Track if drag mode is active
+  const [isReorderMode, setIsReorderMode] = useState(false);
+  const [reorderedItems, setReorderedItems] = useState([]);
 
   useEffect(() => {
     getPaymentTypes();
   }, []);
 
+  useEffect(() => {
+    if (showModal) {
+      document.body.classList.add("modal-open");
+      document.body.style.overflow = "hidden";
+      document.body.style.paddingRight = "0px";
+    } else {
+      document.body.classList.remove("modal-open");
+      document.body.style.removeProperty("overflow", "padding-right");
+    }
+
+    return () => {
+      document.body.classList.remove("modal-open");
+    };
+  }, [showModal]);
+
   const getPaymentTypes = async () => {
     try {
-      const response = await axios.get(`${apiBaseUrl}/payment-management`);
+      const response = await axios.get(`${apiBaseUrl}/payment-management`, {
+        params: {
+          outlet_id: userTokenData.outlet_id,
+        },
+      });
       setPaymentTypes(response.data.data.payment_type);
       setPaymentCategories(response.data.data.payment_categories);
     } catch (error) {
@@ -47,52 +69,52 @@ const PaymentType = ({ userTokenData }) => {
     }
   };
 
-  const handleDragEnd = (result) => {
-    const { source, destination } = result;
-    if (!destination || source.index === destination.index) return; // If dropped outside the list, do nothing
-
-    // Reorder the list
-    const reorderedPaymentTypes = Array.from(paymentTypes);
-    const [removed] = reorderedPaymentTypes.splice(source.index, 1);
-    reorderedPaymentTypes.splice(destination.index, 0, removed);
-
-    // Update state with the reordered list
-    setPaymentTypes(reorderedPaymentTypes);
-    setIsOrderChanged(true); // Mark that the order has changed
-  };
-
-  const saveOrderChanges = async () => {
-    try {
-      const updatedOrder = paymentTypes.map((paymentType, index) => ({
-        id: paymentType.id,
-        order: index + 1, // 1-based index for order
-      }));
-
-      // Make an API request to update the order in the database
-      await axios.put(`${apiBaseUrl}/update-payment-order`, {
-        paymentTypesOrder: updatedOrder,
-      });
-      alert("Urutan pembayaran berhasil diperbarui!");
-
-      setIsOrderChanged(false); // Reset the order change state after saving
-      setDragMode(false); // Disable drag mode after saving
-      // When cancelling drag mode, reload the page
-      getPaymentTypes();
-    } catch (error) {
-      console.error("Error saving order changes:", error);
+  const handleReorderMode = () => {
+    setIsReorderMode(!isReorderMode);
+    if (!isReorderMode) {
+      setReorderedItems([...paymentTypes]);
     }
   };
 
-  // New handler for drag mode toggle button
-  const handleDragModeToggle = () => {
-    if (dragMode) {
-      // When cancelling drag mode, reload the page
-      setIsOrderChanged(false); // Reset the order change state after saving
-      setDragMode(false);
-      getPaymentTypes();
-    } else {
-      // Enable drag mode
-      setDragMode(true);
+  const moveItem = (index, direction) => {
+    const newItems = [...reorderedItems];
+    if (direction === "up" && index > 0) {
+      [newItems[index], newItems[index - 1]] = [newItems[index - 1], newItems[index]];
+      setReorderedItems(newItems);
+    } else if (direction === "down" && index < newItems.length - 1) {
+      [newItems[index], newItems[index + 1]] = [newItems[index + 1], newItems[index]];
+      setReorderedItems(newItems);
+    }
+  };
+
+  const saveOrder = async () => {
+    try {
+      const paymentTypesOrder = reorderedItems.map((item, index) => ({
+        id: item.id,
+        order: index + 1,
+      }));
+
+      await axios.put(`${apiBaseUrl}/update-payment-order`, {
+        paymentTypesOrder: paymentTypesOrder,
+        outlet_id: userTokenData.outlet_id,
+      });
+
+      Swal.fire({
+        icon: "success",
+        title: "Berhasil",
+        text: "Urutan payment type berhasil diubah",
+        showConfirmButton: false,
+        timer: 1500,
+      });
+
+      setIsReorderMode(false);
+      await getPaymentTypes();
+    } catch (error) {
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: error.response?.data?.message || "Gagal mengubah urutan",
+      });
     }
   };
 
@@ -106,171 +128,246 @@ const PaymentType = ({ userTokenData }) => {
             </div>
           </div>
         </div>
-      </div>
-      <section className="section">
-        <div className="card">
-          <div className="card-header">
-            <div className="button-container">
-              <button
-                className="btn btn-secondary rounded-pill"
-                onClick={handleDragModeToggle}
-              >
-                {dragMode ? "Cancel Ubah Urutan" : "Ubah Urutan"}
-              </button>
-              <button
-                className="btn btn-primary rounded-pill"
-                onClick={() => openModal(null)}
-              >
-                <i className="bi bi-plus"></i> Tambah Data
-              </button>
-            </div>
-
-            <style jsx>{`
-    .button-container {
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-      justify-content: flex-end;
-      align-items: stretch;
-    }
-
-    .button-container button {
-      width: 100%;
-    }
-
-    @media (min-width: 768px) {
-      .button-container {
-        flex-direction: row;
-        align-items: center;
-      }
-
-      .button-container button {
-        width: auto;
-        margin-left: 10px;
-      }
-    }
-  `}</style>
-          </div>
-          <div className="card-body">
-            {/* Render table with or without drag-and-drop functionality */}
-            {paymentTypes.length > 0 && (
-              <DragDropContext onDragEnd={handleDragEnd}>
-                {dragMode ? (
-                  <Droppable droppableId="paymentTypes">
-                    {(provided) => (
-                      <table
-                        className="table table-striped"
-                        ref={provided.innerRef} // Apply ref to the table element
-                        {...provided.droppableProps} // Spread droppableProps to the table
-                      >
-                        <thead>
-                          <tr >
-                            <th>No</th>
-                            <th>Name</th>
-                            <th>Category</th>
-                            <th>Active</th>
-                            <th>Actions</th>
-                            <th>Drag</th>
-                          </tr>
-                          {provided.placeholder}
-                        </thead>
-                        <tbody>
-                          {paymentTypes.map((paymentType, index) => (
-                            <Draggable
-                              key={paymentType.id}
-                              draggableId={paymentType.id.toString()}
-                              index={index}
-                            >
-                              {(provided) => (
-                                <tr
-                                  ref={provided.innerRef}
-                                  {...provided.draggableProps}
-                                  {...provided.dragHandleProps}
-                                >
-                                  <td>{index + 1}</td>
-                                  <td>{paymentType.name}</td>
-                                  <td>{paymentType.payment_category_name}</td>
-                                  <td>{paymentType.is_active === 1 ? "Ya" : "Tidak"}</td>
-                                  <td>
-                                    <div className="action-buttons">
-                                      <div
-                                        className="buttons btn info btn-primary"
-                                        onClick={() => openModal(paymentType.id)}
-                                      >
-                                        <i className="bi bi-pencil"></i>
-                                      </div>
-                                    </div>
-                                  </td>
-                                  <td
-                                    className="drag-handle"
-                                    style={{
-                                      cursor: "grab",
-                                      padding: "0 10px",
-                                      textAlign: "center",
-                                    }}
-                                  >
-                                    <i className="bi bi-list" />
-                                  </td>
-                                </tr>
-                              )}
-                            </Draggable>
-                          ))}
-                          {provided.placeholder}
-                        </tbody>
-                      </table>
-                    )}
-                  </Droppable>
+        <section className="section">
+          <div className="card">
+            <div className="card-header">
+              <div className="float-lg-end" style={{ display: "flex", gap: "8px" }}>
+                {isReorderMode ? (
+                  <>
+                    <button
+                      className="btn btn-success btn-sm"
+                      onClick={saveOrder}
+                      style={{
+                        padding: "8px 16px",
+                        fontSize: "0.875rem",
+                        display: "inline-flex",
+                        alignItems: "center",
+                        gap: "8px",
+                      }}
+                    >
+                      <i className="bi bi-check"></i> Simpan Urutan
+                    </button>
+                    <button
+                      className="btn btn-secondary btn-sm"
+                      onClick={handleReorderMode}
+                      style={{
+                        padding: "8px 16px",
+                        fontSize: "0.875rem",
+                        display: "inline-flex",
+                        alignItems: "center",
+                        gap: "8px",
+                      }}
+                    >
+                      <i className="bi bi-x"></i> Batal
+                    </button>
+                  </>
                 ) : (
-                  <table className="table table-striped">
-                    <thead>
-                      <tr>
-                        <th>No</th>
-                        <th>Name</th>
-                        <th>Category</th>
-                        <th>Active</th>
-                        <th>Actions</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {paymentTypes.map((paymentType, index) => (
-                        <tr key={paymentType.id}>
-                          <td>{index + 1}</td>
-                          <td>{paymentType.name}</td>
-                          <td>{paymentType.payment_category_name}</td>
-                          <td>
-                            {paymentType.is_active === 1 ? "Ya" : "Tidak"}
-                          </td>
-                          <td>
-                            <div className="action-buttons">
-                              <div
-                                className="buttons btn info btn-primary"
-                                onClick={() => openModal(paymentType.id)}
-                              >
-                                <i className="bi bi-pencil"></i>
-                              </div>
-                            </div>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                  <>
+                    <button
+                      className="btn btn-warning btn-sm"
+                      onClick={handleReorderMode}
+                      style={{
+                        padding: "8px 16px",
+                        fontSize: "0.875rem",
+                        display: "inline-flex",
+                        alignItems: "center",
+                        gap: "8px",
+                      }}
+                    >
+                      <i className="bi bi-arrow-up-down"></i> Ubah Urutan
+                    </button>
+                    <button
+                      className="btn btn-primary btn-sm"
+                      onClick={() => openModal(null)}
+                      style={{
+                        padding: "8px 16px",
+                        fontSize: "0.875rem",
+                        display: "inline-flex",
+                        alignItems: "center",
+                        gap: "8px",
+                      }}
+                    >
+                      <i className="bi bi-plus"></i> Tambah Data
+                    </button>
+                  </>
                 )}
-              </DragDropContext>
-            )}
-            {/* Show save button when the order is changed */}
-            {isOrderChanged && (
-              <div className="text-end mt-3">
-                <button
-                  className="btn btn-success"
-                  onClick={saveOrderChanges}
-                >
-                  Save Changes
-                </button>
               </div>
-            )}
+            </div>
+            <div className="card-body">
+              {/* Desktop Table View */}
+              <div className="table-responsive desktop-view">
+                <table className="table table-striped payment-type-table" id="table1">
+                  <thead>
+                    <tr>
+                      <th style={{ width: "5%" }}>No</th>
+                      <th style={{ width: "30%" }}>Name</th>
+                      <th style={{ width: "25%" }}>Status</th>
+                      <th style={{ width: "35%" }}>Updated</th>
+                      {isReorderMode && <th style={{ width: "5%", textAlign: "center" }}>Aksi</th>}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {(isReorderMode ? reorderedItems : paymentTypes).map((paymentType, index) => (
+                      <tr
+                        key={paymentType.id}
+                        className="payment-type-row"
+                        onClick={() => !isReorderMode && openModal(paymentType.id)}
+                        style={{
+                          cursor: isReorderMode ? "default" : "pointer",
+                          transition: "all 0.3s ease",
+                          backgroundColor: isDark ? "#1e1e1e" : "transparent",
+                        }}
+                      >
+                        <td style={{ color: isDark ? "#e0e0e0" : "inherit" }}>
+                          {index + 1}
+                        </td>
+                        <td style={{ color: isDark ? "#e0e0e0" : "inherit" }}>
+                          <span className="payment-type-name-cell" style={{ color: isDark ? "#fff" : "#2d3436" }}>
+                            {paymentType.name}
+                            <span
+                              style={{
+                                display: "block",
+                                fontSize: "0.8rem",
+                                color: isDark ? "#aaa" : "#999",
+                                marginTop: "2px",
+                              }}
+                            >
+                              {paymentType.payment_category_name}
+                            </span>
+                          </span>
+                        </td>
+                        <td style={{ color: isDark ? "#e0e0e0" : "inherit" }}>
+                          <span className={`payment-type-status ${paymentType.is_active === 1 ? 'active' : 'inactive'}`}>
+                            {paymentType.is_active === 1 ? 'Aktif' : 'Tidak Aktif'}
+                          </span>
+                        </td>
+                        <td style={{ color: isDark ? "#ccc" : "inherit" }}>
+                          <span className="payment-type-updated-cell">
+                            {paymentType.updated_at ? new Date(paymentType.updated_at).toLocaleString("id-ID", { 
+                              year: 'numeric', 
+                              month: '2-digit', 
+                              day: '2-digit', 
+                              hour: '2-digit', 
+                              minute: '2-digit', 
+                              second: '2-digit',
+                              hour12: false 
+                            }) : "-"}
+                          </span>
+                        </td>
+                        {isReorderMode && (
+                          <td style={{ textAlign: "center" }}>
+                            <button
+                              className="btn btn-sm btn-outline-secondary"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                moveItem(index, "up");
+                              }}
+                              disabled={index === 0}
+                              style={{ marginRight: "4px" }}
+                              title="Naik"
+                            >
+                              <i className="bi bi-arrow-up"></i>
+                            </button>
+                            <button
+                              className="btn btn-sm btn-outline-secondary"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                moveItem(index, "down");
+                              }}
+                              disabled={index === (isReorderMode ? reorderedItems.length : paymentTypes.length) - 1}
+                              title="Turun"
+                            >
+                              <i className="bi bi-arrow-down"></i>
+                            </button>
+                          </td>
+                        )}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Mobile Card View */}
+              <div className="mobile-view">
+                <div className="payment-types-card-container">
+                  {(isReorderMode ? reorderedItems : paymentTypes).map((paymentType, index) => (
+                    <div
+                      key={paymentType.id}
+                      className="payment-type-card-item"
+                      onClick={() => !isReorderMode && openModal(paymentType.id)}
+                      style={{
+                        backgroundColor: isDark ? "#262626" : "white",
+                        borderColor: isDark ? "#444" : "#e9ecef",
+                        cursor: isReorderMode ? "default" : "pointer",
+                      }}
+                    >
+                      <div className="payment-type-card-header">
+                        <div className="payment-type-card-number">{index + 1}</div>
+                        <div className="payment-type-card-content">
+                          <div className="payment-type-card-name" style={{ color: isDark ? "#fff" : "#2d3436" }}>
+                            {paymentType.name}
+                          </div>
+                          <div className="payment-type-card-category" style={{ color: isDark ? "#aaa" : "#6c757d" }}>
+                            {paymentType.payment_category_name}
+                          </div>
+                        </div>
+                      </div>
+                      <div className="payment-type-card-body">
+                        <div className="payment-type-card-field">
+                          <span className="payment-type-card-label" style={{ color: isDark ? "#999" : "#9e9e9e" }}>Status</span>
+                          <span className={`payment-type-card-status ${paymentType.is_active === 1 ? 'active' : 'inactive'}`}>
+                            {paymentType.is_active === 1 ? 'Aktif' : 'Tidak Aktif'}
+                          </span>
+                        </div>
+                        <div className="payment-type-card-field">
+                          <span className="payment-type-card-label" style={{ color: isDark ? "#999" : "#9e9e9e" }}>Updated</span>
+                          <span className="payment-type-card-date" style={{ color: isDark ? "#ccc" : "#6c757d" }}>
+                            {paymentType.updated_at ? new Date(paymentType.updated_at).toLocaleString("id-ID", { 
+                              year: 'numeric', 
+                              month: '2-digit', 
+                              day: '2-digit', 
+                              hour: '2-digit', 
+                              minute: '2-digit', 
+                              second: '2-digit',
+                              hour12: false 
+                            }) : "-"}
+                          </span>
+                        </div>
+                      </div>
+                      {isReorderMode && (
+                        <div className="payment-type-reorder-actions" style={{ marginTop: "12px", display: "flex", gap: "8px", justifyContent: "center" }}>
+                          <button
+                            className="btn btn-sm btn-outline-secondary"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              moveItem(index, "up");
+                            }}
+                            disabled={index === 0}
+                            title="Naik"
+                          >
+                            <i className="bi bi-arrow-up"></i> Naik
+                          </button>
+                          <button
+                            className="btn btn-sm btn-outline-secondary"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              moveItem(index, "down");
+                            }}
+                            disabled={index === (isReorderMode ? reorderedItems.length : paymentTypes.length) - 1}
+                            title="Turun"
+                          >
+                            <i className="bi bi-arrow-down"></i> Turun
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
+      </div>
 
       <PaymentTypeModal
         show={showModal}
@@ -286,4 +383,3 @@ const PaymentType = ({ userTokenData }) => {
 };
 
 export default PaymentType;
-

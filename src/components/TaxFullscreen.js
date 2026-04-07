@@ -1,11 +1,13 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import { Line } from "react-chartjs-2";
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
 import { useParams } from "react-router-dom";
+import { useTheme } from "../contexts/ThemeContext";
 import TaxFullscreenPictureModal from "./TaxFullscreenPictureModal";
 import TaxDocumentPictureEditModal from "./TaxDocumentPictureEditModal";
 
 const TaxFullscreen = ({ userTokenData, preview = false }) => {
+    const { isDark } = useTheme();
     const [showEditModal, setShowEditModal] = useState(false);
     const [editDoc, setEditDoc] = useState(null);
     const params = useParams();
@@ -157,21 +159,10 @@ const TaxFullscreen = ({ userTokenData, preview = false }) => {
 
     // (tax chart removed for fullscreen) keep only donation chart below
 
-    const lineChartDataDonasi = {
-        labels: dailyChart.map((item) => item.date),
-        datasets: [
-            {
-                label: "Total Donasi per Hari (IDR)",
-                data: dailyChart.map((item) => item.total_donasi),
-                borderColor: "rgba(54, 162, 235, 1)",
-                backgroundColor: "rgba(54, 162, 235, 0.15)",
-                fill: true,
-                tension: 0.3,
-                pointRadius: 5,
-                pointHoverRadius: 8,
-            },
-        ],
-    };
+    const rechartsData = dailyChart.map((item) => ({
+      date: item.date,
+      "Total Donasi": item.total_donasi || 0,
+    }));
 
     // Determine logo based on outlet id: 1 -> jempolan, 3 or 10 -> sambelnyahti, others -> sambelcolek
     const getLogoSrc = (id) => {
@@ -248,8 +239,30 @@ const TaxFullscreen = ({ userTokenData, preview = false }) => {
                     <div className="col-12 mb-1">
                         <div className="card shadow-sm border-0">
                             <div className="card-header fw-bold">Grafik Total Donasi per Hari</div>
-                            <div className="card-body" style={{ height: "250px" }}>
-                                <Line data={lineChartDataDonasi} options={{ maintainAspectRatio: false }} />
+                            <div className="card-body" style={{ height: "400px" }}>
+                                <ResponsiveContainer width="100%" height="100%">
+                                    <LineChart data={rechartsData} margin={{ top: 5, right: 30, left: 0, bottom: 5 }}>
+                                        <CartesianGrid strokeDasharray="3 3" stroke={isDark ? "#444" : "#ccc"} />
+                                        <XAxis dataKey="date" stroke={isDark ? "#999" : "#666"} />
+                                        <YAxis stroke={isDark ? "#999" : "#666"} />
+                                        <Tooltip 
+                                            contentStyle={{
+                                                backgroundColor: isDark ? "#333" : "#fff",
+                                                border: `1px solid ${isDark ? "#555" : "#ccc"}`,
+                                                color: isDark ? "#fff" : "#000"
+                                            }}
+                                            formatter={(value) => value.toLocaleString("id-ID")}
+                                        />
+                                        <Legend />
+                                        <Line 
+                                            type="monotone" 
+                                            dataKey="Total Donasi" 
+                                            stroke="#36a2eb" 
+                                            dot={{ fill: "#36a2eb", r: 4 }}
+                                            activeDot={{ r: 6 }}
+                                        />
+                                    </LineChart>
+                                </ResponsiveContainer>
                             </div>
                         </div>
                     </div>

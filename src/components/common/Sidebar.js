@@ -39,7 +39,7 @@ const Sidebar = ({ onToggleSidebar, isOpen, userTokenData }) => {
       items: [
         { accessCode: 5, icon: "bi-currency-exchange", label: "Serving Types", path: "/serving-type" },
         { accessCode: 8, icon: "bi-bank", label: "Payment Types", path: "/payment-type" },
-        { accessCode: 10, icon: "bi-coin", label: "Payment Categories", path: "/payment-management" }
+        // { accessCode: 10, icon: "bi-coin", label: "Payment Categories", path: "/payment-management" }
       ]
     },
     {

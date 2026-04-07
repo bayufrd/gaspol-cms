@@ -1,0 +1,349 @@
+/* ========================================
+   SERVING TYPE MODULE - RESPONSIVE & MODERN
+   ======================================== */
+
+/* Card Styling */
+.card {
+  border: 1px solid #e9ecef;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  transition: all 0.3s ease;
+}
+
+.card:hover {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+}
+
+.card-header {
+  border-bottom: 1px solid #f1f5f9;
+  padding: 16px 24px;
+  background: transparent;
+}
+
+.card-body {
+  padding: 0;
+}
+
+/* Button Styling */
+.btn-primary {
+  background: linear-gradient(135deg, #FF6B35 0%, #FF8A5B 100%);
+  border: none;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.btn-primary:hover {
+  background: linear-gradient(135deg, #E55A24 0%, #FF7A4B 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(255, 107, 53, 0.3);
+}
+
+.btn-primary:active {
+  transform: translateY(0);
+}
+
+/* Table Responsive Container */
+.table-responsive {
+  overflow-x: auto;
+}
+
+/* Table Base Styling */
+.table {
+  margin-bottom: 0;
+  border-collapse: collapse;
+}
+
+.table thead {
+  background: #f8f9fa;
+  border-bottom: 2px solid #e9ecef;
+}
+
+.table thead th {
+  padding: 14px 16px;
+  font-weight: 600;
+  font-size: 0.8125rem;
+  color: #495057;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border: none;
+}
+
+.table tbody {
+  background: white;
+}
+
+/* Clickable Row Styling */
+.serving-type-row {
+  border-bottom: 1px solid #e9ecef;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.serving-type-row:hover {
+  background: #f8f9fa;
+}
+
+.serving-type-row td {
+  padding: 14px 16px;
+  vertical-align: middle;
+  font-size: 0.9375rem;
+  color: #2d3436;
+}
+
+.serving-type-row:last-child {
+  border-bottom: none;
+}
+
+/* Cell Styling */
+.serving-type-name-cell {
+  display: inline-block;
+  padding: 6px 12px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border-radius: 6px;
+  font-weight: 500;
+  font-size: 0.875rem;
+}
+
+.serving-type-updated-cell {
+  color: #6c757d;
+  font-size: 0.875rem;
+}
+
+/* Status Badge Styling */
+.serving-type-status {
+  display: inline-block;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-weight: 500;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.serving-type-status.active {
+  background: #d4edda;
+  color: #155724;
+}
+
+.serving-type-status.inactive {
+  background: #f8d7da;
+  color: #721c24;
+}
+
+/* Dark Mode Support */
+body.dark-mode .serving-type-row:hover {
+  background: #2d3436;
+}
+
+body.dark-mode .serving-type-row td {
+  color: #e0e0e0;
+}
+
+body.dark-mode .table thead {
+  background: #1e1e1e;
+}
+
+body.dark-mode .table thead th {
+  color: #b0b0b0;
+}
+
+body.dark-mode .table tbody {
+  background: #262626;
+}
+
+body.dark-mode .serving-type-updated-cell {
+  color: #9e9e9e;
+}
+
+/* ========================================
+   MOBILE CARD VIEW (Responsive)
+   ======================================== */
+
+/* Container for cards */
+.serving-types-card-container {
+  display: none;
+  gap: 16px;
+  padding: 0;
+}
+
+/* Individual Card */
+.serving-type-card-item {
+  display: none;
+  background: white;
+  border: 1px solid #e9ecef;
+  border-radius: 12px;
+  padding: 16px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.serving-type-card-item:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+  transform: translateY(-2px);
+  border-color: #667eea;
+}
+
+/* Card Header */
+.serving-type-card-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.serving-type-card-number {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border-radius: 50%;
+  font-weight: 600;
+  font-size: 0.875rem;
+  flex-shrink: 0;
+}
+
+.serving-type-card-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.serving-type-card-name {
+  font-weight: 600;
+  color: #2d3436;
+  font-size: 1rem;
+  margin-bottom: 4px;
+  word-break: break-word;
+}
+
+.serving-type-card-status {
+  display: inline-block;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-weight: 500;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.serving-type-card-status.active {
+  background: #d4edda;
+  color: #155724;
+}
+
+.serving-type-card-status.inactive {
+  background: #f8d7da;
+  color: #721c24;
+}
+
+/* Card Body */
+.serving-type-card-body {
+  border-top: 1px solid #e9ecef;
+  padding-top: 12px;
+  margin-top: 12px;
+}
+
+.serving-type-card-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.serving-type-card-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #6c757d;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.serving-type-card-date {
+  font-size: 0.875rem;
+  color: #2d3436;
+  font-weight: 500;
+}
+
+/* Dark Mode - Cards */
+body.dark-mode .serving-type-card-item {
+  background: #262626;
+  border-color: #444;
+}
+
+body.dark-mode .serving-type-card-item:hover {
+  border-color: #667eea;
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
+}
+
+body.dark-mode .serving-type-card-name {
+  color: #e0e0e0;
+}
+
+body.dark-mode .serving-type-card-body {
+  border-top-color: #444;
+}
+
+body.dark-mode .serving-type-card-label {
+  color: #9e9e9e;
+}
+
+body.dark-mode .serving-type-card-date {
+  color: #b0b0b0;
+}
+
+/* ========================================
+   RESPONSIVE BREAKPOINTS
+   ======================================== */
+
+/* Desktop View - Show table, hide cards */
+.desktop-view {
+  display: block;
+}
+
+.mobile-view {
+  display: none;
+}
+
+/* Tablet & Mobile - Hide table, show cards */
+@media (max-width: 768px) {
+  .desktop-view {
+    display: none;
+  }
+
+  .mobile-view {
+    display: block;
+  }
+
+  .serving-types-card-container {
+    display: flex;
+    flex-direction: column;
+    padding: 16px;
+  }
+
+  .serving-type-card-item {
+    display: block;
+  }
+
+  .card-body {
+    padding: 0 !important;
+  }
+}
+
+/* Small Mobile */
+@media (max-width: 480px) {
+  .serving-type-card-item {
+    padding: 12px;
+  }
+
+  .serving-type-card-name {
+    font-size: 0.95rem;
+  }
+
+  .serving-type-card-number {
+    width: 32px;
+    height: 32px;
+    font-size: 0.8rem;
+  }
+}

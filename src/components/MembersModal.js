@@ -145,9 +145,11 @@ export const MembersModal = ({
   if (!show) return null; // Return null if not showing
 
   return (
-    <div className="modal show" tabIndex="-1" style={{ display: 'block' }}>
-      <div className="modal-dialog">
-        <div className="modal-content">
+    <>
+      {show && <div className="modal-backdrop fade show"></div>}
+      <div className="modal show" tabIndex="-1" style={{ display: 'block' }}>
+        <div className="modal-dialog">
+          <div className="modal-content">
           <form onSubmit={handleSubmit}>
             <div className="modal-header">
               <h5 className="modal-title">
@@ -204,6 +206,7 @@ export const MembersModal = ({
           </form>
         </div>
       </div>
+      </div>
       {showEditPointsModal && (
         <EditPointsModal
           show={showEditPointsModal}
@@ -213,7 +216,7 @@ export const MembersModal = ({
           refreshHistory={getMembers}
         />
       )}
-    </div>
+    </>
   );
 };
 

@@ -1,7 +1,9 @@
 import React, { useState, useEffect, useMemo } from "react";
 import Swal from "sweetalert2";
 import axios from "axios";
+import { useTheme } from "../contexts/ThemeContext";
 import { DeleteConfirmationModal } from "./DeleteConfirmationModal";
+import "../styles/serving-type-modal.css";
 
 export const ServingTypeModal = ({
   show,
@@ -11,6 +13,7 @@ export const ServingTypeModal = ({
   getServingTypes,
   userTokenData,
 }) => {
+  const { isDark } = useTheme();
   const apiBaseUrl = process.env.REACT_APP_API_BASE_URL;
 
   const initialServingTypeState = useMemo(
@@ -36,9 +39,15 @@ export const ServingTypeModal = ({
           const servingTypeData = response.data.data;
           setServingType({
             ...servingTypeData,
+            is_active: String(servingTypeData.is_active),  // Convert to string for select
           });
         } catch (error) {
           console.error("Error fetching servingType:", error);
+          Swal.fire({
+            icon: "error",
+            title: "Gagal",
+            text: "Tidak dapat mengambil detail serving type"
+          });
         }
       };
       fetchData();
@@ -69,9 +78,13 @@ export const ServingTypeModal = ({
 
     try {
       if (selectedServingTypeId) {
+        // For update: only send name and is_active (outlet_id cannot be changed)
         await axios.patch(
           `${apiBaseUrl}/serving-type/${selectedServingTypeId}`,
-          servingType
+          {
+            name: servingType.name,
+            is_active: Number(servingType.is_active)
+          }
         );
         Swal.fire({
           icon: "success",
@@ -79,7 +92,12 @@ export const ServingTypeModal = ({
           text: `Serving Type berhasil diperbarui: ${servingType.name}`,
         });
       } else {
-        await axios.post(`${apiBaseUrl}/serving-type/`, servingType);
+        // For create: send all fields including outlet_id
+        await axios.post(`${apiBaseUrl}/serving-type/`, {
+          name: servingType.name,
+          outlet_id: servingType.outlet_id,
+          is_active: Number(servingType.is_active)
+        });
         Swal.fire({
           icon: "success",
           title: "Success!",

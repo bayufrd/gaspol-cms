@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo } from "react";
 import Swal from "sweetalert2";
 import axios from "axios";
 import { DeleteConfirmationModal } from "./DeleteConfirmationModal";
+import { useTheme } from "../contexts/ThemeContext";
 
 export const PaymentTypeModal = ({
     show,
@@ -12,6 +13,7 @@ export const PaymentTypeModal = ({
     userTokenData,
     paymentCategories,
 }) => {
+    const { isDark = false } = useTheme() || {};
     const apiBaseUrl = process.env.REACT_APP_API_BASE_URL;
 
     const initialPaymentTypeState = useMemo(
@@ -69,9 +71,14 @@ export const PaymentTypeModal = ({
 
         try {
             if (selectedPaymentTypeId) {
+                // For update: only send name, payment_category_id, is_active (outlet_id cannot be changed)
                 await axios.patch(
                     `${apiBaseUrl}/payment-management/${selectedPaymentTypeId}`,
-                    paymentType
+                    {
+                        name: paymentType.name,
+                        payment_category_id: paymentType.payment_category_id,
+                        is_active: Number(paymentType.is_active)
+                    }
                 );
                 Swal.fire({
                     icon: "success",
@@ -79,7 +86,13 @@ export const PaymentTypeModal = ({
                     text: `Payment Type berhasil diperbarui: ${paymentType.name}`,
                 });
             } else {
-                await axios.post(`${apiBaseUrl}/payment-management/`, paymentType);
+                // For create: send all fields including outlet_id
+                await axios.post(`${apiBaseUrl}/payment-management/`, {
+                    name: paymentType.name,
+                    outlet_id: paymentType.outlet_id,
+                    is_active: Number(paymentType.is_active),
+                    payment_category_id: paymentType.payment_category_id
+                });
                 Swal.fire({
                     icon: "success",
                     title: "Success!",
@@ -116,6 +129,7 @@ export const PaymentTypeModal = ({
 
     return (
         <>
+            {show && <div className="modal-backdrop fade show"></div>}
             <div
                 className={`modal fade text-left ${show ? "show" : ""}`}
                 id="inlineForm"
@@ -129,9 +143,9 @@ export const PaymentTypeModal = ({
                     class="modal-dialog modal-dialog-centered modal-dialog-scrollable"
                     role="document"
                 >
-                    <div class="modal-content scrollable-content">
-                        <div class="modal-header">
-                            <h4 class="modal-title" id="myModalLabel33">
+                    <div class="modal-content scrollable-content" style={{ backgroundColor: isDark ? "#2d2d2d" : "white", color: isDark ? "#e0e0e0" : "#2d3436" }}>
+                        <div class="modal-header" style={{ backgroundColor: isDark ? "#1e1e1e" : "#f8f9fa", borderBottomColor: isDark ? "#444" : "#e9ecef" }}>
+                            <h4 class="modal-title" id="myModalLabel33" style={{ color: isDark ? "#ffffff" : "#2d3436", fontWeight: "600" }}>
                                 {selectedPaymentTypeId ? "Edit Payment Type" : "Add Payment Type"}
                             </h4>
                             <button
@@ -140,18 +154,20 @@ export const PaymentTypeModal = ({
                                 data-bs-dismiss="modal"
                                 aria-label="Close"
                                 onClick={onClose}
+                                style={{ color: isDark ? "#ffffff" : "#2d3436" }}
                             >
                                 <i data-feather="x"></i>x
                             </button>
                         </div>
                         <div>
-                            <div class="modal-body scrollable-content">
-                                <label>Nama: </label>
+                            <div class="modal-body scrollable-content" style={{ backgroundColor: isDark ? "#2d2d2d" : "white", color: isDark ? "#e0e0e0" : "#2d3436" }}>
+                                <label style={{ color: isDark ? "#ffffff" : "#2d3436" }}>Nama: </label>
                                 <div class="form-group">
                                     <input
                                         type="text"
                                         placeholder="Nama"
                                         class={`form-control ${!isFormValid && paymentType.name === "" ? "is-invalid" : ""}`}
+                                        style={{ backgroundColor: isDark ? "#1e1e1e" : "#f8f9fa", color: isDark ? "#e0e0e0" : "#2d3436", borderColor: isDark ? "#555" : "#ddd" }}
                                         value={paymentType.name}
                                         onChange={(e) => {
                                             handleInputChange("name", e.target.value);
@@ -166,10 +182,11 @@ export const PaymentTypeModal = ({
                                 </div>
                                 {selectedPaymentTypeId && (
                                     <>
-                                        <label>Status: </label>
+                                        <label style={{ color: isDark ? "#ffffff" : "#2d3436" }}>Status: </label>
                                         <div class="form-group">
                                             <select
                                                 class="choices form-select"
+                                                style={{ backgroundColor: isDark ? "#1e1e1e" : "#f8f9fa", color: isDark ? "#e0e0e0" : "#2d3436", borderColor: isDark ? "#555" : "#ddd" }}
                                                 value={paymentType.is_active}
                                                 onChange={(e) => {
                                                     handleInputChange("is_active", e.target.value);
@@ -181,10 +198,11 @@ export const PaymentTypeModal = ({
                                         </div>
                                     </>
                                 )}
-                                <label>Category:</label>
+                                <label style={{ color: isDark ? "#ffffff" : "#2d3436" }}>Category:</label>
                                 <div className="form-group">
                                     <select
                                         className="form-select"
+                                        style={{ backgroundColor: isDark ? "#1e1e1e" : "#f8f9fa", color: isDark ? "#e0e0e0" : "#2d3436", borderColor: isDark ? "#555" : "#ddd" }}
                                         value={paymentType.payment_category_id}
                                         onChange={(e) =>
                                             handleInputChange("payment_category_id", e.target.value)

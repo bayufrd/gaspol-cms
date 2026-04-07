@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import { Line } from "react-chartjs-2";
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
+import { useTheme } from "../contexts/ThemeContext";
 import TaxFullscreen from "./TaxFullscreen";
 import TaxDonationDestinationModal from "./TaxDonationDestinationModal";
 import TaxDocumentPictureEditModal from "./TaxDocumentPictureEditModal";
@@ -9,6 +10,7 @@ import TaxDocumentPictureModal from "./TaxDocumentPictureModal";
 import TaxCalculationCustom from "./TaxCalculationCustom";
 
 const Tax = ({ userTokenData }) => {
+    const { isDark } = useTheme();
     const [showDonationEditModal, setShowDonationEditModal] = useState(false);
     const [editDonationData, setEditDonationData] = useState(null);
     const [showDocumentEditModal, setShowDocumentEditModal] = useState(false);
@@ -57,33 +59,12 @@ const Tax = ({ userTokenData }) => {
 
     const paginatedTaxes = latestTaxes.slice((currentPage - 1) * pageSize, currentPage * pageSize);
 
-    const lineChartDataTax = {
-        labels: dailyChart.map((d) => d.date),
-        datasets: [
-            {
-                label: "Total Pajak per Hari (IDR)",
-                data: dailyChart.map((d) => d.total || 0),
-                borderColor: "rgba(255,99,132,1)",
-                backgroundColor: "rgba(255,99,132,0.15)",
-                fill: true,
-                tension: 0.3,
-            },
-        ],
-    };
-
-    const lineChartDataDonasi = {
-        labels: dailyChart.map((d) => d.date),
-        datasets: [
-            {
-                label: "Total Donasi per Hari (IDR)",
-                data: dailyChart.map((d) => d.total_donasi || 0),
-                borderColor: "rgba(54,162,235,1)",
-                backgroundColor: "rgba(54,162,235,0.15)",
-                fill: true,
-                tension: 0.3,
-            },
-        ],
-    };
+    // Transform chart data for Recharts
+    const rechartsData = dailyChart.map((d) => ({
+      date: d.date,
+      "Total Pajak": d.total || 0,
+      "Total Donasi": d.total_donasi || 0,
+    }));
 
 
     return (
@@ -173,8 +154,30 @@ const Tax = ({ userTokenData }) => {
                                 </div>
                             </div>
                             {showTaxChart && (
-                                <div className="card-body" style={{ height: "250px" }}>
-                                    <Line data={lineChartDataTax} options={{ maintainAspectRatio: false }} />
+                                <div className="card-body" style={{ height: "400px" }}>
+                                    <ResponsiveContainer width="100%" height="100%">
+                                        <LineChart data={rechartsData} margin={{ top: 5, right: 30, left: 0, bottom: 5 }}>
+                                            <CartesianGrid strokeDasharray="3 3" stroke={isDark ? "#444" : "#ccc"} />
+                                            <XAxis dataKey="date" stroke={isDark ? "#999" : "#666"} />
+                                            <YAxis stroke={isDark ? "#999" : "#666"} />
+                                            <Tooltip 
+                                                contentStyle={{
+                                                    backgroundColor: isDark ? "#333" : "#fff",
+                                                    border: `1px solid ${isDark ? "#555" : "#ccc"}`,
+                                                    color: isDark ? "#fff" : "#000"
+                                                }}
+                                                formatter={(value) => value.toLocaleString("id-ID")}
+                                            />
+                                            <Legend />
+                                            <Line 
+                                                type="monotone" 
+                                                dataKey="Total Pajak" 
+                                                stroke="#ff6384" 
+                                                dot={{ fill: "#ff6384", r: 4 }}
+                                                activeDot={{ r: 6 }}
+                                            />
+                                        </LineChart>
+                                    </ResponsiveContainer>
                                 </div>
                             )}
                         </div>
@@ -191,8 +194,30 @@ const Tax = ({ userTokenData }) => {
                                 </div>
                             </div>
                             {showDonasiChart && (
-                                <div className="card-body" style={{ height: "250px" }}>
-                                    <Line data={lineChartDataDonasi} options={{ maintainAspectRatio: false }} />
+                                <div className="card-body" style={{ height: "400px" }}>
+                                    <ResponsiveContainer width="100%" height="100%">
+                                        <LineChart data={rechartsData} margin={{ top: 5, right: 30, left: 0, bottom: 5 }}>
+                                            <CartesianGrid strokeDasharray="3 3" stroke={isDark ? "#444" : "#ccc"} />
+                                            <XAxis dataKey="date" stroke={isDark ? "#999" : "#666"} />
+                                            <YAxis stroke={isDark ? "#999" : "#666"} />
+                                            <Tooltip 
+                                                contentStyle={{
+                                                    backgroundColor: isDark ? "#333" : "#fff",
+                                                    border: `1px solid ${isDark ? "#555" : "#ccc"}`,
+                                                    color: isDark ? "#fff" : "#000"
+                                                }}
+                                                formatter={(value) => value.toLocaleString("id-ID")}
+                                            />
+                                            <Legend />
+                                            <Line 
+                                                type="monotone" 
+                                                dataKey="Total Donasi" 
+                                                stroke="#36a2eb" 
+                                                dot={{ fill: "#36a2eb", r: 4 }}
+                                                activeDot={{ r: 6 }}
+                                            />
+                                        </LineChart>
+                                    </ResponsiveContainer>
                                 </div>
                             )}
                         </div>
