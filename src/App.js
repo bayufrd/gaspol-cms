@@ -1,12 +1,17 @@
 // App.js
 import React, { useEffect, useState } from "react";
 import { BrowserRouter as Router, Route, Routes, useLocation, Navigate } from "react-router-dom";
+import { ConfigProvider } from 'antd';
+import { antdThemeConfig } from './config/antdTheme';
+import { ThemeProvider } from './contexts/ThemeContext';
 import { isTokenValid, extractUserTokenData } from "./helpers/token";
 import { normalizeMenuAccess } from "./helpers/normalizeMenuAccess";
 import Footer from "./components/common/Footer";
 import Header from "./components/common/Header";
 import Sidebar from "./components/common/Sidebar";
 import Swal from "sweetalert2";
+import 'antd/dist/reset.css'; // Ant Design CSS reset
+import './styles/modern-theme.css'; // Modern theme variables
 
 // Import pages
 import Menu from "./components/Menu";
@@ -55,7 +60,10 @@ function Layout({ children, userTokenData, toggleSidebar, isSidebarOpen, setIsLo
 }
 
 function App() {
-  const [isSidebarOpen, setSidebarOpen] = useState(false);
+  // Initial sidebar state: closed on mobile, open on desktop
+  const [isSidebarOpen, setSidebarOpen] = useState(
+    window.innerWidth > 768
+  );
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [userTokenData, setUserTokenData] = useState(null);
@@ -69,6 +77,18 @@ function App() {
     if (userTokenData?.outlet_id === 4) return true;
     return userTokenData.menu_access.includes(accessCode);
   };
+
+  // Handle window resize - auto close sidebar on mobile
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth <= 768 && isSidebarOpen) {
+        setSidebarOpen(false);
+      }
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, [isSidebarOpen]);
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -102,19 +122,21 @@ function App() {
   }, [userTokenData]);
 
   return (
-    <div id="app">
-      <Router>
-        {isLoading ? (
-          <div className="custom-container">
-            <div className="spinner-border" />
-          </div>
-        ) : isLoggedIn ? (
-          <Layout
-            userTokenData={userTokenData}
-            toggleSidebar={toggleSidebar}
-            isSidebarOpen={isSidebarOpen}
-            setIsLoggedIn={setIsLoggedIn}
-          >
+    <ThemeProvider>
+      <ConfigProvider theme={antdThemeConfig}>
+        <div id="app">
+          <Router>
+          {isLoading ? (
+            <div className="custom-container">
+              <div className="spinner-border" />
+            </div>
+          ) : isLoggedIn ? (
+            <Layout
+              userTokenData={userTokenData}
+              toggleSidebar={toggleSidebar}
+              isSidebarOpen={isSidebarOpen}
+              setIsLoggedIn={setIsLoggedIn}
+            >
             <Routes>
                 {/* Public fullscreen with id param - accessible for all logged-in users as well */}
                 <Route path="/tax-fullscreen/:id" element={<TaxFullscreen />} />
@@ -205,9 +227,10 @@ function App() {
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         )}
-      </Router>
-    </div>
+        </Router>
+      </div>
+      </ConfigProvider>
+    </ThemeProvider>
   );
 }
 export default App;
-

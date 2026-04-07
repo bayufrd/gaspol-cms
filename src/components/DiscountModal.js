@@ -1,9 +1,11 @@
 import React, { useState, useEffect, useMemo, useRef } from "react";
 import Swal from "sweetalert2";
 import axios from "axios";
+import { useTheme } from "../contexts/ThemeContext";
 import flatpickr from "flatpickr";
 import "flatpickr/dist/flatpickr.min.css";
 import { DeleteConfirmationModal } from "./DeleteConfirmationModal";
+import "../styles/discount-modal.css";
 
 export const DiscountModal = ({
   isOpen,  // Ganti nama prop dari show ke isOpen
@@ -13,6 +15,7 @@ export const DiscountModal = ({
   userTokenData,
   getDiscounts
 }) => {
+  const { isDark } = useTheme();
   const apiBaseUrl = process.env.REACT_APP_API_BASE_URL;
 
     // Gunakan useMemo untuk initialDiscountState

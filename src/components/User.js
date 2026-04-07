@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { UserModal } from "../components/UserModal";
 import axios from "axios";
+import "../styles/user-module.css";
 const apiBaseUrl = process.env.REACT_APP_API_BASE_URL;
 
 const User = () => {
@@ -64,52 +65,95 @@ const User = () => {
             </div>
           </div>
         </div>
-        <section class="section">
-          <div class="card">
-            <div class="card-header">
-              <div class="float-lg-end">
-                <div
-                  className="button btn btn-primary rounded-pill"
+        <section className="section">
+          <div className="card">
+            <div className="card-header">
+              <div className="float-lg-end">
+                <button
+                  className="btn btn-primary btn-sm"
                   onClick={() => openModal(null)}
+                  style={{
+                    padding: "8px 16px",
+                    fontSize: "0.875rem",
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: "8px",
+                  }}
                 >
-                  <i class="bi bi-plus"></i> Tambah Data
-                </div>
+                  <i className="bi bi-plus"></i> Tambah Data
+                </button>
               </div>
             </div>
-            <div class="card-body">
-              <table class="table table-striped" id="table1">
-                <thead>
-                  <tr>
-                    <th>No</th>
-                    <th>Name</th>
-                    <th>Username</th>
-                    <th>Outlet</th>
-                    <th>Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
+            <div className="card-body">
+              {/* Desktop Table View */}
+              <div className="table-responsive desktop-view">
+                <table className="table table-striped" id="table1">
+                  <thead>
+                    <tr>
+                      <th style={{ width: "5%" }}>No</th>
+                      <th style={{ width: "30%" }}>Name</th>
+                      <th style={{ width: "30%" }}>Username</th>
+                      <th style={{ width: "35%" }}>Outlet</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {users
+                      .filter(user => user.outlet_id !== 4 && user.outlet_name !== 'Development Testing')
+                      .map((user, index) => (
+                      <tr 
+                        key={user.id}
+                        className="user-row"
+                        onClick={() => openModal(user.id)}
+                        style={{
+                          cursor: "pointer",
+                          transition: "all 0.3s ease",
+                        }}
+                      >
+                        <td>{index + 1}</td>
+                        <td>
+                          <span className="user-name-cell">{user.name}</span>
+                        </td>
+                        <td>
+                          <span className="user-username-cell">{user.username}</span>
+                        </td>
+                        <td>
+                          <span className="user-outlet-badge">{user.outlet_name}</span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Mobile Card View */}
+              <div className="mobile-view">
+                <div className="users-card-container">
                   {users
                     .filter(user => user.outlet_id !== 4 && user.outlet_name !== 'Development Testing')
                     .map((user, index) => (
-                    <tr key={user.id}>
-                      <td>{index + 1}</td>
-                      <td>{user.name}</td>
-                      <td>{user.username}</td>
-                      <td>{user.outlet_name}</td>
-                      <td>
-                        <div className="action-buttons">
-                          <div
-                            className="buttons btn info btn-primary"
-                            onClick={() => openModal(user.id)}
-                          >
-                            <i className="bi bi-pencil"></i>
-                          </div>
+                    <div
+                      key={user.id}
+                      className="user-card-item"
+                      onClick={() => openModal(user.id)}
+                    >
+                      <div className="user-card-header">
+                        <div className="user-card-number">{index + 1}</div>
+                        <div className="user-card-name">{user.name}</div>
+                      </div>
+                      <div className="user-card-body">
+                        <div className="user-card-field">
+                          <span className="user-card-label">Username</span>
+                          <span className="user-card-value">{user.username}</span>
                         </div>
-                      </td>
-                    </tr>
+                        <div className="user-card-field">
+                          <span className="user-card-label">Outlet</span>
+                          <span className="user-outlet-badge-mobile">{user.outlet_name}</span>
+                        </div>
+                      </div>
+                    </div>
                   ))}
-                </tbody>
-              </table>
+                </div>
+              </div>
             </div>
           </div>
         </section>

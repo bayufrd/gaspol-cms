@@ -1,0 +1,421 @@
+/* ========================================
+   USER MODULE - MODERN & MINIMALIST STYLES
+   ======================================== */
+
+/* Card Styling */
+.card {
+  border: 1px solid #e9ecef;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  transition: all 0.3s ease;
+}
+
+.card:hover {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+}
+
+.card-header {
+  border-bottom: 1px solid #f1f5f9;
+  padding: 16px 24px;
+  background: transparent;
+}
+
+.card-body {
+  padding: 0;
+}
+
+/* Button Styling */
+.btn-primary {
+  background: linear-gradient(135deg, #FF6B35 0%, #FF8A5B 100%);
+  border: none;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.btn-primary:hover {
+  background: linear-gradient(135deg, #E55A24 0%, #FF7A4B 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(255, 107, 53, 0.3);
+}
+
+.btn-primary:active {
+  transform: translateY(0);
+}
+
+/* Table Responsive Container */
+.table-responsive {
+  overflow-x: auto;
+}
+
+/* Table Base Styling */
+.table {
+  margin-bottom: 0;
+  border-collapse: collapse;
+}
+
+.table thead {
+  background: #f8f9fa;
+  border-bottom: 2px solid #e9ecef;
+}
+
+.table thead th {
+  padding: 14px 16px;
+  font-weight: 600;
+  font-size: 0.8125rem;
+  color: #495057;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border: none;
+}
+
+.table tbody {
+  background: white;
+}
+
+/* Clickable Row Styling */
+.user-row {
+  border-bottom: 1px solid #e9ecef;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.user-row:hover {
+  background: #f8f9fa;
+}
+
+.user-row td {
+  padding: 14px 16px;
+  vertical-align: middle;
+  font-size: 0.9375rem;
+  color: #2d3436;
+}
+
+.user-row:last-child {
+  border-bottom: none;
+}
+
+/* Cell Styling */
+.user-name-cell {
+  font-weight: 500;
+  color: #2d3436;
+  display: block;
+}
+
+.user-username-cell {
+  font-family: 'Courier New', monospace;
+  font-size: 0.875rem;
+  color: #6c757d;
+  background: #f8f9fa;
+  padding: 4px 8px;
+  border-radius: 4px;
+  display: inline-block;
+}
+
+.user-outlet-badge {
+  display: inline-block;
+  padding: 6px 12px;
+  background: linear-gradient(135deg, #FF6B35 0%, #FF8A5B 100%);
+  color: white;
+  border-radius: 20px;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+/* Dark Mode Support */
+body.theme-dark .card {
+  background: #1e293b;
+  border-color: #334155;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+body.theme-dark .card:hover {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+}
+
+body.theme-dark .card-header {
+  border-bottom-color: rgba(255, 255, 255, 0.1);
+}
+
+body.theme-dark .table thead {
+  background: rgba(15, 23, 42, 0.5);
+  border-bottom-color: #334155;
+}
+
+body.theme-dark .table thead th {
+  color: #94a3b8;
+}
+
+body.theme-dark .table tbody {
+  background: transparent;
+}
+
+body.theme-dark .user-row {
+  border-bottom-color: rgba(255, 255, 255, 0.1);
+}
+
+body.theme-dark .user-row:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+body.theme-dark .user-row td {
+  color: #cbd5e1;
+}
+
+body.theme-dark .user-name-cell {
+  color: #f1f5f9;
+}
+
+body.theme-dark .user-username-cell {
+  background: rgba(15, 23, 42, 0.5);
+  color: #94a3b8;
+}
+
+/* Desktop and Mobile View Toggle */
+.desktop-view {
+  display: block;
+}
+
+.mobile-view {
+  display: none;
+}
+
+/* Mobile Card Layout */
+.users-card-container {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+}
+
+.user-card-item {
+  background: white;
+  border: 1px solid #e9ecef;
+  border-radius: 10px;
+  padding: 14px 16px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.user-card-item:hover {
+  background: #f8f9fa;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+  transform: translateY(-2px);
+}
+
+.user-card-item:active {
+  transform: translateY(0);
+}
+
+.user-card-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.user-card-number {
+  min-width: 32px;
+  height: 32px;
+  background: linear-gradient(135deg, #FF6B35 0%, #FF8A5B 100%);
+  color: white;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 0.875rem;
+}
+
+.user-card-name {
+  flex: 1;
+  font-weight: 600;
+  font-size: 0.9375rem;
+  color: #2d3436;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.user-card-body {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.user-card-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.user-card-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #6c757d;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.user-card-value {
+  font-size: 0.875rem;
+  color: #495057;
+  font-family: 'Courier New', monospace;
+  background: #f8f9fa;
+  padding: 6px 10px;
+  border-radius: 4px;
+  word-break: break-word;
+}
+
+.user-outlet-badge-mobile {
+  display: inline-block;
+  padding: 6px 12px;
+  background: linear-gradient(135deg, #FF6B35 0%, #FF8A5B 100%);
+  color: white;
+  border-radius: 20px;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  width: fit-content;
+}
+
+/* Dark Mode - Mobile Cards */
+body.theme-dark .user-card-item {
+  background: #1e293b;
+  border-color: #334155;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+body.theme-dark .user-card-item:hover {
+  background: rgba(255, 255, 255, 0.05);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+}
+
+body.theme-dark .user-card-header {
+  border-bottom-color: rgba(255, 255, 255, 0.1);
+}
+
+body.theme-dark .user-card-name {
+  color: #f1f5f9;
+}
+
+body.theme-dark .user-card-label {
+  color: #94a3b8;
+}
+
+body.theme-dark .user-card-value {
+  background: rgba(15, 23, 42, 0.5);
+  color: #cbd5e1;
+}
+
+/* Mobile Responsive */
+@media screen and (max-width: 768px) {
+  .desktop-view {
+    display: none;
+  }
+
+  .mobile-view {
+    display: block;
+  }
+
+  .users-card-container {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .card-header {
+    padding: 12px 16px;
+  }
+
+  .card-body {
+    padding: 12px 16px;
+  }
+
+  .user-card-item {
+    padding: 12px 14px;
+    border-radius: 8px;
+  }
+
+  .user-card-header {
+    gap: 10px;
+    margin-bottom: 10px;
+    padding-bottom: 10px;
+  }
+
+  .user-card-number {
+    min-width: 28px;
+    height: 28px;
+    font-size: 0.8125rem;
+  }
+
+  .user-card-name {
+    font-size: 0.875rem;
+  }
+
+  .user-card-label {
+    font-size: 0.7rem;
+  }
+
+  .user-card-value {
+    font-size: 0.8125rem;
+    padding: 5px 8px;
+  }
+
+  .user-outlet-badge-mobile {
+    font-size: 0.75rem;
+    padding: 5px 10px;
+  }
+
+  .btn-primary {
+    padding: 6px 12px;
+    font-size: 0.8125rem;
+  }
+}
+
+/* Tablet Responsive (768px - 1024px) */
+@media screen and (min-width: 769px) and (max-width: 1024px) {
+  .table thead th {
+    padding: 12px 12px;
+    font-size: 0.8rem;
+  }
+
+  .table tbody td {
+    padding: 12px 12px;
+    font-size: 0.9rem;
+  }
+
+  .user-outlet-badge {
+    font-size: 0.8rem;
+    padding: 5px 11px;
+  }
+}
+
+/* Accessibility */
+.user-row:focus-within {
+  outline: 2px solid #FF6B35;
+  outline-offset: -1px;
+}
+
+/* Animation on row interaction */
+@keyframes rowHover {
+  0% {
+    background: transparent;
+  }
+  100% {
+    background: #f8f9fa;
+  }
+}
+
+body.theme-dark .user-row:hover {
+  animation: rowHoverDark 0.2s ease;
+}
+
+@keyframes rowHoverDark {
+  0% {
+    background: transparent;
+  }
+  100% {
+    background: rgba(255, 255, 255, 0.05);
+  }
+}

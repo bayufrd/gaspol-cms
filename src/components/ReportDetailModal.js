@@ -1,8 +1,11 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
+import { useTheme } from "../contexts/ThemeContext";
+import "../styles/report-detail-modal.css";
 
 export const ReportDetailModal = ({ show, onClose, selectedTransactionId }) => {
   const apiBaseUrl = process.env.REACT_APP_API_BASE_URL;
+  const { isDark } = useTheme();
 
   const [transaction, setTransaction] = useState(null);
   const [showRefund, setShowRefund] = useState(false);
@@ -79,7 +82,7 @@ export const ReportDetailModal = ({ show, onClose, selectedTransactionId }) => {
             <div className="modal-body scrollable-content">
               {/* Show loading UI with progress */}
               {loading ? (
-                <div style={{ textAlign: "center", padding: "20px" }}>
+                <div className="loading-content">
                   <h5>Loading... {loadingProgress}%</h5>
                   <div className="progress">
                     <div className="progress-bar" role="progressbar" style={{ width: `${loadingProgress}%` }} aria-valuenow={loadingProgress} aria-valuemin="0" aria-valuemax="100">{loadingProgress}%</div>
@@ -88,189 +91,145 @@ export const ReportDetailModal = ({ show, onClose, selectedTransactionId }) => {
               ) : transaction ? (
                 <>
                   <h4 style={{ textAlign: "center", marginBottom: "3vh" }}>Transaction</h4>
-                  <h5 style={{ textAlign: "center", marginBottom: "3vh", color: transaction.status === 'Paid' ? '#198754' : transaction.status === 'Pending' ? '#6f42c1' : transaction.status === 'Canceled' ? '#dc3545' : transaction.status === 'Refunded' ? '#fd7e14' : '#000000' }}>
+                  <h5 className={`status-${transaction.status?.toLowerCase()}`}>
                     "{transaction.status}"
                   </h5>
-                  <div className="report-container">
-                    <div className="section-report">
-                      <div className="section-report-title">
-                        Invoice Number:
-                      </div>
-                      <div className="section-report-data">
-                        {transaction.invoice_number || "-"}
-                      </div>
+                  <div className="transaction-info-card">
+                    <div className="transaction-info-row">
+                      <span className="transaction-info-label">Invoice Number</span>
+                      <span className="transaction-info-value">{transaction.invoice_number || "-"}</span>
                     </div>
-                    <div className="section-report">
-                      <div className="section-report-title">
-                        Transaction Updated At:
-                      </div>
-                      <div className="section-report-data">
-                        {transaction.transaction_date_show}
-                      </div>
+                    <div className="transaction-info-row">
+                      <span className="transaction-info-label">Transaction Updated At</span>
+                      <span className="transaction-info-value">{transaction.transaction_date_show}</span>
                     </div>
-                    <div className="section-report">
-                      <div className="section-report-title">
-                        Transaction Reference:
-                      </div>
-                      <div className="section-report-data">
-                        {transaction.transaction_ref || '-'}
-                      </div>
+                    <div className="transaction-info-row">
+                      <span className="transaction-info-label">Transaction Reference</span>
+                      <span className="transaction-info-value">{transaction.transaction_ref || '-'}</span>
                     </div>
-                    <div className="section-report">
-                      <div className="section-report-title">
-                        Customer Name:
-                      </div>
-                      <div className="section-report-data">
-                        {transaction.customer_name}
-                      </div>
+                    <div className="transaction-info-row">
+                      <span className="transaction-info-label">Customer Name</span>
+                      <span className="transaction-info-value">{transaction.customer_name}</span>
                     </div>
-                    <div className="section-report">
-                      <div className="section-report-title">
-                        Customer Seat:
-                      </div>
-                      <div className="section-report-data">
-                        {transaction.customer_seat}
-                      </div>
+                    <div className="transaction-info-row">
+                      <span className="transaction-info-label">Customer Seat</span>
+                      <span className="transaction-info-value">{transaction.customer_seat}</span>
                     </div>
-                    <div className="section-report">
-                      <div className="section-report-title">
-                        Payment Type:
-                      </div>
-                      <div className="section-report-data">
-                        {transaction.payment_type || "-"}
-                      </div>
+                    <div className="transaction-info-row">
+                      <span className="transaction-info-label">Payment Type</span>
+                      <span className="transaction-info-value">{transaction.payment_type || "-"}</span>
                     </div>
-                    {/* <div className="section-report">
-                        <div className="section-report-title">
-                          Delivery Type:
-                        </div>
-                        <div className="section-report-data">
-                          {transaction.delivery_type || "-"}
-                        </div>
-                      </div>
-                      <div className="section-report">
-                        <div className="section-report-title">
-                          Delivery Note:
-                        </div>
-                        <div className="section-report-data">
-                          {transaction.delivery_note || "-"}
-                        </div>
-                      </div> */}
-                    <div className="section-report">
-                      <div className="section-report-title">
-                        Discount Code Cart:
-                      </div>
-                      <div className="section-report-data">
-                        {transaction.discount_code || "-"}
-                      </div>
+                    <div className="transaction-info-row">
+                      <span className="transaction-info-label">Discount Code Cart</span>
+                      <span className="transaction-info-value">{transaction.discount_code || "-"}</span>
                     </div>
-                    <div className="section-report">
-                      <div className="section-report-title">
-                        Discount Type Cart:
-                      </div>
-                      <div className="section-report-data">
-                        {transaction.discounts_is_percent === 0
-                          ? "Potongan"
-                          : transaction.discounts_is_percent === 1
-                            ? "Persenan"
-                            : "-"}
-                      </div>
+                    <div className="transaction-info-row">
+                      <span className="transaction-info-label">Discount Type Cart</span>
+                      <span className="transaction-info-value">{transaction.discounts_is_percent === 0 ? "Potongan" : transaction.discounts_is_percent === 1 ? "Persenan" : "-"}</span>
                     </div>
-                    <div className="section-report">
-                      <div className="section-report-title">
-                        Discount Value Cart:
-                      </div>
-                      <div className="section-report-data">
-                        {transaction.discounts_value ? transaction.discounts_value + (transaction.discounts_is_percent === 1 ? " %" : "") : "-"}
-                      </div>
+                    <div className="transaction-info-row">
+                      <span className="transaction-info-label">Discount Value Cart</span>
+                      <span className="transaction-info-value">{transaction.discounts_value ? transaction.discounts_value + (transaction.discounts_is_percent === 1 ? " %" : "") : "-"}</span>
                     </div>
-                    <div className="section-report">
-                      <div className="section-report-title">Subtotal:</div>
-                      <div className="section-report-data">
-                        {transaction.subtotal || "-"}
-                      </div>
+                    <div className="transaction-info-row">
+                      <span className="transaction-info-label">Subtotal</span>
+                      <span className="transaction-info-value">{transaction.subtotal || "-"}</span>
                     </div>
-                    <div className="section-report">
-                      <div className="section-report-title">Total:</div>
-                      <div className="section-report-data">
-                        {transaction.total || "-"}
-                      </div>
+                    <div className="transaction-info-row transaction-info-total">
+                      <span className="transaction-info-label">Total</span>
+                      <span className="transaction-info-value">{transaction.total || "-"}</span>
                     </div>
-                    {transaction.member_id !== null && (
-                      <>
-                        <h4 style={{ textAlign: "center", marginBottom: "3vh" }}>
-                          Membership
-                        </h4>
-                        <div className="section-report">
-                          <div className="section-report-title">Name:</div>
-                          <div className="section-report-data">
-                            {transaction.member_name || "-"}
-                          </div>
-                        </div>
-                        <div className="section-report">
-                          <div className="section-report-title">Phone:</div>
-                          <div className="section-report-data">
-                            {transaction.member_phone_number || "-"}
-                          </div>
-                        </div>
-                      </>
-                    )}
                   </div>
-
-
+                  {transaction.member_id !== null && (
+                    <>
+                      <hr></hr>
+                      <h4 style={{ textAlign: "center", marginBottom: "3vh" }}>
+                        Membership
+                      </h4>
+                      <div className="transaction-info-card">
+                        <div className="transaction-info-row">
+                          <span className="transaction-info-label">Name</span>
+                          <span className="transaction-info-value">{transaction.member_name || "-"}</span>
+                        </div>
+                        <div className="transaction-info-row">
+                          <span className="transaction-info-label">Phone</span>
+                          <span className="transaction-info-value">{transaction.member_phone_number || "-"}</span>
+                        </div>
+                      </div>
+                    </>
+                  )}
                   {transaction.cart_details.length > 0 && (
                     <>
                       <hr></hr>
                       <h4 style={{ textAlign: "center", marginBottom: "3vh" }}>
                         Cart
                       </h4>
-                      <table className="table table-striped">
-                        <thead>
-                          <tr>
-                            <th>Paid Time</th>
-                            <th>Menu Type</th>
-                            <th>Menu Name</th>
-                            <th>Menu Varian</th>
-                            <th>Serving Type</th>
-                            <th>Note Item</th>
-                            <th>Qty</th>
-                            <th>Menu Price</th>
-                            <th>Discount Code</th>
-                            <th>Discount Value</th>
-                            <th>Discount Type</th>
-                            {/* <th>Discounted Price</th> */}
-                            <th>Total Price</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {transaction.cart_details.map((item, index) => (
-                            <tr key={index}>
-                              <td>{item.updated_at}</td>
-                              <td>{item.menu_type}</td>
-                              <td>{item.menu_name}</td>
-                              <td>{item.varian || "-"}</td>
-                              <td>{item.serving_type_name}</td>
-                              <td>{item.note_item || "-"}</td>
-                              <td>{item.qty}</td>
-                              <td>{item.price}</td>
-                              <td>{item.discount_code || "-"}</td>
-                              <td>{item.discounts_value || "-"}</td>
-                              <td>
-                                {item.discounts_is_percent === 0
-                                  ? "Potongan"
-                                  : item.discounts_is_percent === 1
-                                    ? "Persenan"
-                                    : "-"}
-                              </td>
-                              {/* <td>{item.discounted_price || "-"}</td> */}
-                              <td>{item.total_price}</td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
+                      <div className="cart-items-container">
+                        {transaction.cart_details.map((item, index) => (
+                          <div key={index} className="cart-item-card">
+                            <div className="cart-item-header">
+                              <span className="cart-item-number">Item {index + 1}</span>
+                            </div>
+                            <div className="cart-item-body">
+                              <div className="cart-item-row">
+                                <span className="cart-item-label">Paid Time</span>
+                                <span className="cart-item-value">{item.updated_at}</span>
+                              </div>
+                              <div className="cart-item-row">
+                                <span className="cart-item-label">Menu Type</span>
+                                <span className="cart-item-value">{item.menu_type}</span>
+                              </div>
+                              <div className="cart-item-row">
+                                <span className="cart-item-label">Menu Name</span>
+                                <span className="cart-item-value">{item.menu_name}</span>
+                              </div>
+                              <div className="cart-item-row">
+                                <span className="cart-item-label">Varian</span>
+                                <span className="cart-item-value">{item.varian || "-"}</span>
+                              </div>
+                              <div className="cart-item-row">
+                                <span className="cart-item-label">Serving Type</span>
+                                <span className="cart-item-value">{item.serving_type_name}</span>
+                              </div>
+                              <div className="cart-item-row">
+                                <span className="cart-item-label">Note</span>
+                                <span className="cart-item-value">{item.note_item || "-"}</span>
+                              </div>
+                              <div className="cart-item-row">
+                                <span className="cart-item-label">Qty</span>
+                                <span className="cart-item-value">{item.qty}</span>
+                              </div>
+                              <div className="cart-item-row">
+                                <span className="cart-item-label">Menu Price</span>
+                                <span className="cart-item-value">{item.price}</span>
+                              </div>
+                              <div className="cart-item-row">
+                                <span className="cart-item-label">Discount Code</span>
+                                <span className="cart-item-value">{item.discount_code || "-"}</span>
+                              </div>
+                              <div className="cart-item-row">
+                                <span className="cart-item-label">Discount Value</span>
+                                <span className="cart-item-value">{item.discounts_value || "-"}</span>
+                              </div>
+                              <div className="cart-item-row">
+                                <span className="cart-item-label">Discount Type</span>
+                                <span className="cart-item-value">
+                                  {item.discounts_is_percent === 0
+                                    ? "Potongan"
+                                    : item.discounts_is_percent === 1
+                                      ? "Persenan"
+                                      : "-"}
+                                </span>
+                              </div>
+                              <div className="cart-item-row cart-item-total">
+                                <span className="cart-item-label">Total Price</span>
+                                <span className="cart-item-value">{item.total_price}</span>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
                     </>
-
-
                   )}
                   {transaction.canceled_items.length > 0 && (
                     <>
@@ -278,52 +237,75 @@ export const ReportDetailModal = ({ show, onClose, selectedTransactionId }) => {
                       <h4 style={{ textAlign: "center", marginBottom: "3vh" }}>
                         Canceled Items
                       </h4>
-                      <table className="table table-striped">
-                        <thead>
-                          <tr>
-                            <th>Cancel At</th>
-                            <th>Cancel Reason</th>
-                            <th>Menu Type</th>
-                            <th>Menu Name</th>
-                            <th>Menu Varian</th>
-                            <th>Serving Type</th>
-                            <th>Note Item</th>
-                            <th>Qty</th>
-                            <th>Menu Price</th>
-                            <th>Discount Code</th>
-                            <th>Discount Value</th>
-                            <th>Discount Type</th>
-                            {/* <th>Discounted Price</th> */}
-                            <th>Total Price</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {transaction.canceled_items.map((item, index) => (
-                            <tr key={index}>
-                              <td>{item.updated_at}</td>
-                              <td>{item.cancel_reason}</td>
-                              <td>{item.menu_type}</td>
-                              <td>{item.menu_name}</td>
-                              <td>{item.varian || "-"}</td>
-                              <td>{item.serving_type_name}</td>
-                              <td>{item.note_item || "-"}</td>
-                              <td>{item.qty}</td>
-                              <td>{item.price}</td>
-                              <td>{item.discount_code || "-"}</td>
-                              <td>{item.discounts_value || "-"}</td>
-                              <td>
-                                {item.discounts_is_percent === 0
-                                  ? "Potongan"
-                                  : item.discounts_is_percent === 1
-                                    ? "Persenan"
-                                    : "-"}
-                              </td>
-                              {/* <td>{item.discounted_price || "-"}</td> */}
-                              <td>{item.total_price}</td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
+                      <div className="cart-items-container">
+                        {transaction.canceled_items.map((item, index) => (
+                          <div key={index} className="cart-item-card cart-item-canceled">
+                            <div className="cart-item-header">
+                              <span className="cart-item-number">Canceled Item {index + 1}</span>
+                            </div>
+                            <div className="cart-item-body">
+                              <div className="cart-item-row">
+                                <span className="cart-item-label">Cancel At</span>
+                                <span className="cart-item-value">{item.updated_at}</span>
+                              </div>
+                              <div className="cart-item-row">
+                                <span className="cart-item-label">Cancel Reason</span>
+                                <span className="cart-item-value">{item.cancel_reason}</span>
+                              </div>
+                              <div className="cart-item-row">
+                                <span className="cart-item-label">Menu Type</span>
+                                <span className="cart-item-value">{item.menu_type}</span>
+                              </div>
+                              <div className="cart-item-row">
+                                <span className="cart-item-label">Menu Name</span>
+                                <span className="cart-item-value">{item.menu_name}</span>
+                              </div>
+                              <div className="cart-item-row">
+                                <span className="cart-item-label">Varian</span>
+                                <span className="cart-item-value">{item.varian || "-"}</span>
+                              </div>
+                              <div className="cart-item-row">
+                                <span className="cart-item-label">Serving Type</span>
+                                <span className="cart-item-value">{item.serving_type_name}</span>
+                              </div>
+                              <div className="cart-item-row">
+                                <span className="cart-item-label">Note</span>
+                                <span className="cart-item-value">{item.note_item || "-"}</span>
+                              </div>
+                              <div className="cart-item-row">
+                                <span className="cart-item-label">Qty</span>
+                                <span className="cart-item-value">{item.qty}</span>
+                              </div>
+                              <div className="cart-item-row">
+                                <span className="cart-item-label">Menu Price</span>
+                                <span className="cart-item-value">{item.price}</span>
+                              </div>
+                              <div className="cart-item-row">
+                                <span className="cart-item-label">Discount Code</span>
+                                <span className="cart-item-value">{item.discount_code || "-"}</span>
+                              </div>
+                              <div className="cart-item-row">
+                                <span className="cart-item-label">Discount Value</span>
+                                <span className="cart-item-value">{item.discounts_value || "-"}</span>
+                              </div>
+                              <div className="cart-item-row">
+                                <span className="cart-item-label">Discount Type</span>
+                                <span className="cart-item-value">
+                                  {item.discounts_is_percent === 0
+                                    ? "Potongan"
+                                    : item.discounts_is_percent === 1
+                                      ? "Persenan"
+                                      : "-"}
+                                </span>
+                              </div>
+                              <div className="cart-item-row cart-item-total">
+                                <span className="cart-item-label">Total Price</span>
+                                <span className="cart-item-value">{item.total_price}</span>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
                     </>
                   )}
                   {showRefund && (
@@ -334,98 +316,103 @@ export const ReportDetailModal = ({ show, onClose, selectedTransactionId }) => {
                       >
                         Refund
                       </h4>
-                      <div className="report-container">
-                        <div className="section-report">
-                          <div className="section-report-title">
-                            Status:
-                          </div>
-                          <div className="section-report-data"
-                            style={{ color: transaction.is_refund_all ? '#fd7e14' : 'initial' }}
-                          >
+                      <div className="transaction-info-card">
+                        <div className="transaction-info-row">
+                          <span className="transaction-info-label">Status</span>
+                          <span className="transaction-info-value" style={{ color: transaction.is_refund_all ? '#fd7e14' : 'initial' }}>
                             {transaction.is_refund_all ? "Refunded" : "-"}
-                          </div>
+                          </span>
                         </div>
-                        <div className="section-report">
-                          <div className="section-report-title">
-                            Refund All Reason:
-                          </div>
-                          <div className="section-report-data">
-                            {transaction.refund_all_reason || "-"}
-                          </div>
+                        <div className="transaction-info-row">
+                          <span className="transaction-info-label">Refund All Reason</span>
+                          <span className="transaction-info-value">{transaction.refund_all_reason || "-"}</span>
                         </div>
-                        <div className="section-report">
-                          <div className="section-report-title">
-                            Refund Payment Type All:
-                          </div>
-                          <div className="section-report-data">
-                            {transaction.refund_payment_type_all_name || "-"}
-                          </div>
+                        <div className="transaction-info-row">
+                          <span className="transaction-info-label">Refund Payment Type All</span>
+                          <span className="transaction-info-value">{transaction.refund_payment_type_all_name || "-"}</span>
                         </div>
-                        <div className="section-report">
-                          <div className="section-report-title">
-                            Total Refund:
-                          </div>
-                          <div className="section-report-data">
-                            {transaction.total_refund}
-                          </div>
+                        <div className="transaction-info-row transaction-info-total">
+                          <span className="transaction-info-label">Total Refund</span>
+                          <span className="transaction-info-value">{transaction.total_refund}</span>
                         </div>
                       </div>
-                      <hr></hr>
                     </>
                   )}
                   {showRefundDetails && (
                     <>
+                      <hr></hr>
                       <h4
                         style={{ textAlign: "center", marginBottom: "3vh" }}
                       >
                         Refund Detail
                       </h4>
-                      <table className="table table-striped">
-                        <thead>
-                          <tr>
-                            <th>Refund Time</th>
-                            <th>Menu Type</th>
-                            <th>Menu Name</th>
-                            <th>Menu Varian</th>
-                            <th>Serving Type</th>
-                            <th>Note Item</th>
-                            <th>Qty Refund Item</th>
-                            <th>Menu Price</th>
-                            <th>Discount Code</th>
-                            <th>Discount Value</th>
-                            <th>Discount Type</th>
-                            <th>Refund Reason Item</th>
-                            <th>Payment Type Refund</th>
-                            <th>Total Refund Price</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {transaction.refund_details.map((item, index) => (
-                            <tr key={index}>
-                              <td>{item.updated_at}</td>
-                              <td>{item.menu_type}</td>
-                              <td>{item.menu_name}</td>
-                              <td>{item.varian || "-"}</td>
-                              <td>{item.serving_type_name}</td>
-                              <td>{item.note_item || "-"}</td>
-                              <td>{item.qty_refund_item}</td>
-                              <td>{item.menu_price}</td>
-                              <td>{item.discount_code || "-"}</td>
-                              <td>{item.discounts_value || "-"}</td>
-                              <td>
-                                {item.discounts_is_percent
-                                  ? item.discounts_is_percent === 1
-                                    ? "Persen"
-                                    : "Bukan Persen"
-                                  : "-"}
-                              </td>
-                              <td>{item.refund_reason_item || "-"}</td>
-                              <td>{item.payment_type_name || "-"}</td>
-                              <td>{item.total_refund_price}</td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
+                      <div className="cart-items-container">
+                        {transaction.refund_details.map((item, index) => (
+                          <div key={index} className="cart-item-card">
+                            <div className="cart-item-header">
+                              <span className="cart-item-number">Refund Item {index + 1}</span>
+                            </div>
+                            <div className="cart-item-body">
+                              <div className="cart-item-row">
+                                <span className="cart-item-label">Refund Time</span>
+                                <span className="cart-item-value">{item.updated_at}</span>
+                              </div>
+                              <div className="cart-item-row">
+                                <span className="cart-item-label">Menu Type</span>
+                                <span className="cart-item-value">{item.menu_type}</span>
+                              </div>
+                              <div className="cart-item-row">
+                                <span className="cart-item-label">Menu Name</span>
+                                <span className="cart-item-value">{item.menu_name}</span>
+                              </div>
+                              <div className="cart-item-row">
+                                <span className="cart-item-label">Menu Varian</span>
+                                <span className="cart-item-value">{item.varian || "-"}</span>
+                              </div>
+                              <div className="cart-item-row">
+                                <span className="cart-item-label">Serving Type</span>
+                                <span className="cart-item-value">{item.serving_type_name}</span>
+                              </div>
+                              <div className="cart-item-row">
+                                <span className="cart-item-label">Note Item</span>
+                                <span className="cart-item-value">{item.note_item || "-"}</span>
+                              </div>
+                              <div className="cart-item-row">
+                                <span className="cart-item-label">Qty Refund Item</span>
+                                <span className="cart-item-value">{item.qty_refund_item}</span>
+                              </div>
+                              <div className="cart-item-row">
+                                <span className="cart-item-label">Menu Price</span>
+                                <span className="cart-item-value">{item.menu_price}</span>
+                              </div>
+                              <div className="cart-item-row">
+                                <span className="cart-item-label">Discount Code</span>
+                                <span className="cart-item-value">{item.discount_code || "-"}</span>
+                              </div>
+                              <div className="cart-item-row">
+                                <span className="cart-item-label">Discount Value</span>
+                                <span className="cart-item-value">{item.discounts_value || "-"}</span>
+                              </div>
+                              <div className="cart-item-row">
+                                <span className="cart-item-label">Discount Type</span>
+                                <span className="cart-item-value">{item.discounts_is_percent ? (item.discounts_is_percent === 1 ? "Persen" : "Bukan Persen") : "-"}</span>
+                              </div>
+                              <div className="cart-item-row">
+                                <span className="cart-item-label">Refund Reason Item</span>
+                                <span className="cart-item-value">{item.refund_reason_item || "-"}</span>
+                              </div>
+                              <div className="cart-item-row">
+                                <span className="cart-item-label">Payment Type Refund</span>
+                                <span className="cart-item-value">{item.payment_type_name || "-"}</span>
+                              </div>
+                              <div className="cart-item-row cart-item-total">
+                                <span className="cart-item-label">Total Refund Price</span>
+                                <span className="cart-item-value">{item.total_refund_price}</span>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
                     </>
                   )}
                 </>

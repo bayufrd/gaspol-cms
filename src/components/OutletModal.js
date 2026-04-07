@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo } from "react";
 import Swal from "sweetalert2";
 import axios from "axios";
 import { DeleteConfirmationModal } from "./DeleteConfirmationModal";
+import "../styles/outlet-modal.css";
 
 export const OutletModal = ({
   show,
@@ -138,149 +139,165 @@ export const OutletModal = ({
           role="document"
         >
           <div class="modal-content">
-            <div class="modal-header">
-              <h4 class="modal-title" id="myModalLabel33">
-                {selectedOutletId ? "Edit Outlet" : "Add Outlet"}
+            <div className="modal-header outlet-modal-header">
+              <h4 className="modal-title outlet-modal-title" id="myModalLabel33">
+                <i className={`bi ${selectedOutletId ? "bi-shop" : "bi-plus-circle"}`}></i>
+                {selectedOutletId ? "Edit Outlet" : "Tambah Outlet Baru"}
               </h4>
               <button
                 type="button"
-                class="close"
+                className="btn-close outlet-modal-close"
                 data-bs-dismiss="modal"
                 aria-label="Close"
                 onClick={onClose}
               >
-                <i data-feather="x"></i>x
               </button>
             </div>
             <div>
-              <div class="modal-body scrollable-content">
-                <label>Nama: </label>
-                <div class="form-group">
-                  <input
-                    type="text"
-                    placeholder="nama outlet"
-                    class={`form-control ${
-                      !isFormValid && outlet.name === "" ? "is-invalid" : ""
-                    }`}
-                    value={outlet.name}
-                    onChange={(e) => {
-                      handleInputChange("name", e.target.value);
-                      setIsFormValid(true);
-                    }}
-                  />
-                  {!isFormValid && outlet.name === "" ? (
-                    <div className="invalid-feedback">
-                      Nama outlet harus diisi
-                    </div>
-                  ) : null}
+              <div className="modal-body outlet-modal-body scrollable-content">
+                <div className="form-section">
+                  <label className="form-label">Nama Outlet</label>
+                  <div className="form-group">
+                    <input
+                      type="text"
+                      placeholder="Masukkan nama outlet"
+                      className={`form-control outlet-input ${
+                        !isFormValid && outlet.name === "" ? "is-invalid" : ""
+                      }`}
+                      value={outlet.name}
+                      onChange={(e) => {
+                        handleInputChange("name", e.target.value);
+                        setIsFormValid(true);
+                      }}
+                    />
+                    {!isFormValid && outlet.name === "" ? (
+                      <div className="invalid-feedback">
+                        <i className="bi bi-exclamation-circle"></i> Nama outlet harus diisi
+                      </div>
+                    ) : null}
+                  </div>
                 </div>
-                <label>Alamat: </label>
-                <div class="form-group">
-                  <input
-                    type="text"
-                    placeholder="address"
-                    class={`form-control ${
-                      !isFormValid && outlet.address === "" ? "is-invalid" : ""
-                    }`}
-                    value={outlet.address}
-                    onChange={(e) => {
-                      handleInputChange("address", e.target.value);
-                      setIsFormValid(true);
-                    }}
-                  />
-                  {!isFormValid && outlet.address === "" ? (
-                    <div className="invalid-feedback">Alamat harus diisi</div>
-                  ) : null}
+
+                <div className="form-section">
+                  <label className="form-label">Alamat</label>
+                  <div className="form-group">
+                    <input
+                      type="text"
+                      placeholder="Masukkan alamat lengkap"
+                      className={`form-control outlet-input ${
+                        !isFormValid && outlet.address === "" ? "is-invalid" : ""
+                      }`}
+                      value={outlet.address}
+                      onChange={(e) => {
+                        handleInputChange("address", e.target.value);
+                        setIsFormValid(true);
+                      }}
+                    />
+                    {!isFormValid && outlet.address === "" ? (
+                      <div className="invalid-feedback">
+                        <i className="bi bi-exclamation-circle"></i> Alamat harus diisi
+                      </div>
+                    ) : null}
+                  </div>
                 </div>
-                <label>Phone Number: </label>
-                <div class="form-group">
-                  <input
-                    type="text"
-                    placeholder="phone number"
-                    className="form-control"
-                    value={outlet.phone_number}
-                    onChange={(e) => {
-                      handleInputChange("phone_number", e.target.value);
-                      setIsFormValid(true);
-                    }}
-                  />
+
+                <div className="form-section">
+                  <label className="form-label">Nomor Telepon</label>
+                  <div className="form-group">
+                    <input
+                      type="text"
+                      placeholder="Masukkan nomor telepon"
+                      className="form-control outlet-input"
+                      value={outlet.phone_number}
+                      onChange={(e) => {
+                        handleInputChange("phone_number", e.target.value);
+                        setIsFormValid(true);
+                      }}
+                    />
+                  </div>
                 </div>
-                <label>Pin: </label>
-                <div class="form-group">
-                  <input
-                    type="number"
-                    placeholder="pin"
-                    class={`form-control ${
-                      !isFormValid && outlet.pin.toString().length !== 5
-                        ? "is-invalid"
-                        : ""
-                    }`}
-                    value={outlet.pin}
-                    onChange={(e) => {
-                      handleInputChange("pin", e.target.value);
-                      setIsFormValid(true);
-                    }}
-                  />
-                  {!isFormValid && outlet.pin.toString().length !== 5 ? (
-                    <div className="invalid-feedback">
-                      Pin harus diisi dan minimal 5 karakter!
-                    </div>
-                  ) : null}
+
+                <div className="form-section">
+                  <label className="form-label">PIN (5 Digit)</label>
+                  <div className="form-group">
+                    <input
+                      type="number"
+                      placeholder="Masukkan PIN 5 digit"
+                      className={`form-control outlet-input ${
+                        !isFormValid && outlet.pin.toString().length !== 5
+                          ? "is-invalid"
+                          : ""
+                      }`}
+                      value={outlet.pin}
+                      onChange={(e) => {
+                        handleInputChange("pin", e.target.value);
+                        setIsFormValid(true);
+                      }}
+                    />
+                    {!isFormValid && outlet.pin.toString().length !== 5 ? (
+                      <div className="invalid-feedback">
+                        <i className="bi bi-exclamation-circle"></i> PIN harus 5 digit
+                      </div>
+                    ) : null}
+                  </div>
                 </div>
-                <label>Kitchen & Bar Gabung: </label>
-                <div class="form-group">
-                  <select
-                    class="choices form-select"
-                    value={outlet.is_kitchen_bar_merged}
-                    onChange={(e) => {
-                      handleInputChange("is_kitchen_bar_merged", e.target.value);
-                    }}
-                  >
-                    <option value="1">Ya</option>
-                    <option value="0">Tidak</option>
-                  </select>
+
+                <div className="form-section">
+                  <label className="form-label">Kitchen & Bar Gabung</label>
+                  <div className="form-group">
+                    <select
+                      className="form-select outlet-select"
+                      value={outlet.is_kitchen_bar_merged}
+                      onChange={(e) => {
+                        handleInputChange("is_kitchen_bar_merged", e.target.value);
+                      }}
+                    >
+                      <option value="1">Ya</option>
+                      <option value="0">Tidak</option>
+                    </select>
+                  </div>
                 </div>
-                <label>Footer: </label>
-                <div class="form-group">
-                  <textarea
-                    placeholder="footer"
-                    class="form-control"
-                    value={outlet.footer}
-                    onChange={(e) => handleInputChange("footer", e.target.value)}
-                  ></textarea>
+
+                <div className="form-section">
+                  <label className="form-label">Footer (Opsional)</label>
+                  <div className="form-group">
+                    <textarea
+                      placeholder="Masukkan teks footer untuk struk"
+                      className="form-control outlet-textarea"
+                      value={outlet.footer}
+                      onChange={(e) => handleInputChange("footer", e.target.value)}
+                      rows="3"
+                    ></textarea>
+                  </div>
                 </div>
               </div>
-              {selectedOutletId && (
-                <div className="modal-footer delete-menu">
+              <div className="modal-footer outlet-modal-footer">
+                {selectedOutletId && (
                   <button
                     type="button"
-                    class="btn btn-danger rounded-pill"
-                    data-bs-dismiss="modal"
+                    className="btn btn-danger btn-sm delete-btn"
                     onClick={() => setShowDeleteConfirmation(true)}
                   >
-                    <span class="d-none d-sm-block">Hapus Outlet !</span>
+                    <i className="bi bi-trash"></i> Hapus Outlet
+                  </button>
+                )}
+                <div className="footer-actions">
+                  <button
+                    type="button"
+                    className="btn btn-secondary btn-sm"
+                    data-bs-dismiss="modal"
+                    onClick={onClose}
+                  >
+                    <i className="bi bi-x-circle"></i> Batal
+                  </button>
+                  <button
+                    type="button"
+                    className="btn btn-primary btn-sm"
+                    onClick={handleSave}
+                  >
+                    <i className="bi bi-check-circle"></i> {selectedOutletId ? "Simpan Perubahan" : "Tambah Outlet"}
                   </button>
                 </div>
-              )}
-              <div class="modal-footer">
-                <button
-                  type="button"
-                  class="btn btn-light-secondary"
-                  data-bs-dismiss="modal"
-                  onClick={onClose}
-                >
-                  <i class="bx bx-x d-block d-sm-none"></i>
-                  <span class="d-none d-sm-block">Close</span>
-                </button>
-                <button
-                  type="button"
-                  class="btn btn-primary ml-1"
-                  data-bs-dismiss="modal"
-                  onClick={handleSave}
-                >
-                  <i class="bx bx-check d-block d-sm-none"></i>
-                  <span class="d-none d-sm-block">Submit</span>
-                </button>
               </div>
             </div>
           </div>

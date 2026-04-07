@@ -1,0 +1,346 @@
+/* ========================================
+   OUTLET MODAL - MODERN STYLING
+   ======================================== */
+
+/* Modal Styling */
+.modal.fade.show {
+  z-index: 1050;
+}
+
+.modal-backdrop.show {
+  opacity: 0.5;
+}
+
+/* Modal Header */
+.outlet-modal-header {
+  border-bottom: 2px solid #f1f5f9;
+  padding: 20px 24px;
+  background: white;
+  transition: all 0.3s ease;
+}
+
+.outlet-modal-title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-weight: 600;
+  font-size: 1.125rem;
+  color: #2d3436;
+  margin-bottom: 0;
+}
+
+.outlet-modal-title i {
+  font-size: 1.25rem;
+  color: #FF6B35;
+}
+
+.outlet-modal-close {
+  padding: 4px;
+  font-size: 1.5rem;
+  color: #6c757d;
+  transition: all 0.2s ease;
+}
+
+.outlet-modal-close:hover {
+  color: #FF6B35;
+  background: rgba(255, 107, 53, 0.1);
+  border-radius: 6px;
+}
+
+/* Modal Body */
+.outlet-modal-body {
+  padding: 24px;
+  background: white;
+  max-height: 70vh;
+  overflow-y: auto;
+}
+
+.outlet-modal-body::-webkit-scrollbar {
+  width: 6px;
+}
+
+.outlet-modal-body::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+
+.outlet-modal-body::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 3px;
+}
+
+.outlet-modal-body::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* Form Section */
+.form-section {
+  margin-bottom: 24px;
+}
+
+.form-section:last-child {
+  margin-bottom: 0;
+}
+
+.form-label {
+  display: block;
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: #2d3436;
+  margin-bottom: 10px;
+  text-transform: capitalize;
+}
+
+.form-group {
+  margin-bottom: 0;
+}
+
+/* Input & Select & Textarea Styling */
+.outlet-input,
+.outlet-select,
+.outlet-textarea {
+  border: 1px solid #e9ecef;
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-size: 0.9375rem;
+  transition: all 0.3s ease;
+  background: white;
+  color: #2d3436;
+  font-family: inherit;
+}
+
+.outlet-textarea {
+  resize: vertical;
+  font-family: inherit;
+}
+
+.outlet-input:focus,
+.outlet-select:focus,
+.outlet-textarea:focus {
+  border-color: #FF6B35;
+  background: white;
+  box-shadow: 0 0 0 3px rgba(255, 107, 53, 0.1);
+  outline: none;
+}
+
+.outlet-input::placeholder,
+.outlet-textarea::placeholder {
+  color: #adb5bd;
+}
+
+.outlet-input.is-invalid,
+.outlet-select.is-invalid {
+  border-color: #dc3545;
+  background: rgba(220, 53, 69, 0.05);
+}
+
+/* Error Message */
+.invalid-feedback {
+  display: block;
+  margin-top: 6px;
+  font-size: 0.8125rem;
+  color: #dc3545;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.invalid-feedback i {
+  font-size: 0.875rem;
+}
+
+/* Modal Footer */
+.outlet-modal-footer {
+  border-top: 1px solid #f1f5f9;
+  padding: 16px 24px;
+  background: white;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.delete-btn {
+  margin-right: auto;
+  background: #dc3545;
+  border: none;
+  color: white;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.delete-btn:hover {
+  background: #c82333;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(220, 53, 69, 0.3);
+}
+
+.footer-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.btn-sm {
+  padding: 8px 16px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: none;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #FF6B35 0%, #FF8A5B 100%);
+  color: white;
+}
+
+.btn-primary:hover {
+  background: linear-gradient(135deg, #E55A24 0%, #FF7A4B 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(255, 107, 53, 0.3);
+}
+
+.btn-secondary {
+  background: #e9ecef;
+  color: #495057;
+}
+
+.btn-secondary:hover {
+  background: #dee2e6;
+  transform: translateY(-2px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Dark Mode Support */
+body.theme-dark .outlet-modal-header {
+  background: #1e293b;
+  border-bottom-color: rgba(255, 255, 255, 0.1);
+}
+
+body.theme-dark .outlet-modal-title {
+  color: #f1f5f9;
+}
+
+body.theme-dark .outlet-modal-close {
+  color: #94a3b8;
+}
+
+body.theme-dark .outlet-modal-close:hover {
+  color: #FF6B35;
+  background: rgba(255, 107, 53, 0.1);
+}
+
+body.theme-dark .outlet-modal-body {
+  background: #1e293b;
+  color: #cbd5e1;
+}
+
+body.theme-dark .outlet-modal-body::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+body.theme-dark .outlet-modal-body::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+body.theme-dark .outlet-modal-body::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+body.theme-dark .form-label {
+  color: #f1f5f9;
+}
+
+body.theme-dark .outlet-input,
+body.theme-dark .outlet-select,
+body.theme-dark .outlet-textarea {
+  border-color: #334155;
+  background: rgba(15, 23, 42, 0.5);
+  color: #f1f5f9;
+}
+
+body.theme-dark .outlet-input::placeholder,
+body.theme-dark .outlet-textarea::placeholder {
+  color: #64748b;
+}
+
+body.theme-dark .outlet-input:focus,
+body.theme-dark .outlet-select:focus,
+body.theme-dark .outlet-textarea:focus {
+  border-color: #FF6B35;
+  background: rgba(15, 23, 42, 0.7);
+  box-shadow: 0 0 0 3px rgba(255, 107, 53, 0.1);
+}
+
+body.theme-dark .outlet-input.is-invalid,
+body.theme-dark .outlet-select.is-invalid {
+  border-color: #f87171;
+  background: rgba(248, 113, 113, 0.1);
+}
+
+body.theme-dark .outlet-modal-footer {
+  background: #1e293b;
+  border-top-color: rgba(255, 255, 255, 0.1);
+}
+
+body.theme-dark .btn-secondary {
+  background: #334155;
+  color: #cbd5e1;
+}
+
+body.theme-dark .btn-secondary:hover {
+  background: #475569;
+  color: #f1f5f9;
+}
+
+body.theme-dark .delete-btn {
+  background: #ef4444;
+}
+
+body.theme-dark .delete-btn:hover {
+  background: #dc2626;
+}
+
+/* Mobile Responsive */
+@media screen and (max-width: 576px) {
+  .outlet-modal-header {
+    padding: 16px;
+  }
+
+  .outlet-modal-body {
+    padding: 16px;
+  }
+
+  .outlet-modal-footer {
+    flex-direction: column-reverse;
+    gap: 10px;
+    padding: 12px 16px;
+  }
+
+  .delete-btn {
+    margin-right: 0;
+    width: 100%;
+    justify-content: center;
+  }
+
+  .footer-actions {
+    width: 100%;
+    flex-direction: column-reverse;
+  }
+
+  .footer-actions .btn-sm {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .form-section {
+    margin-bottom: 16px;
+  }
+}

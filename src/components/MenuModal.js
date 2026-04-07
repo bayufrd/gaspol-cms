@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo, useRef } from "react";
 import Swal from "sweetalert2";
 import axios from "axios";
+import { useTheme } from "../contexts/ThemeContext";
 import { FilePond, registerPlugin } from "react-filepond";
 import FilePondPluginImagePreview from "filepond-plugin-image-preview";
 import FilePondPluginFileValidateType from "filepond-plugin-file-validate-type";
@@ -10,6 +11,7 @@ import { CustomPriceModal } from "./MenuCustomPriceModel";
 // Import CSS
 import "filepond/dist/filepond.min.css";
 import "filepond-plugin-image-preview/dist/filepond-plugin-image-preview.css";
+import "../styles/menu-modal.css";
 
 // Register plugins
 registerPlugin(FilePondPluginImagePreview, FilePondPluginFileValidateType);
@@ -65,6 +67,7 @@ export const MenuModal = ({
   getMenus,
   userTokenData,
 }) => {
+  const { isDark } = useTheme();
   const apiBaseUrl = process.env.REACT_APP_API_BASE_URL;
 
   const initialMenuState = useMemo(

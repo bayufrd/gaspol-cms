@@ -1,11 +1,17 @@
 // Sidebar.js
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
+import '../../styles/sidebar-modern.css';
 
 const Sidebar = ({ onToggleSidebar, isOpen, userTokenData }) => {
-
-
   const location = useLocation();
+
+  // Close sidebar on route change (mobile only)
+  React.useEffect(() => {
+    if (isOpen && window.innerWidth <= 768) {
+      onToggleSidebar();
+    }
+  }, [location.pathname]);
 
   const hasAccess = (accessCode) => {
     // Developer outlet (outlet_id = 4) dapat melihat semua menu
@@ -20,12 +26,12 @@ const Sidebar = ({ onToggleSidebar, isOpen, userTokenData }) => {
     {
       title: "MANAGEMENT",
       items: [
-        { accessCode: 1, icon: "bi-people-fill", label: "Management Users", path: "/" },
-        { accessCode: 0, icon: "bi-building", label: "Management Outlet", path: "/outlet" },
-        { accessCode: 2, icon: "bi-cup-straw", label: "Management Menus", path: "/menu" },
-        { accessCode: 3, icon: "bi-tags-fill", label: "Management Discounts", path: "/discount" },
-        { accessCode: 9, icon: "bi-people-fill", label: "Management Membership", path: "/member" },
-        { accessCode: 12, icon: "bi-cash-stack", label: "Management Tax", path: "/tax" },
+        { accessCode: 1, icon: "bi-people-fill", label: "Users", path: "/" },
+        { accessCode: 0, icon: "bi-building", label: "Outlet", path: "/outlet" },
+        { accessCode: 2, icon: "bi-cup-straw", label: "Menus", path: "/menu" },
+        { accessCode: 3, icon: "bi-tags-fill", label: "Discounts", path: "/discount" },
+        { accessCode: 9, icon: "bi-people-fill", label: "Membership", path: "/member" },
+        { accessCode: 12, icon: "bi-cash-stack", label: "Tax", path: "/tax" },
       ]
     },
     {
@@ -96,23 +102,27 @@ const Sidebar = ({ onToggleSidebar, isOpen, userTokenData }) => {
 
   return (
     <div id="sidebar" className={`sidebar ${isOpen ? "active" : ""}`}
-      style={{ width: isOpen ? "250px" : "80px", transition: "width 0.3s ease" }}
+      style={{ width: isOpen ? "250px" : "80px" }}
     >
       <div className="sidebar-wrapper active">
         <div className="sidebar-header position-relative">
           <div className="d-flex justify-content-between align-items-center">
             <div className="logo">
-              <Link to="/">{isOpen ? "GASPOLL CMS" : "GP"}</Link>
-            </div>
-            <div className="sidebar-toggler" onClick={onToggleSidebar} style={{ cursor: "pointer" }}>
-              <div className="sidebar-hide d-xl-none d-block">
-                <i className={`bi ${isOpen ? "bi-x" : "bi-list"} bi-middle`}></i>
-              </div>
+              <Link to="/">
+                {isOpen ? (
+                  <>
+                    <span style={{fontSize: '1.5rem'}}>🍽️</span>
+                    <span>GASPOLL</span>
+                  </>
+                ) : (
+                  <span style={{fontSize: '1.5rem'}}>🍽️</span>
+                )}
+              </Link>
             </div>
           </div>
         </div>
         <div className="sidebar-menu">
-          <ul className="menu">
+          <ul className="menu" style={{listStyle: 'none', padding: 0, margin: 0}}>
             {menuSections.map(renderMenuSection)}
 
             {userTokenData.role === "Warehouse" && (

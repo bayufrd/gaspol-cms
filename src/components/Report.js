@@ -1,27 +1,53 @@
 import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
+import { useTheme } from "../contexts/ThemeContext";
 import { ReportDetailModal } from "./ReportDetailModal";
 import { ReportPaymentModal } from "./ReportPaymentModal";
 import flatpickr from "flatpickr";
 import Swal from "sweetalert2";
 import "flatpickr/dist/flatpickr.min.css";
-import { Bar, Line, Pie } from 'react-chartjs-2'; // Import Line and Pie chart
-import { CategoryScale, LinearScale } from 'chart.js';
-import Chart from 'chart.js/auto';
+import {
+  ResponsiveContainer,
+  BarChart,
+  Bar as ReBar,
+  LineChart,
+  Line as ReLine,
+  PieChart,
+  Pie as RePie,
+  Cell,
+  CartesianGrid,
+  XAxis,
+  YAxis,
+  Tooltip,
+  Legend,
+} from "recharts";
+import "../styles/report-module.css";
 
 const apiBaseUrl = process.env.REACT_APP_API_BASE_URL;
+const CHART_COLORS = [
+  "#FF6B35",
+  "#3B82F6",
+  "#10B981",
+  "#F59E0B",
+  "#8B5CF6",
+  "#EF4444",
+  "#06B6D4",
+  "#84CC16",
+];
 
 const Report = ({ userTokenData }) => {
-  Chart.register(CategoryScale, LinearScale);
+  const { isDark } = useTheme();
 
   const [reports, setReports] = useState([]);
   const [shifts, setShifts] = useState([]);
-  const [startDate, setStartDate] = useState(null);
-  const [endDate, setEndDate] = useState(null);
+  // Set default dates to today (April 7, 2026)
+  const today = new Date(2026, 3, 7).toISOString().split('T')[0]; // April 7, 2026
+  const [startDate, setStartDate] = useState(today);
+  const [endDate, setEndDate] = useState(today);
   const startDateInputRef = useRef(null);
   const endDateInputRef = useRef(null);
-  const [isSuccess, setIsSuccess] = useState(false);
-  const [isPending, setIsPending] = useState(false);
+  const [isSuccess, setIsSuccess] = useState(true);
+  const [isPending, setIsPending] = useState(true);
   const [isShift, setIsShift] = useState(0);
   const [selectedShift, setSelectedShift] = useState(null);
   const [showModal, setShowModal] = useState(false);
@@ -32,18 +58,7 @@ const Report = ({ userTokenData }) => {
   const [searchQuery, setSearchQuery] = useState(''); // Search functionality
 
 
-  const [chartData, setChartData] = useState({
-    labels: [],
-    datasets: [
-      {
-        label: "Total Omset",
-        data: [],
-        backgroundColor: ["rgba(75, 192, 192, 1)"],
-        borderColor: ["rgba(53, 162, 235, 0.5)"],
-        borderWidth: 1,
-      },
-    ],
-  });
+  const [chartData, setChartData] = useState([]);
 
   // Loader states
   const [loading, setLoading] = useState(false);
@@ -261,9 +276,6 @@ const Report = ({ userTokenData }) => {
         },
       });
 
-      if (chartData.chartInstance) {
-        chartData.chartInstance.destroy();
-      }
       setReports(response.data.data);
       setChartData(generateChartData(response.data.chart));
       setShifts(response.data.list_shift);
@@ -283,53 +295,20 @@ const Report = ({ userTokenData }) => {
       setLoadingProgress(0); // Reset loading progress
     }
   };
-  const colors = [
-    'rgba(255, 99, 132, 1)',  // Red
-    'rgba(54, 162, 235, 1)',   // Blue
-    'rgba(255, 206, 86, 1)',   // Yellow
-    'rgba(75, 192, 192, 1)',   // Cyan
-    'rgba(153, 102, 255, 1)',  // Purple
-    'rgba(255, 159, 64, 1)',   // Orange
-    'rgba(127, 255, 0, 1)',    // Green
-    'rgba(128, 0, 128, 1)',    // Purple
-  ];
   const setLoadingInterval = () => {
     loadingIntervalRef.current = setInterval(() => {
       setLoadingProgress((prev) => Math.min(prev + 10, 100)); // Increment loading progress
     }, 200); // Increment every 200ms
   };
 
-  const generateChartData = (chartData) => {
-    const labels = chartData.map((entry) => entry.invoice_due_date);
-    const totalTurnoverData = chartData.map((entry) => entry.total_turnover);
+  const generateChartData = (chartPayload = []) => {
+    if (!Array.isArray(chartPayload)) return [];
 
-    // Use the colors array and map it to the length of the data
-    const backgroundColors = totalTurnoverData.map((_, index) =>
-      colors[index % colors.length] // Loop through the colors array
-    );
-
-    const openReportPage = async () => {
-      const shiftNumber = parseInt(isShift);
-      const outlet_id = userTokenData.outlet_id;
-
-      // Constructing the report URL with query parameters
-      const reportUrl = `/report?outlet_id=${outlet_id}&start_date=${startDate}&end_date=${endDate}&is_success=${isSuccess}&is_pending=${isPending}&is_shift=${shiftNumber}`;
-
-      window.open(reportUrl, '_blank'); // Open the report in a new tab
-    };
-
-    return {
-      labels: labels,
-      datasets: [
-        {
-          label: "Total Omset",
-          data: totalTurnoverData,
-          backgroundColor: backgroundColors,
-          borderColor: backgroundColors.map(color => color.replace('1', '0.5')), // Make borders lighter
-          borderWidth: 1,
-        },
-      ],
-    };
+    return chartPayload.map((entry, index) => ({
+      name: entry.invoice_due_date,
+      total: Number(entry.total_turnover) || 0,
+      fill: CHART_COLORS[index % CHART_COLORS.length],
+    }));
   };
 
   return (
@@ -345,96 +324,72 @@ const Report = ({ userTokenData }) => {
         <section className="section">
           <div className="card">
             <div className="card-header">
-              <div className="container-fluid">
-                <div className="row g-2 align-items-center">
-                  <div className="col-12 col-sm-6 col-md-4 col-lg-3">
-                    <div className="input-group">
-                      <span className="input-group-text"><i className="bi bi-calendar"></i></span>
-                      <input
-                        type="text"
-                        className="form-control"
-                        placeholder="Tanggal mulai"
-                        value={startDate || ""}
-                        ref={startDateInputRef}
-                        readOnly
-                      />
-                    </div>
-                  </div>
-                  <div className="col-12 col-sm-6 col-md-4 col-lg-3">
-                    <div className="input-group">
-                      <span className="input-group-text"><i className="bi bi-calendar"></i></span>
-                      <input
-                        type="text"
-                        className="form-control"
-                        placeholder="Tanggal akhir"
-                        value={endDate || ""}
-                        ref={endDateInputRef}
-                        readOnly
-                      />
-
-                    </div>
-                  </div>
-                  <div className="col-12 col-md-4 col-lg-2">
-                    <div className="form-check form-switch">
-                      <input
-                        className="form-check-input"
-                        type="checkbox"
-                        checked={isSuccess}
-                        onChange={() => setIsSuccess(!isSuccess)}
-                      />
-                      <label className="form-check-label">Transaksi Sukses</label>
-                    </div>
-                  </div>
-                  <div className="col-12 col-md-4 col-lg-2">
-                    <div className="form-check form-switch">
-                      <input
-                        className="form-check-input"
-                        type="checkbox"
-                        checked={isPending}
-                        onChange={() => setIsPending(!isPending)}
-                      />
-                      <label className="form-check-label">Transaksi Pending</label>
-                    </div>
-                  </div>
-                  <div className="col-12 col-md-4 col-lg-2">
-                    <div className="input-group">
-                      <span className="input-group-text">Shift</span>
-                      <select
-                        className="form-select"
-                        value={isShift}
-                        onChange={(e) => setIsShift(e.target.value)}
-                      >
-                        <option value="0">Semua</option>
-                        {shifts.map((shift) => (
-                          <option key={shift.shift_number} value={shift.shift_number}>
-                            {shift.shift_number}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                  </div>
+              <div className="report-filters">
+                <div className="input-group">
+                  <span className="input-group-text"><i className="bi bi-calendar"></i></span>
+                  <input
+                    type="text"
+                    className="form-control"
+                    placeholder="Tanggal mulai"
+                    value={startDate || ""}
+                    ref={startDateInputRef}
+                    readOnly
+                  />
                 </div>
-              </div>
-              <div className="row g-3 mt-2 mb-2">
-                <div className="col-12">
-                  <div className="d-grid d-lg-flex justify-content-end">
-                    <button
-                      className={`
-          btn 
-          btn-primary 
-          rounded-pill 
-          w-100 w-lg-auto 
-          ${isCashierReportEnabled ? "" : "disabled"}
-        `}
-                      onClick={openReportPaymentModal}
-                      style={{
-                        maxWidth: '250px',
-                        padding: '10px 20px'
-                      }}
-                    >
-                      Laporan Kasir
-                    </button>
-                  </div>
+                <div className="input-group">
+                  <span className="input-group-text"><i className="bi bi-calendar"></i></span>
+                  <input
+                    type="text"
+                    className="form-control"
+                    placeholder="Tanggal akhir"
+                    value={endDate || ""}
+                    ref={endDateInputRef}
+                    readOnly
+                  />
+                </div>
+                <div className="form-check">
+                  <input
+                    className="form-check-input"
+                    id="isSuccess"
+                    type="checkbox"
+                    checked={isSuccess}
+                    onChange={() => setIsSuccess(!isSuccess)}
+                  />
+                  <label className="form-check-label" htmlFor="isSuccess">Sukses</label>
+                </div>
+                <div className="form-check">
+                  <input
+                    className="form-check-input"
+                    id="isPending"
+                    type="checkbox"
+                    checked={isPending}
+                    onChange={() => setIsPending(!isPending)}
+                  />
+                  <label className="form-check-label" htmlFor="isPending">Pending</label>
+                </div>
+                <div className="input-group">
+                  <span className="input-group-text">Shift</span>
+                  <select
+                    className="form-select"
+                    value={isShift}
+                    onChange={(e) => setIsShift(e.target.value)}
+                  >
+                    <option value="0">Semua</option>
+                    {shifts.map((shift) => (
+                      <option key={shift.shift_number} value={shift.shift_number}>
+                        {shift.shift_number}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div className="report-btn-group">
+                  <button
+                    className={`btn btn-primary ${isCashierReportEnabled ? "" : "disabled"}`}
+                    onClick={() => setShowReportPaymentModal(true)}
+                    disabled={!isCashierReportEnabled}
+                  >
+                    <i className="bi bi-file-earmark-pdf"></i> Laporan Kasir
+                  </button>
                 </div>
               </div>
               {/* Loading Modal Display */}
@@ -466,140 +421,257 @@ const Report = ({ userTokenData }) => {
               )}
             </div>
             <div className="card-body">
-              <div className="container mb-4">
-                <div className="d-flex justify-content-center align-center" style={{ height: "300px", width: "100%" }}>
-                  {/* Setting a fixed height to match the previous design */}
-                  {selectedChart === 'bar' && <Bar data={chartData} options={{ responsive: true, maintainAspectRatio: false }} />}
-                  {selectedChart === 'line' && <Line data={chartData} options={{ responsive: true, maintainAspectRatio: false }} />}
-                  {selectedChart === 'pie' && <Pie data={chartData} options={{ responsive: true, maintainAspectRatio: false }} />}
-                </div>
-              </div>
-              {/* Checkbox selection for charts */}
-              <div className="d-flex align-items-center mb-2">
-                <div className="me-2">Tampilkan Chart:</div>
-                <div className="form-check">
-                  <input
-                    type="radio"
-                    className="form-check-input"
-                    id="barChart"
-                    checked={selectedChart === 'bar'}
-                    onChange={() => setSelectedChart('bar')}
-                  />
-                  <label className="form-check-label" htmlFor="barChart">Bar Chart</label>
-                </div>
-                <div className="form-check">
-                  <input
-                    type="radio"
-                    className="form-check-input"
-                    id="lineChart"
-                    checked={selectedChart === 'line'}
-                    onChange={() => setSelectedChart('line')}
-                  />
-                  <label className="form-check-label" htmlFor="lineChart">Line Chart</label>
-                </div>
-                <div className="form-check">
-                  <input
-                    type="radio"
-                    className="form-check-input"
-                    id="pieChart"
-                    checked={selectedChart === 'pie'}
-                    onChange={() => setSelectedChart('pie')}
-                  />
-                  <label className="form-check-label" htmlFor="pieChart">Pie Chart</label>
+              <div className="chart-type-selector">
+                <div className="chart-selector-group">
+                  <label className="chart-option">
+                    <input
+                      type="radio"
+                      name="chart"
+                      checked={selectedChart === 'bar'}
+                      onChange={() => setSelectedChart('bar')}
+                      className="chart-radio"
+                    />
+                    <span className="chart-label">📊 Bar Chart</span>
+                  </label>
+                  <label className="chart-option">
+                    <input
+                      type="radio"
+                      name="chart"
+                      checked={selectedChart === 'line'}
+                      onChange={() => setSelectedChart('line')}
+                      className="chart-radio"
+                    />
+                    <span className="chart-label">📈 Line Chart</span>
+                  </label>
+                  <label className="chart-option">
+                    <input
+                      type="radio"
+                      name="chart"
+                      checked={selectedChart === 'pie'}
+                      onChange={() => setSelectedChart('pie')}
+                      className="chart-radio"
+                    />
+                    <span className="chart-label">🥧 Pie Chart</span>
+                  </label>
                 </div>
               </div>
 
-              {/* Search Box */}
-              <div className="row g-2 mb-3">
-                <div className="col-12 col-sm-6 col-md-4 col-lg-3">
-                  <div className="input-group">
-                    <span className="input-group-text">
-                      <i className="bi bi-search"></i>
-                    </span>
-                    <input
-                      type="text"
-                      className="form-control"
-                      placeholder="Cari data..."
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                    />
-                  </div>
-                </div>
-                {searchQuery && (
-                  <div className="col-12 col-sm-6 col-md-4 col-lg-3">
-                    <button
-                      className="btn btn-sm btn-outline-secondary w-100"
-                      onClick={() => setSearchQuery('')}
-                    >
-                      <i className="bi bi-x-circle me-2"></i>Hapus Filter
-                    </button>
+              <div className="chart-container">
+                {chartData && chartData.length > 0 ? (
+                  <ResponsiveContainer width="100%" height={340}>
+                    {selectedChart === "bar" ? (
+                      <BarChart data={chartData} margin={{ top: 16, right: 12, left: 0, bottom: 6 }}>
+                        <CartesianGrid stroke={isDark ? "rgba(148, 163, 184, 0.25)" : "rgba(107, 114, 128, 0.2)"} strokeDasharray="3 3" />
+                        <XAxis dataKey="name" tick={{ fill: isDark ? "#cbd5e1" : "#374151", fontSize: 12 }} />
+                        <YAxis tick={{ fill: isDark ? "#cbd5e1" : "#374151", fontSize: 12 }} />
+                        <Tooltip
+                          contentStyle={{
+                            backgroundColor: isDark ? "#0f172a" : "#ffffff",
+                            border: `1px solid ${isDark ? "#334155" : "#e5e7eb"}`,
+                            color: isDark ? "#f8fafc" : "#111827",
+                            borderRadius: "8px",
+                          }}
+                          formatter={(value) => formatRupiah(value)}
+                        />
+                        <Legend wrapperStyle={{ color: isDark ? "#cbd5e1" : "#374151" }} />
+                        <ReBar dataKey="total" name="Total Omset" radius={[8, 8, 0, 0]}>
+                          {chartData.map((entry, index) => (
+                            <Cell key={`bar-cell-${entry.name}-${index}`} fill={entry.fill} />
+                          ))}
+                        </ReBar>
+                      </BarChart>
+                    ) : selectedChart === "line" ? (
+                      <LineChart data={chartData} margin={{ top: 16, right: 12, left: 0, bottom: 6 }}>
+                        <CartesianGrid stroke={isDark ? "rgba(148, 163, 184, 0.25)" : "rgba(107, 114, 128, 0.2)"} strokeDasharray="3 3" />
+                        <XAxis dataKey="name" tick={{ fill: isDark ? "#cbd5e1" : "#374151", fontSize: 12 }} />
+                        <YAxis tick={{ fill: isDark ? "#cbd5e1" : "#374151", fontSize: 12 }} />
+                        <Tooltip
+                          contentStyle={{
+                            backgroundColor: isDark ? "#0f172a" : "#ffffff",
+                            border: `1px solid ${isDark ? "#334155" : "#e5e7eb"}`,
+                            color: isDark ? "#f8fafc" : "#111827",
+                            borderRadius: "8px",
+                          }}
+                          formatter={(value) => formatRupiah(value)}
+                        />
+                        <Legend wrapperStyle={{ color: isDark ? "#cbd5e1" : "#374151" }} />
+                        <ReLine
+                          type="monotone"
+                          dataKey="total"
+                          name="Total Omset"
+                          stroke="#FF6B35"
+                          strokeWidth={3}
+                          dot={{ r: 4, fill: "#FF6B35" }}
+                          activeDot={{ r: 6 }}
+                        />
+                      </LineChart>
+                    ) : (
+                      <PieChart>
+                        <Tooltip
+                          contentStyle={{
+                            backgroundColor: isDark ? "#0f172a" : "#ffffff",
+                            border: `1px solid ${isDark ? "#334155" : "#e5e7eb"}`,
+                            color: isDark ? "#f8fafc" : "#111827",
+                            borderRadius: "8px",
+                          }}
+                          formatter={(value) => formatRupiah(value)}
+                        />
+                        <Legend wrapperStyle={{ color: isDark ? "#cbd5e1" : "#374151" }} />
+                        <RePie
+                          data={chartData}
+                          dataKey="total"
+                          nameKey="name"
+                          cx="50%"
+                          cy="50%"
+                          outerRadius={110}
+                          label
+                        >
+                          {chartData.map((entry, index) => (
+                            <Cell key={`pie-cell-${entry.name}-${index}`} fill={entry.fill} />
+                          ))}
+                        </RePie>
+                      </PieChart>
+                    )}
+                  </ResponsiveContainer>
+                ) : (
+                  <div style={{ textAlign: "center", color: isDark ? "#cbd5e1" : "#9ca3af" }}>
+                    <p>Tidak ada data untuk ditampilkan</p>
                   </div>
                 )}
-                <div className="col-12 col-sm-6 col-md-4 col-lg-3 ms-auto">
-                  <small className="text-muted d-block">
-                    Menampilkan {filteredReports.length} dari {reports.length} data
-                  </small>
-                </div>
               </div>
 
-              <table className="table table-striped" id="table1">
-                <thead>
-                  <tr>
-                    <th>No</th>
-                    <th>Status</th>
-                    <th>Receipt Number</th>
-                    <th>Name</th>
-                    <th>Seat</th>
-                    <th>Total</th>
-                    <th>Cash</th>
-                    <th>Change</th>
-                    <th>Payment Type</th>
-                    <th>Invoice Number</th>
-                    <th>Last Updated</th>
-                    <th>Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filteredReports.length > 0 ? (
-                    filteredReports.map((report, index) => (
-                      <tr key={report.id}>
-                        <td>{index + 1}</td>
-                        <td style={{ color: report.status === 'Paid' ? '#198754' : report.status === 'Pending' ? '#6f42c1' : report.status === 'Canceled' ? '#dc3545' : report.status === 'Refunded' ? '#fd7e14' : '#000000' }}>
-                          {report.status || "-"}
-                        </td>
-                        <td>{report.receipt_number || "-"}</td>
-                        <td>{report.customer_name || "-"}</td>
-                        <td>{report.customer_seat || "-"}</td>
-                        <td>{formatRupiah(report.total) || "-"}</td>
-                        <td>{formatRupiah(report.customer_cash) || "-"}</td>
-                        <td>{formatRupiah(report.customer_change) || "-"}</td>
-                        <td>{report.payment_type || "-"}</td>
-                        <td>{report.invoice_number || "-"}</td>
-                        <td>{report.invoice_due_date ? report.invoice_due_date : report.updated_at}</td>
-                        <td>
-                          <div className="action-buttons">
-                            <div
-                              className="buttons btn info btn-primary"
-                              onClick={() => openModal(report.id)}
-                            >
-                              <i className="bi bi-eye"></i>
+              <div className="report-search-wrapper">
+                <div className="input-group">
+                  <span className="input-group-text"><i className="bi bi-search"></i></span>
+                  <input
+                    type="text"
+                    className="form-control"
+                    placeholder="Cari data..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                  />
+                </div>
+                {searchQuery && (
+                  <button
+                    className="btn btn-outline-secondary"
+                    onClick={() => setSearchQuery('')}
+                  >
+                    <i className="bi bi-x-circle me-2"></i>Hapus Filter
+                  </button>
+                )}
+                <small className="text-muted">
+                  Menampilkan {filteredReports.length} dari {reports.length} data
+                </small>
+              </div>
+
+              {filteredReports.length > 0 ? (
+                <>
+                  {/* Desktop Table View */}
+                  <div className="desktop-view">
+                    <table className="table table-striped report-table">
+                      <thead>
+                        <tr>
+                          <th>No</th>
+                          <th>Status</th>
+                          <th>Receipt</th>
+                          <th>Name</th>
+                          <th>Seat</th>
+                          <th>Total</th>
+                          <th>Cash</th>
+                          <th>Change</th>
+                          <th>Payment</th>
+                          <th>Invoice</th>
+                          <th>Updated</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {filteredReports.map((report, index) => (
+                          <tr key={report.id} onClick={() => openModal(report.id)} style={{ cursor: 'pointer' }}>
+                            <td>{index + 1}</td>
+                            <td className={`report-status-${report.status?.toLowerCase()}`}>
+                              {report.status || "-"}
+                            </td>
+                            <td>{report.receipt_number || "-"}</td>
+                            <td>{report.customer_name || "-"}</td>
+                            <td>{report.customer_seat || "-"}</td>
+                            <td>{formatRupiah(report.total) || "-"}</td>
+                            <td>{formatRupiah(report.customer_cash) || "-"}</td>
+                            <td>{formatRupiah(report.customer_change) || "-"}</td>
+                            <td>{report.payment_type || "-"}</td>
+                            <td>{report.invoice_number || "-"}</td>
+                            <td>{report.invoice_due_date || report.updated_at}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+
+                  {/* Mobile Card View */}
+                  <div className="mobile-view">
+                    <div className="reports-card-container">
+                      {filteredReports.map((report, index) => (
+                        <div
+                          key={report.id}
+                          className="report-card-item"
+                          onClick={() => openModal(report.id)}
+                        >
+                          <div className="report-card-header">
+                            <div className="report-card-number">{index + 1}</div>
+                            <div className="report-card-content">
+                              <span className={`report-status-badge report-status-${report.status?.toLowerCase()}`}>
+                                {report.status || "-"}
+                              </span>
+                              <span className="report-card-receipt">{report.receipt_number || "-"}</span>
                             </div>
                           </div>
-                        </td>
-                      </tr>
-                    ))
-                  ) : (
-                    <tr>
-                      <td colSpan="12" className="text-center py-4">
-                        <i className="bi bi-inbox" style={{ fontSize: '2rem', color: '#999' }}></i>
-                        <p className="mt-2 text-muted">
-                          {searchQuery ? `Tidak ada data yang cocok dengan "${searchQuery}"` : 'Tidak ada data yang ditampilkan'}
-                        </p>
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
+
+                          <div className="report-card-body">
+                            <div className="report-card-row">
+                              <span className="report-card-label">Customer</span>
+                              <span className="report-card-value">{report.customer_name || "-"}</span>
+                            </div>
+                            <div className="report-card-row">
+                              <span className="report-card-label">Seat</span>
+                              <span className="report-card-value">{report.customer_seat || "-"}</span>
+                            </div>
+                            <div className="report-card-row">
+                              <span className="report-card-label">Total</span>
+                              <span className="report-card-value">{formatRupiah(report.total) || "-"}</span>
+                            </div>
+                            <div className="report-card-row">
+                              <span className="report-card-label">Cash</span>
+                              <span className="report-card-value">{formatRupiah(report.customer_cash) || "-"}</span>
+                            </div>
+                            <div className="report-card-row">
+                              <span className="report-card-label">Change</span>
+                              <span className="report-card-value">{formatRupiah(report.customer_change) || "-"}</span>
+                            </div>
+                            <div className="report-card-row">
+                              <span className="report-card-label">Payment</span>
+                              <span className="report-card-value">{report.payment_type || "-"}</span>
+                            </div>
+                            <div className="report-card-row">
+                              <span className="report-card-label">Invoice</span>
+                              <span className="report-card-value">{report.invoice_number || "-"}</span>
+                            </div>
+                            <div className="report-card-row">
+                              <span className="report-card-label">Updated</span>
+                              <span className="report-card-value">{report.invoice_due_date || report.updated_at}</span>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </>
+              ) : (
+                <div className="report-empty-state">
+                  <i className="bi bi-inbox"></i>
+                  <p>
+                    {searchQuery ? `Tidak ada data yang cocok dengan "${searchQuery}"` : 'Tidak ada data yang ditampilkan'}
+                  </p>
+                </div>
+              )}
             </div>
           </div>
         </section>

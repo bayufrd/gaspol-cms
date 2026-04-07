@@ -2,6 +2,8 @@
 import React, { useState, useCallback, useEffect, useRef } from "react";
 import axios from "axios";
 import Swal from "sweetalert2";
+import { useTheme } from "../contexts/ThemeContext";
+import "../styles/whatsapp-page.css";
 
 // Prefer relative paths so CRA dev proxy (or same-origin deployment) avoids CORS.
 // Support runtime configuration via `window.__APP_CONFIG__` so the deployed
@@ -22,7 +24,7 @@ const WA_APP_TOKEN = runtimeConfig.REACT_APP_WHATSAPP_APP_TOKEN || process.env.R
 const apiUrlBaseBackend = runtimeConfig.REACT_APP_API_BASE_URL || process.env.REACT_APP_API_BASE_URL;
 
 const WhatsappPage = ({ userTokenData }) => {
-  // Helper: format timestamp (milliseconds or ISO string) to readable string
+  const { isDark } = useTheme();
   const formatTimestamp = (ts) => {
     if (!ts && ts !== 0) return '-';
     try {
@@ -730,8 +732,7 @@ const WhatsappPage = ({ userTokenData }) => {
   }, [activeTab]);
 
   return (
-
-    <div style={styles.container}>
+    <div className="whatsapp-page-container">
       <div className="page-title">
         <div className="row">
           <div className="col-12 col-md-6 order-md-1 order-last mb-3">
@@ -739,141 +740,122 @@ const WhatsappPage = ({ userTokenData }) => {
           </div>
         </div>
       </div>
-      <div style={styles.tab}>
-        <div onClick={() => { setActiveTab('config'); fetchWaStatus(); }} style={{...styles.tabItem, ...(activeTab === 'config' ? styles.tabItemActive : {})}}><i className="bi bi-gear" style={{marginRight: '6px'}}></i>Konfigurasi</div>
-        <div onClick={() => setActiveTab('message')} style={{...styles.tabItem, ...(activeTab === 'message' ? styles.tabItemActive : {})}}><i className="bi bi-chat-dots" style={{marginRight: '6px'}}></i>Pesan</div>
-        <div onClick={() => showFeatureUnavailable('Template POS')} style={{...styles.tabItem, ...(activeTab === 'template-pos' ? styles.tabItemActive : {})}}><i className="bi bi-receipt" style={{marginRight: '6px'}}></i>Template</div>
-        <div onClick={() => showFeatureUnavailable('Broadcast Pesan')} style={{...styles.tabItem, ...(activeTab === 'broadcat' ? styles.tabItemActive : {})}}><i className="bi bi-megaphone" style={{marginRight: '6px'}}></i>Broadcast</div>
+      <div className="whatsapp-tab-container">
+        <button 
+          className={`whatsapp-tab-item ${activeTab === 'config' ? 'active' : ''}`}
+          onClick={() => { setActiveTab('config'); fetchWaStatus(); }}
+        >
+          <i className="bi bi-gear"></i>Konfigurasi
+        </button>
+        <button 
+          className={`whatsapp-tab-item ${activeTab === 'message' ? 'active' : ''}`}
+          onClick={() => setActiveTab('message')}
+        >
+          <i className="bi bi-chat-dots"></i>Pesan
+        </button>
+        <button 
+          className={`whatsapp-tab-item ${activeTab === 'template-pos' ? 'active' : ''}`}
+          onClick={() => showFeatureUnavailable('Template POS')}
+        >
+          <i className="bi bi-receipt"></i>Template
+        </button>
+        <button 
+          className={`whatsapp-tab-item ${activeTab === 'broadcat' ? 'active' : ''}`}
+          onClick={() => showFeatureUnavailable('Broadcast Pesan')}
+        >
+          <i className="bi bi-megaphone"></i>Broadcast
+        </button>
       </div>
 
       {activeTab === 'config' && (
-        <div style={styles.card}>
+        <div className="whatsapp-card">
           <h2>Scan QR Code untuk WhatsApp</h2>
-          {qrCode ? <img src={qrCode} alt="QR Code" style={{ maxWidth: '100%', height: 'auto', marginTop: '20px' }} /> : <p>Loading QR Code...</p>}
+          <div className="whatsapp-qr-container">
+            {qrCode ? <img src={qrCode} alt="QR Code" /> : <p>Loading QR Code...</p>}
+          </div>
 
-          <div style={{ 
-            marginTop: '20px', 
-            padding: '16px', 
-            backgroundColor: '#f5f5f5', 
-            borderRadius: '8px',
-            border: '1px solid #e0e0e0',
-            textAlign: 'left'
-          }}>
-            <p style={{ margin: '8px 0', fontSize: '13px', color: '#555', display: 'flex', alignItems: 'center' }}>
-              <span style={{ width: '130px', fontWeight: '500' }}>Status</span>
-              <span style={{ marginRight: '8px' }}>:</span>
-              <span style={{ color: connectionStatus.connected ? '#28a745' : '#dc3545', fontWeight: '500' }}>
+          <div className="whatsapp-status-box">
+            <div className="whatsapp-status-row">
+              <span className="whatsapp-status-label">Status</span>
+              <span className={`whatsapp-status-value ${connectionStatus.connected ? 'whatsapp-status-connected' : 'whatsapp-status-disconnected'}`}>
                 {connectionStatus.connected ? '✅ Connected' : '❌ Disconnected'}
               </span>
-            </p>
-            <p style={{ margin: '8px 0', fontSize: '13px', color: '#555', display: 'flex', alignItems: 'flex-start' }}>
-              <span style={{ width: '130px', fontWeight: '500' }}>QR Code</span>
-              <span style={{ marginRight: '8px' }}>:</span>
-              <span>{qrCode ? "✅ Tersedia, Silahkan Scan/Scan Ulang QR Code" : "❌ Tidak Tersedia"}</span>
-            </p>
-            <p style={{ margin: '8px 0', fontSize: '13px', color: '#555', display: 'flex', alignItems: 'flex-start' }}>
-              <span style={{ width: '130px', fontWeight: '500' }}>Terakhir Update</span>
-              <span style={{ marginRight: '8px' }}>:</span>
-              <span>{formatTimestamp(connectionStatus.lastUpdate)}</span>
-            </p>
+            </div>
+            <div className="whatsapp-status-row">
+              <span className="whatsapp-status-label">QR Code</span>
+              <span className="whatsapp-status-value">{qrCode ? "✅ Tersedia, Silahkan Scan/Scan Ulang QR Code" : "❌ Tidak Tersedia"}</span>
+            </div>
+            <div className="whatsapp-status-row">
+              <span className="whatsapp-status-label">Terakhir Update</span>
+              <span className="whatsapp-status-value">{formatTimestamp(connectionStatus.lastUpdate)}</span>
+            </div>
             {connectionStatus.lastDisconnectInfo && (
-              <p style={{ margin: '8px 0', fontSize: '12px', color: '#666', display: 'flex', alignItems: 'flex-start' }}>
-                <span style={{ width: '130px', fontWeight: '500' }}>Info</span>
-                <span style={{ marginRight: '8px' }}>:</span>
-                <span>{extractDisconnectMessage(connectionStatus.lastDisconnectInfo) || formatTimestamp(connectionStatus.lastDisconnectInfo?.date)}</span>
-              </p>
+              <div className="whatsapp-status-row">
+                <span className="whatsapp-status-label">Info</span>
+                <span className="whatsapp-status-value">{extractDisconnectMessage(connectionStatus.lastDisconnectInfo) || formatTimestamp(connectionStatus.lastDisconnectInfo?.date)}</span>
+              </div>
             )}
           </div>
 
-          <div>
-            <button style={styles.button} onClick={async () => { 
-              await fetchWaStatus(); 
-              Swal.fire({
-                icon: 'success',
-                title: 'Berhasil',
-                text: 'QR Code dan log telah diperbarui.',
-                toast: true,
-                position: 'top-end',
-                showConfirmButton: false,
-                timer: 2500,
-              });
-            }}><i className="bi bi-arrow-clockwise" style={{marginRight: '6px'}}></i>Refresh QR Code</button>
-            <button style={{ ...styles.button, backgroundColor: '#dc3545' }} onClick={resetLogin}><i className="bi bi-arrow-counterclockwise" style={{marginRight: '6px'}}></i>Reset Login</button>
+          <div className="whatsapp-button-group">
+            <button 
+              className="whatsapp-button"
+              onClick={async () => { 
+                await fetchWaStatus(); 
+                Swal.fire({
+                  icon: 'success',
+                  title: 'Berhasil',
+                  text: 'QR Code dan log telah diperbarui.',
+                  toast: true,
+                  position: 'top-end',
+                  showConfirmButton: false,
+                  timer: 2500,
+                });
+              }}
+            >
+              <i className="bi bi-arrow-clockwise"></i>Refresh QR Code
+            </button>
+            <button 
+              className="whatsapp-button whatsapp-button-danger"
+              onClick={resetLogin}
+            >
+              <i className="bi bi-arrow-counterclockwise"></i>Reset Login
+            </button>
           </div>
 
           <div style={{ marginTop: '20px' }}>
-            <h5 style={{ textAlign: 'left', marginBottom: '10px' }}><i className="bi bi-chat-left-text" style={{marginRight: '8px'}}></i>Logs Pesan</h5>
+            <h5><i className="bi bi-chat-left-text" style={{marginRight: '8px'}}></i>Logs Pesan</h5>
             <p style={{ marginTop: 0, marginBottom: '12px', color: '#666', fontSize: '13px', textAlign: 'left' }}>Menampilkan log pesan terkirim dalam tampilan chat WhatsApp.</p>
 
-            <div ref={logsContainerRef} style={{ maxHeight: '420px', overflowY: 'auto', padding: 12, background: '#e5ddd5', borderRadius: 8, border: '1px solid #d1c9bf', textAlign: 'left', backgroundImage: 'url("data:image/svg+xml,%3Csvg width="60" height="60" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg"%3E%3Cg fill="none" fill-rule="evenodd"%3E%3Cg fill="%23d4cdc4" fill-opacity="0.4"%3E%3Cpath d="M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z"/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")' }}>
+            <div ref={logsContainerRef} className="whatsapp-logs-container">
               {(() => {
                 // logs is now an array of message objects from /whatsapp-log API
                 if (!logs || !Array.isArray(logs) || logs.length === 0) {
-                  return <div style={{ color: '#666', textAlign: 'center', padding: '20px' }}>Tidak ada log pesan.</div>;
+                  return <div className="whatsapp-logs-empty">Tidak ada log pesan.</div>;
                 }
 
                 return logs.map((msg, idx) => {
-                  const containerStyle = { display: 'flex', justifyContent: 'flex-end', margin: '8px 0' };
-                  const bubbleStyle = {
-                    padding: '8px 12px',
-                    borderRadius: '7.5px',
-                    maxWidth: '75%',
-                    whiteSpace: 'pre-wrap',
-                    boxShadow: '0 1px 0.5px rgba(0,0,0,0.13)',
-                    background: '#dcf8c6',
-                    color: '#303030',
-                    position: 'relative',
-                    wordBreak: 'break-word'
-                  };
-
-                  const phoneStyle = {
-                    fontSize: 11,
-                    color: '#075e54',
-                    fontWeight: '600',
-                    marginBottom: 4
-                  };
-
-                  const timeStyle = {
-                    fontSize: 11,
-                    color: '#667781',
-                    marginTop: 4,
-                    textAlign: 'right',
-                    display: 'flex',
-                    justifyContent: 'flex-end',
-                    alignItems: 'center',
-                    gap: 4
-                  };
-
                   const content = msg.content || '';
                   const isLongMsg = content.length > 200;
                   const isExpanded = expandedLogEntry === idx;
                   const displayContent = isExpanded ? content : (isLongMsg ? content.substring(0, 200) + '...' : content);
 
                   return (
-                    <div key={msg.id || idx} style={containerStyle}>
-                      <div style={bubbleStyle}>
+                    <div key={msg.id || idx} className="whatsapp-log-message">
+                      <div className="whatsapp-message-bubble">
                         {msg.phoneNumber && (
-                          <div style={phoneStyle}>📱 +{msg.phoneNumber}</div>
+                          <div className="whatsapp-message-phone">📱 +{msg.phoneNumber}</div>
                         )}
                         <div style={{ fontSize: 14, lineHeight: '1.4' }}>{displayContent}</div>
                         {isLongMsg && (
                           <button
                             onClick={() => setExpandedLogEntry(isExpanded ? null : idx)}
-                            style={{
-                              background: 'transparent',
-                              border: 'none',
-                              color: '#075e54',
-                              cursor: 'pointer',
-                              fontSize: 12,
-                              marginTop: 4,
-                              padding: 0,
-                              textDecoration: 'underline'
-                            }}
+                            className="whatsapp-message-expand"
                           >
                             {isExpanded ? 'Sembunyikan' : 'Lihat Selengkapnya'}
                           </button>
                         )}
-                        <div style={timeStyle}>
+                        <div className="whatsapp-message-time">
                           <span>{msg.timestamp || '-'}</span>
                           <span style={{ color: '#53bdeb' }}>✓✓</span>
                         </div>
@@ -884,179 +866,157 @@ const WhatsappPage = ({ userTokenData }) => {
               })()}
             </div>
 
-            <div style={{ marginTop: 12, display: 'flex', gap: 8 }}>
-              <button style={styles.button} onClick={() => { fetchLogs(); Swal.fire({ icon: 'success', title: 'Refresh', text: 'Log diperbarui', timer: 1200, showConfirmButton: false }); }}><i className="bi bi-arrow-clockwise" style={{marginRight: '6px'}}></i>Refresh</button>
-              <button style={{ ...styles.button, backgroundColor: '#6c757d' }} onClick={() => { 
-                const logText = logs.map(m => `[${m.timestamp}] ${m.phoneNumber ? '+' + m.phoneNumber : ''}: ${m.content}`).join('\n');
-                navigator?.clipboard?.writeText(logText).then(()=>{ Swal.fire({ icon:'success', title: 'Disalin', text: 'Log pesan disalin ke clipboard', toast: true, position: 'top-end', showConfirmButton:false, timer:1500 }) }).catch(()=>{ Swal.fire({ icon:'error', title:'Gagal', text:'Tidak dapat menyalin ke clipboard' }) }) 
-              }}><i className="bi bi-clipboard" style={{marginRight: '6px'}}></i>Salin</button>
+            <div className="whatsapp-button-group">
+              <button 
+                className="whatsapp-button"
+                onClick={() => { fetchLogs(); Swal.fire({ icon: 'success', title: 'Refresh', text: 'Log diperbarui', timer: 1200, showConfirmButton: false }); }}
+              >
+                <i className="bi bi-arrow-clockwise"></i>Refresh
+              </button>
+              <button 
+                className="whatsapp-button whatsapp-button-secondary"
+                onClick={() => { 
+                  const logText = logs.map(m => `[${m.timestamp}] ${m.phoneNumber ? '+' + m.phoneNumber : ''}: ${m.content}`).join('\n');
+                  navigator?.clipboard?.writeText(logText).then(()=>{ Swal.fire({ icon:'success', title: 'Disalin', text: 'Log pesan disalin ke clipboard', toast: true, position: 'top-end', showConfirmButton:false, timer:1500 }) }).catch(()=>{ Swal.fire({ icon:'error', title:'Gagal', text:'Tidak dapat menyalin ke clipboard' }) }) 
+                }}
+              >
+                <i className="bi bi-clipboard"></i>Salin
+              </button>
             </div>
           </div>
         </div>
       )}
 
       {activeTab === 'message' && (
-        <div style={styles.card}>
+        <div className="whatsapp-card">
           <h2>Kirim Pesan WhatsApp</h2>
-          <div style={{ display: "flex", alignItems: "center", margin: "8px 0" }}>
-            <input
-              type="text"
-              placeholder="Nomor Telepon"
-              value={nomor}
-              onChange={(e) => setNomor(e.target.value)}
-              style={{
-                flex: 1,
-                padding: "12px",
-                border: "1px solid #ccc",
-                borderRadius: "4px 0 0 4px",
-                outline: "none",
-              }}
-            />
-            <button
-              onClick={() => setShowModal(true)}
-              style={{
-                padding: "0 16px",
-                background: "#007bff",
-                color: "#fff",
-                border: "none",
-                borderRadius: "0 4px 4px 0",
-                cursor: "pointer",
-                height: "46px",
-              }}
-              title="Pilih dari Member"
-            >
-              <i className="bi bi-person-fill-check"></i>
-            </button>
+          <div className="whatsapp-form-group">
+            <label className="whatsapp-form-label">Nomor Telepon</label>
+            <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+              <input
+                type="text"
+                placeholder="Masukkan nomor telepon..."
+                value={nomor}
+                onChange={(e) => setNomor(e.target.value)}
+                className="whatsapp-form-input"
+                style={{ flex: 1 }}
+              />
+              <button
+                onClick={() => setShowModal(true)}
+                className="whatsapp-button whatsapp-button-form"
+                title="Pilih dari Member"
+              >
+                <i className="bi bi-person-fill-check"></i>
+              </button>
+            </div>
           </div>
 
-          <textarea
-            placeholder="Pesan Anda"
-            value={pesan}
-            onChange={(e) => setPesan(e.target.value)}
-            style={{ width: '100%', padding: '12px', margin: '8px 0', border: '1px solid #ccc', borderRadius: '4px' }}
-          />
-          <div style={{ margin: '12px 0' }}>
+          <div className="whatsapp-form-group">
+            <label className="whatsapp-form-label">Pesan</label>
+            <textarea
+              placeholder="Ketikkan pesan Anda..."
+              value={pesan}
+              onChange={(e) => setPesan(e.target.value)}
+              className="whatsapp-form-textarea"
+            />
+          </div>
+
+          <div className="whatsapp-checkbox-group">
             <input
               type="checkbox"
+              id="isAttachment"
+              className="whatsapp-checkbox"
               checked={isAttachment}
               onChange={() => setIsAttachment(!isAttachment)}
             />
-            <label style={{ marginLeft: '8px' }}>Kirim dengan Lampiran</label>
+            <label htmlFor="isAttachment">Kirim dengan Lampiran</label>
           </div>
           {isAttachment && (
-            <input
-              type="file"
-              onChange={handleFileChange}
-              style={{ margin: '8px 0' }}
-              accept="image/*" />
+            <div className="whatsapp-form-group">
+              <label className="whatsapp-form-label">Pilih File</label>
+              <input
+                type="file"
+                onChange={handleFileChange}
+                className="whatsapp-form-input"
+                accept="image/*"
+              />
+            </div>
           )}
-          <button 
-            style={{ ...styles.button, opacity: isSending ? 0.6 : 1, cursor: isSending ? 'not-allowed' : 'pointer' }}
-            onClick={handleSendMessage}
-            disabled={isSending}
-          >
-            {isSending ? `Tunggu ${sendCountdown}s...` : 'Kirim Pesan'}
-          </button>
+          <div className="whatsapp-button-group" style={{ justifyContent: "flex-start" }}>
+            <button 
+              className="whatsapp-button whatsapp-button-send"
+              onClick={handleSendMessage}
+              disabled={isSending}
+              style={{ opacity: isSending ? 0.6 : 1, cursor: isSending ? 'not-allowed' : 'pointer', flex: '0 1 auto', minWidth: '150px' }}
+            >
+              {isSending ? `Tunggu ${sendCountdown}s...` : '📤 Kirim Pesan'}
+            </button>
+          </div>
         </div>
       )}
       {/* Modal pilih member */}
       {showModal && (
-        <div
-          style={{
-            position: "fixed",
-            top: 0,
-            left: 0,
-            width: "100%",
-            height: "100%",
-            background: "rgba(0,0,0,0.6)",
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-            zIndex: 1000,
-          }}
-        >
-          <div
-            style={{
-              background: "#fff",
-              padding: "12px 12px 20px 12px",
-              borderRadius: "8px",
-              width: "90%",
-              maxWidth: "600px",
-              maxHeight: "80vh",
-              overflowY: "auto",
-              boxSizing: "border-box",
-              position: 'relative'
-            }}
-          >
-            {/* Close button top-right */}
-            <button
-              aria-label="Tutup"
-              onClick={() => setShowModal(false)}
-              style={{
-                position: 'absolute',
-                top: 8,
-                right: 8,
-                background: 'transparent',
-                border: 'none',
-                fontSize: 20,
-                cursor: 'pointer'
-              }}
-            >
-              ✖
-            </button>
-
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
-              <h3 style={{ margin: 0, flex: '0 0 auto' }}>Pilih Member</h3>
-              <input
-                type="text"
-                placeholder="Cari nama, email, atau telepon"
-                value={memberSearch}
-                onChange={(e) => setMemberSearch(e.target.value)}
-                style={{ flex: 1, padding: '8px 10px', borderRadius: 6, border: '1px solid #ccc' }}
-              />
+        <div className="whatsapp-modal-backdrop">
+          <div className="whatsapp-modal-content">
+            <div className="whatsapp-modal-header">
+              <h3>Pilih Member</h3>
+              <button
+                aria-label="Tutup"
+                onClick={() => setShowModal(false)}
+                className="whatsapp-modal-close"
+              >
+                ✖
+              </button>
             </div>
 
-            {isLoading && <p>Loading...</p>}
-            {error && <p style={{ color: "red" }}>{error}</p>}
-            {!isLoading && filteredMembers.length === 0 && <p>Tidak ada member</p>}
+            <div className="whatsapp-modal-body">
+              <div className="whatsapp-search-group">
+                <h3>Cari Member</h3>
+                <input
+                  type="text"
+                  placeholder="Cari nama, email, atau telepon..."
+                  value={memberSearch}
+                  onChange={(e) => setMemberSearch(e.target.value)}
+                  className="whatsapp-search-input"
+                  style={{ flex: 1, minWidth: '200px' }}
+                />
+              </div>
 
-            <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "14px", wordBreak: "break-word" }}>
-              <thead>
-                <tr>
-                  <th style={{ borderBottom: "1px solid #ccc", textAlign: "left", padding: "8px" }}>Nama</th>
-                  <th style={{ borderBottom: "1px solid #ccc", textAlign: "left", padding: "8px" }}>Email</th>
-                  <th style={{ borderBottom: "1px solid #ccc", textAlign: "left", padding: "8px" }}>Phone</th>
-                  <th style={{ borderBottom: "1px solid #ccc", textAlign: "center", padding: "8px" }}>Aksi</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredMembers.map((m, idx) => (
-                  <tr key={idx}>
-                    <td style={{ padding: "8px" }}>{m.member_name || "-"}</td>
-                    <td style={{ padding: "8px" }}>{m.member_email || "-"}</td>
-                    <td style={{ padding: "8px" }}>{m.member_phone_number || "-"}</td>
-                    <td style={{ textAlign: "center" }}>
-                      <button
-                        style={{
-                          background: "#007bff",
-                          color: "#fff",
-                          border: "none",
-                          padding: "6px 10px",
-                          borderRadius: "4px",
-                          cursor: "pointer",
-                        }}
-                        onClick={() => {
-                          setNomor(m.member_phone_number || "");
-                          setShowModal(false);
-                        }}
-                      >
-                        ✅
-                      </button>
-                    </td>
+              {isLoading && <p>Loading...</p>}
+              {error && <p style={{ color: "red" }}>{error}</p>}
+              {!isLoading && filteredMembers.length === 0 && <p>Tidak ada member</p>}
+
+              <table className="whatsapp-table">
+                <thead>
+                  <tr>
+                    <th>Nama</th>
+                    <th>Email</th>
+                    <th>Telepon</th>
+                    <th>Aksi</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {filteredMembers.map((m, idx) => (
+                    <tr key={idx}>
+                      <td>{m.member_name || "-"}</td>
+                      <td>{m.member_email || "-"}</td>
+                      <td>{m.member_phone_number || "-"}</td>
+                      <td className="whatsapp-table-action">
+                        <button
+                          className="whatsapp-action-button"
+                          onClick={() => {
+                            setNomor(m.member_phone_number || "");
+                            setShowModal(false);
+                          }}
+                        >
+                          ✅ Pilih
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
       )}

@@ -1,9 +1,13 @@
 import React from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import ProfileModal from "../ProfileModal";
+import ThemeToggle from "../ThemeToggle";
+import '../../styles/header-modern.css';
 
 const Header = ({ onToggleSidebar, userTokenData, setIsLoggedIn }) => {
   const navigate = useNavigate();
+  const [isDropdownOpen, setIsDropdownOpen] = React.useState(false);
+  const [isProfileModalOpen, setIsProfileModalOpen] = React.useState(false);
   
   const handleLogout = () => {
     try {
@@ -15,187 +19,101 @@ const Header = ({ onToggleSidebar, userTokenData, setIsLoggedIn }) => {
     }
   };
 
-  const styles = {
-    header: {
-      backgroundColor: '#ffffff',
-      boxShadow: '0 2px 4px rgba(0,0,0,0.05)',
-      position: 'sticky',
-      top: 0,
-      zIndex: 1000,
-    },
-    headerContent: {
-      display: 'flex',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-      padding: '15px 20px',
-      height: '70px',
-    },
-    sidebarToggle: {
-      background: 'none',
-      border: 'none',
-      fontSize: '1.5rem',
-      color: '#6c757d',
-      cursor: 'pointer',
-      transition: 'color 0.3s ease',
-    },
-    sidebarToggleHover: {
-      color: '#007bff',
-    },
-    userMenu: {
-      display: 'flex',
-      alignItems: 'center',
-      gap: '15px',
-      border: 'none',
-      outline: 'none',
-    },
-    userInfo: {
-      textAlign: 'right',
-    },
-    userName: {
-      fontWeight: 600,
-      color: '#333',
-      display: 'block',
-      fontSize: '0.95rem',
-    },
-    userRole: {
-      fontSize: '0.75rem',
-      color: '#6c757d',
-    },
-    userDropdown: {
-      position: 'relative',
-      outline: 'none',
-    },
-    userAvatar: {
-      width: '42px',
-      height: '42px',
-      borderRadius: '50%',
-      overflow: 'hidden',
-      cursor: 'pointer',
-    },
-    avatarImg: {
-      width: '100%',
-      height: '100%',
-      objectFit: 'cover',
-    },
-    dropdownMenu: {
-      position: 'absolute',
-      right: 0,
-      top: '100%',
-      backgroundColor: '#fff',
-      borderRadius: '4px',
-      display: 'none',
-      minWidth: '200px',
-      padding: '10px 0',
-      border: 'none',
-      outline: 'none',
-      boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
-    },
-    dropdownVisible: {
-      display: 'block',
-    },
-    dropdownItem: {
-      display: 'flex',
-      alignItems: 'center',
-      gap: '10px',
-      padding: '8px 20px',
-      color: '#333',
-      textDecoration: 'none',
-      transition: 'background-color 0.3s ease',
-      border: 'none',
-      outline: 'none',
-      background: 'none',
-      cursor: 'pointer',
-    },
-    dropdownItemHover: {
-      backgroundColor: '#f8f9fa',
-    },
-    dropdownIcon: {
-      fontSize: '1rem',
-    },
-    logoutItem: {
-      color: '#dc3545',
-    }
-  };
-
-  const [isDropdownOpen, setIsDropdownOpen] = React.useState(false);
-  const [isProfileModalOpen, setIsProfileModalOpen] = React.useState(false);
-
   return (
-    <header style={styles.header}>
-      <div style={styles.headerContent}>
-        <div>
+    <header className="header-modern">
+      <div className="header-content">
+        <div className="header-left">
           <button 
-            style={styles.sidebarToggle}
+            className="sidebar-toggle-btn"
             onClick={onToggleSidebar}
+            aria-label="Toggle Sidebar"
           >
             <i className="bi bi-list"></i>
           </button>
         </div>
         
-        <div>
-          <div 
-            style={styles.userMenu} 
-            onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-          >
-            {userTokenData && (
-              <div style={styles.userInfo}>
-                <span style={styles.userName}>{userTokenData.name}</span>
-                <span style={styles.userRole}>{userTokenData.outlet_name}</span>
-              </div>
-            )}
-            
-            <div style={styles.userDropdown}>
-              <div style={styles.userAvatar}>
+        <div className="header-right">
+          {/* Theme Toggle */}
+          <div className="theme-toggle-container">
+            <ThemeToggle />
+          </div>
+
+          {/* Optional: Add notification bell */}
+          {/* <div className="notification-badge">
+            <i className="bi bi-bell"></i>
+            <span className="badge">3</span>
+          </div> */}
+
+          <div className="user-menu-container">
+            <div 
+              className="user-menu-trigger" 
+              onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+            >
+              {userTokenData && (
+                <div className="user-info-container">
+                  <span className="user-name">{userTokenData.name}</span>
+                  <span className="user-role">{userTokenData.outlet_name}</span>
+                </div>
+              )}
+              
+              <div className="user-avatar">
                 <img 
-                  src="assets/images/faces/1.jpg" 
-                  alt="User Profile" 
-                  style={styles.avatarImg}
+                  src="/assets/images/faces/1.jpg" 
+                  alt="User Profile"
                 />
               </div>
-              
-              <div 
-                style={{
-                  ...styles.dropdownMenu,
-                  ...(isDropdownOpen ? styles.dropdownVisible : {})
-                }}
-              >
-                <button
-                  onClick={() => {
-                    setIsProfileModalOpen(true);
-                    setIsDropdownOpen(false);
-                  }}
-                  style={styles.dropdownItem}
-                  onMouseEnter={(e) => e.target.style.backgroundColor = styles.dropdownItemHover.backgroundColor}
-                  onMouseLeave={(e) => e.target.style.backgroundColor = 'transparent'}
-                >
-                  <i 
-                    className="bi bi-person" 
-                    style={styles.dropdownIcon}
-                  ></i>
-                  My Profile
-                </button>
-                <button 
-                  onClick={handleLogout} 
-                  style={{
-                    ...styles.dropdownItem,
-                    ...styles.logoutItem,
-                    width: '100%',
-                    textAlign: 'left',
-                  }}
-                  onMouseEnter={(e) => e.target.style.backgroundColor = styles.dropdownItemHover.backgroundColor}
-                  onMouseLeave={(e) => e.target.style.backgroundColor = 'transparent'}
-                >
-                  <i 
-                    className="bi bi-box-arrow-right" 
-                    style={styles.dropdownIcon}
-                  ></i>
-                  Logout
-                </button>
+            </div>
+            
+            <div className={`user-dropdown ${isDropdownOpen ? 'show' : ''}`}>
+              <div className="dropdown-header">
+                {userTokenData && (
+                  <>
+                    <span className="user-name">{userTokenData.name}</span>
+                    <span className="user-role">{userTokenData.role} - {userTokenData.outlet_name}</span>
+                  </>
+                )}
               </div>
+
+              <button
+                onClick={() => {
+                  setIsProfileModalOpen(true);
+                  setIsDropdownOpen(false);
+                }}
+                className="dropdown-item"
+              >
+                <i className="bi bi-person"></i>
+                <span>My Profile</span>
+              </button>
+
+              <div className="dropdown-divider"></div>
+              
+              <button 
+                onClick={handleLogout} 
+                className="dropdown-item dropdown-item-logout"
+              >
+                <i className="bi bi-box-arrow-right"></i>
+                <span>Logout</span>
+              </button>
             </div>
           </div>
         </div>
       </div>
+
+      {/* Click outside to close dropdown */}
+      {isDropdownOpen && (
+        <div 
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            zIndex: 999
+          }}
+          onClick={() => setIsDropdownOpen(false)}
+        />
+      )}
+
       <ProfileModal
         isOpen={isProfileModalOpen}
         onClose={() => setIsProfileModalOpen(false)}

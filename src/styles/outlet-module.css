@@ -1,0 +1,409 @@
+/* ========================================
+   OUTLET MODULE - MODERN & MINIMALIST STYLES
+   ======================================== */
+
+/* Card Styling */
+.card {
+  border: 1px solid #e9ecef;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  transition: all 0.3s ease;
+}
+
+.card:hover {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+}
+
+.card-header {
+  border-bottom: 1px solid #f1f5f9;
+  padding: 16px 24px;
+  background: transparent;
+}
+
+.card-body {
+  padding: 0;
+}
+
+/* Button Styling */
+.btn-primary {
+  background: linear-gradient(135deg, #FF6B35 0%, #FF8A5B 100%);
+  border: none;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.btn-primary:hover {
+  background: linear-gradient(135deg, #E55A24 0%, #FF7A4B 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(255, 107, 53, 0.3);
+}
+
+.btn-primary:active {
+  transform: translateY(0);
+}
+
+/* Table Responsive Container */
+.table-responsive {
+  overflow-x: auto;
+}
+
+/* Table Base Styling */
+.table {
+  margin-bottom: 0;
+  border-collapse: collapse;
+}
+
+.table thead {
+  background: #f8f9fa;
+  border-bottom: 2px solid #e9ecef;
+}
+
+.table thead th {
+  padding: 14px 16px;
+  font-weight: 600;
+  font-size: 0.8125rem;
+  color: #495057;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border: none;
+}
+
+.table tbody {
+  background: white;
+}
+
+/* Clickable Row Styling */
+.outlet-row {
+  border-bottom: 1px solid #e9ecef;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.outlet-row:hover {
+  background: #f8f9fa;
+}
+
+.outlet-row td {
+  padding: 14px 16px;
+  vertical-align: middle;
+  font-size: 0.9375rem;
+  color: #2d3436;
+}
+
+.outlet-row:last-child {
+  border-bottom: none;
+}
+
+/* Cell Styling */
+.outlet-id-badge {
+  display: inline-block;
+  padding: 6px 12px;
+  background: #e7f5ff;
+  color: #1971c2;
+  border-radius: 6px;
+  font-weight: 500;
+  font-size: 0.875rem;
+  font-family: 'Courier New', monospace;
+}
+
+.outlet-name-cell {
+  font-weight: 500;
+  color: #2d3436;
+  display: block;
+}
+
+.outlet-address-cell {
+  font-size: 0.875rem;
+  color: #6c757d;
+  display: block;
+  line-height: 1.4;
+}
+
+/* Dark Mode Support */
+body.theme-dark .card {
+  background: #1e293b;
+  border-color: #334155;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+body.theme-dark .card:hover {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+}
+
+body.theme-dark .card-header {
+  border-bottom-color: rgba(255, 255, 255, 0.1);
+}
+
+body.theme-dark .table thead {
+  background: rgba(15, 23, 42, 0.5);
+  border-bottom-color: #334155;
+}
+
+body.theme-dark .table thead th {
+  color: #94a3b8;
+}
+
+body.theme-dark .table tbody {
+  background: transparent;
+}
+
+body.theme-dark .outlet-row {
+  border-bottom-color: rgba(255, 255, 255, 0.1);
+}
+
+body.theme-dark .outlet-row:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+body.theme-dark .outlet-row td {
+  color: #cbd5e1;
+}
+
+body.theme-dark .outlet-id-badge {
+  background: rgba(37, 99, 235, 0.1);
+  color: #60a5fa;
+}
+
+body.theme-dark .outlet-name-cell {
+  color: #f1f5f9;
+}
+
+body.theme-dark .outlet-address-cell {
+  color: #94a3b8;
+}
+
+/* Desktop and Mobile View Toggle */
+.desktop-view {
+  display: block;
+}
+
+.mobile-view {
+  display: none;
+}
+
+/* Mobile Card Layout */
+.outlets-card-container {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+  padding: 12px 16px;
+}
+
+.outlet-card-item {
+  background: white;
+  border: 1px solid #e9ecef;
+  border-radius: 10px;
+  padding: 14px 16px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.outlet-card-item:hover {
+  background: #f8f9fa;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+  transform: translateY(-2px);
+}
+
+.outlet-card-item:active {
+  transform: translateY(0);
+}
+
+.outlet-card-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 12px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.outlet-card-number {
+  min-width: 32px;
+  height: 32px;
+  background: linear-gradient(135deg, #FF6B35 0%, #FF8A5B 100%);
+  color: white;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 0.875rem;
+  flex-shrink: 0;
+}
+
+.outlet-card-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.outlet-card-id {
+  display: inline-block;
+  padding: 3px 8px;
+  background: #e7f5ff;
+  color: #1971c2;
+  border-radius: 4px;
+  font-weight: 500;
+  font-size: 0.75rem;
+  font-family: 'Courier New', monospace;
+  width: fit-content;
+}
+
+.outlet-card-name {
+  font-weight: 600;
+  font-size: 0.9375rem;
+  color: #2d3436;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.outlet-card-body {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.outlet-card-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.outlet-card-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #6c757d;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.outlet-card-address {
+  font-size: 0.875rem;
+  color: #495057;
+  line-height: 1.5;
+  word-break: break-word;
+}
+
+/* Dark Mode - Mobile Cards */
+body.theme-dark .outlet-card-item {
+  background: #1e293b;
+  border-color: #334155;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+body.theme-dark .outlet-card-item:hover {
+  background: rgba(255, 255, 255, 0.05);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+}
+
+body.theme-dark .outlet-card-header {
+  border-bottom-color: rgba(255, 255, 255, 0.1);
+}
+
+body.theme-dark .outlet-card-name {
+  color: #f1f5f9;
+}
+
+body.theme-dark .outlet-card-id {
+  background: rgba(37, 99, 235, 0.1);
+  color: #60a5fa;
+}
+
+body.theme-dark .outlet-card-label {
+  color: #94a3b8;
+}
+
+body.theme-dark .outlet-card-address {
+  color: #cbd5e1;
+}
+
+/* Mobile Responsive */
+@media screen and (max-width: 768px) {
+  .desktop-view {
+    display: none;
+  }
+
+  .mobile-view {
+    display: block;
+  }
+
+  .outlets-card-container {
+    padding: 10px 12px;
+    gap: 10px;
+  }
+
+  .card-header {
+    padding: 12px 16px;
+  }
+
+  .card-body {
+    padding: 0;
+  }
+
+  .outlet-card-item {
+    padding: 12px 14px;
+    border-radius: 8px;
+  }
+
+  .outlet-card-header {
+    gap: 10px;
+    margin-bottom: 10px;
+    padding-bottom: 10px;
+  }
+
+  .outlet-card-number {
+    min-width: 28px;
+    height: 28px;
+    font-size: 0.8125rem;
+  }
+
+  .outlet-card-id {
+    font-size: 0.7rem;
+    padding: 3px 7px;
+  }
+
+  .outlet-card-name {
+    font-size: 0.875rem;
+  }
+
+  .outlet-card-label {
+    font-size: 0.7rem;
+  }
+
+  .outlet-card-address {
+    font-size: 0.8125rem;
+  }
+
+  .btn-primary {
+    padding: 6px 12px;
+    font-size: 0.8125rem;
+  }
+}
+
+/* Tablet Responsive (768px - 1024px) */
+@media screen and (min-width: 769px) and (max-width: 1024px) {
+  .table thead th {
+    padding: 12px 12px;
+    font-size: 0.8rem;
+  }
+
+  .table tbody td {
+    padding: 12px 12px;
+    font-size: 0.9rem;
+  }
+
+  .outlet-id-badge {
+    font-size: 0.8rem;
+    padding: 5px 11px;
+  }
+}
+
+/* Accessibility */
+.outlet-row:focus-within {
+  outline: 2px solid #FF6B35;
+  outline-offset: -1px;
+}

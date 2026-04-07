@@ -1,9 +1,12 @@
 import React, { useState, useEffect, useCallback } from "react";
 import axios from "axios";
+import { useTheme } from "../contexts/ThemeContext";
 import { MembersModal } from "../components/MembersModal";
 import MembersSettingsModal from "../components/MembersSettingsModal";
+import "../styles/member-module.css";
 
 const Member = ({ userTokenData }) => {
+  const { isDark } = useTheme();
   const apiBaseUrl = process.env.REACT_APP_API_BASE_URL;
   const [members, setMembers] = useState([]);
   const [filteredMembers, setFilteredMembers] = useState([]);
@@ -134,6 +137,80 @@ const Member = ({ userTokenData }) => {
   if (isLoading) return <div>Loading...</div>;
   if (error) return <div>Error: {error}</div>;
 
+  // Render member cards for mobile/responsive view
+  const renderMemberCards = () => (
+    <div className="member-cards-container">
+      {filteredMembers.map((member) => (
+        <div key={member.member_id} className="member-card" onClick={() => openModal(member.member_id)}>
+          <div className="member-card-header">
+            <h6 className="member-name">{member.member_name}</h6>
+            <span className="member-points-badge">{member.member_points} Pts</span>
+          </div>
+          <div className="member-card-body">
+            <div className="member-info-row">
+              <span className="member-label">Email</span>
+              <span className="member-value">{member.member_email || '-'}</span>
+            </div>
+            <div className="member-info-row">
+              <span className="member-label">Phone</span>
+              <span className="member-value">{member.member_phone_number || '-'}</span>
+            </div>
+          </div>
+          <div className="member-card-footer">
+            {member.member_phone_number && (
+              <button
+                onClick={(e) => { e.stopPropagation(); handleWhatsAppClick(member.member_id, member.member_phone_number); }}
+                className="btn-whatsapp-footer"
+                title="Chat WhatsApp"
+              >
+                <i className="bi bi-whatsapp"></i>
+              </button>
+            )}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+
+  // Render member table for desktop view
+  const renderMemberTable = () => (
+    <table className="table table-striped member-table">
+      <thead>
+        <tr>
+          <th>No</th>
+          <th>Name</th>
+          <th>Email</th>
+          <th>WhatsApp & Phone</th>
+          <th>Point</th>
+        </tr>
+      </thead>
+      <tbody>
+        {filteredMembers.map((member, index) => (
+          <tr key={member.member_id} onClick={() => openModal(member.member_id)} style={{ cursor: 'pointer' }}>
+            <td>{index + 1}</td>
+            <td>{member.member_name}</td>
+            <td>{member.member_email}</td>
+            <td>
+              <div className="member-phone-cell">
+                {member.member_phone_number && (
+                  <button
+                    onClick={(e) => { e.stopPropagation(); handleWhatsAppClick(member.member_id, member.member_phone_number); }}
+                    className="btn btn-success btn-sm"
+                    title="Chat WhatsApp"
+                  >
+                    <i className="bi bi-whatsapp"></i>
+                  </button>
+                )}
+                <span>{member.member_phone_number}</span>
+              </div>
+            </td>
+            <td><span className="points-badge">{member.member_points}</span></td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  );
+
   return (
     <div>
       <div className="page-heading">
@@ -147,25 +224,29 @@ const Member = ({ userTokenData }) => {
         <section className="section">
           <div className="card">
             <div className="card-header">
-              <div className="d-flex flex-column flex-md-row justify-content-between align-items-stretch gap-2">
-                <div className="flex-grow-1 mb-2 mb-md-0">
-                  <input
-                    type="text"
-                    className="form-control"
-                    placeholder="Search by name, phone or email"
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                  />
+              <div className="member-header-controls">
+                <div className="member-search-wrapper">
+                  <div className="input-group">
+                    <span className="input-group-text"><i className="bi bi-search"></i></span>
+                    <input
+                      type="text"
+                      className="form-control"
+                      placeholder="Cari member (nama, email, phone)"
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                    />
+                  </div>
                 </div>
-                <div className="d-flex flex-column flex-md-row gap-2">
+                <div className="member-action-buttons">
                   <button
-                    className="btn btn-primary rounded-pill w-100 w-md-auto"
+                    className="btn btn-primary"
                     onClick={openSettingsModal}
+                    title="Edit Bonus Percent"
                   >
-                    <i className="bi bi-plus"></i> Edit Bonus Percent
+                    <i className="bi bi-gear"></i> Settings
                   </button>
                   <button
-                    className="btn btn-primary rounded-pill w-100 w-md-auto"
+                    className="btn btn-primary"
                     onClick={() => openModal(null)}
                   >
                     <i className="bi bi-plus"></i> Tambah Data
@@ -174,47 +255,21 @@ const Member = ({ userTokenData }) => {
               </div>
             </div>
             <div className="card-body">
-              <table className="table table-striped" id="table1">
-                <thead>
-                  <tr>
-                    <th>No</th>
-                    <th>Name</th>
-                    <th>Email</th>
-                    <th>Whatsapp & Phone Number</th>
-                    <th>Point</th>
-                    <th>Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filteredMembers.map((member, index) => (
-                    <tr key={member.member_id}>
-                      <td>{index + 1}</td>
-                      <td>{member.member_name}</td>
-                      <td>{member.member_email}</td>
-                      <td>
-                        {member.member_phone_number && (
-                          <button
-                            onClick={() => handleWhatsAppClick(member.member_id, member.member_phone_number)}
-                            className="btn btn-success btn-sm"
-                          >
-                            <i className="bi bi-whatsapp"></i> Chat
-                          </button>
-                        )}
-                        {member.member_phone_number}
-                      </td>
-                      <td>{member.member_points}</td>
-                      <td>
-                        <button
-                          className="btn btn-primary btn-sm"
-                          onClick={() => openModal(member.member_id)}
-                        >
-                          <i className="bi bi-pencil"></i>
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+              {filteredMembers.length > 0 ? (
+                <>
+                  <div className="desktop-view">
+                    {renderMemberTable()}
+                  </div>
+                  <div className="mobile-view">
+                    {renderMemberCards()}
+                  </div>
+                </>
+              ) : (
+                <div className="member-empty-state">
+                  <i className="bi bi-inbox"></i>
+                  <p>Tidak ada data member</p>
+                </div>
+              )}
             </div>
           </div>
         </section>

@@ -1,0 +1,465 @@
+/* ========================================
+   MEMBER MODULE - MODERN & MINIMALIST STYLES
+   ======================================== */
+
+/* Header Controls */
+.member-header-controls {
+  display: flex;
+  gap: 16px;
+  align-items: stretch;
+  flex-wrap: wrap;
+}
+
+.member-search-wrapper {
+  flex: 1;
+  min-width: 250px;
+}
+
+.member-search-wrapper .input-group {
+  background: #f3f4f6;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+  transition: all 0.25s ease;
+}
+
+.member-search-wrapper .input-group:focus-within {
+  background: #ffffff;
+  border-color: #FF6B35;
+  box-shadow: 0 0 0 3px rgba(255, 107, 53, 0.1);
+}
+
+.member-search-wrapper .input-group-text {
+  background: transparent;
+  border: none;
+  color: #9ca3af;
+  padding: 0 12px;
+}
+
+.member-search-wrapper .form-control {
+  background: transparent;
+  border: none;
+  padding: 10px 0;
+  color: #111827;
+  font-size: 0.9375rem;
+}
+
+.member-search-wrapper .form-control:focus {
+  box-shadow: none;
+  background: transparent;
+  border: none;
+}
+
+.member-search-wrapper .form-control::placeholder {
+  color: #9ca3af;
+}
+
+/* Dark Mode - Header Controls */
+body.theme-dark .member-search-wrapper .input-group {
+  background: rgba(15, 23, 42, 0.5);
+  border-color: #334155;
+}
+
+body.theme-dark .member-search-wrapper .input-group:focus-within {
+  background: #0f172a;
+  border-color: #FF6B35;
+  box-shadow: 0 0 0 3px rgba(255, 107, 53, 0.1);
+}
+
+body.theme-dark .member-search-wrapper .input-group-text {
+  color: #64748b;
+}
+
+body.theme-dark .member-search-wrapper .form-control {
+  color: #f1f5f9;
+}
+
+body.theme-dark .member-search-wrapper .form-control::placeholder {
+  color: #64748b;
+}
+
+/* Action Buttons */
+.member-action-buttons {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.member-action-buttons .btn {
+  padding: 10px 16px;
+  border-radius: 8px;
+  font-weight: 500;
+  transition: all 0.25s ease;
+  white-space: nowrap;
+  border: none;
+  cursor: pointer;
+}
+
+.member-action-buttons .btn-primary {
+  background: linear-gradient(135deg, #FF6B35 0%, #FF8A5B 100%);
+  color: white;
+}
+
+.member-action-buttons .btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(255, 107, 53, 0.3);
+}
+
+/* Member Cards Container (Mobile) */
+.member-cards-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 20px;
+}
+
+.member-card {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  overflow: hidden;
+  transition: all 0.25s ease;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+}
+
+.member-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.12);
+  border-color: #FF6B35;
+}
+
+/* Member Card Header */
+.member-card-header {
+  background: linear-gradient(135deg, #FF6B35 0%, #FF8A5B 100%);
+  padding: 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: white;
+}
+
+.member-card-header .member-name {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+  flex: 1;
+}
+
+.member-card-header .member-points-badge {
+  background: rgba(255, 255, 255, 0.2);
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+/* Member Card Body */
+.member-card-body {
+  padding: 16px;
+  flex: 1;
+}
+
+.member-info-row {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 12px;
+}
+
+.member-info-row:last-child {
+  margin-bottom: 0;
+}
+
+.member-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #9ca3af;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.member-value {
+  font-size: 0.9375rem;
+  color: #111827;
+  word-break: break-word;
+}
+
+/* Member Card Footer */
+.member-card-footer {
+  padding: 12px 16px;
+  border-top: 1px solid #e5e7eb;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.btn-whatsapp-footer {
+  background: #25D366;
+  color: white;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  font-size: 0.9375rem;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.btn-whatsapp-footer:hover {
+  background: #20ba58;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(37, 211, 102, 0.3);
+}
+
+/* Dark Mode - Member Cards */
+body.theme-dark .member-card {
+  background: #1e293b;
+  border-color: #334155;
+}
+
+body.theme-dark .member-card:hover {
+  border-color: #FF6B35;
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.3);
+}
+
+body.theme-dark .member-card-body {
+  background: #1e293b;
+  color: #f1f5f9;
+}
+
+body.theme-dark .member-label {
+  color: #94a3b8;
+}
+
+body.theme-dark .member-value {
+  color: #cbd5e1;
+}
+
+body.theme-dark .member-card-footer {
+  border-top-color: #334155;
+  background: #1e293b;
+}
+
+/* Member Table */
+.member-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.member-table thead {
+  background: #f3f4f6;
+}
+
+.member-table thead th {
+  padding: 14px 16px;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: #374151;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  border-bottom: 1px solid #e5e7eb;
+  text-align: left;
+}
+
+.member-table tbody tr {
+  border-bottom: 1px solid #e5e7eb;
+  transition: all 0.25s ease;
+}
+
+.member-table tbody tr:hover {
+  background: #fef3f2;
+}
+
+.member-table tbody td {
+  padding: 14px 16px;
+  font-size: 0.9375rem;
+  color: #111827;
+  vertical-align: middle;
+}
+
+.member-phone-cell {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.points-badge {
+  background: linear-gradient(135deg, #FF6B35 0%, #FF8A5B 100%);
+  color: white;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  display: inline-block;
+}
+
+/* Dark Mode - Member Table */
+body.theme-dark .member-table thead {
+  background: rgba(15, 23, 42, 0.5);
+}
+
+body.theme-dark .member-table thead th {
+  color: #cbd5e1;
+  border-bottom-color: #334155;
+}
+
+body.theme-dark .member-table tbody tr {
+  border-bottom-color: #334155;
+}
+
+body.theme-dark .member-table tbody tr:hover {
+  background: rgba(255, 107, 53, 0.08);
+}
+
+body.theme-dark .member-table tbody td {
+  color: #cbd5e1;
+}
+
+/* Empty State */
+.member-empty-state {
+  text-align: center;
+  padding: 40px 20px;
+  color: #9ca3af;
+}
+
+.member-empty-state i {
+  font-size: 3rem;
+  color: #d1d5db;
+  margin-bottom: 16px;
+}
+
+.member-empty-state p {
+  margin: 0;
+  font-size: 1rem;
+}
+
+/* Dark Mode - Empty State */
+body.theme-dark .member-empty-state {
+  color: #64748b;
+}
+
+body.theme-dark .member-empty-state i {
+  color: #475569;
+}
+
+/* Desktop View */
+.desktop-view {
+  display: block;
+}
+
+.mobile-view {
+  display: none;
+}
+
+/* Responsive - Tablet */
+@media screen and (min-width: 769px) and (max-width: 1024px) {
+  .member-cards-container {
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  }
+
+  .member-action-buttons {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .member-action-buttons .btn {
+    width: 100%;
+  }
+}
+
+/* Responsive - Mobile */
+@media screen and (max-width: 768px) {
+  .desktop-view {
+    display: none;
+  }
+
+  .mobile-view {
+    display: block;
+  }
+
+  .member-header-controls {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .member-search-wrapper {
+    min-width: auto;
+  }
+
+  .member-action-buttons {
+    width: 100%;
+    flex-direction: column;
+  }
+
+  .member-action-buttons .btn {
+    width: 100%;
+    padding: 12px 16px;
+  }
+
+  .member-cards-container {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .member-card {
+    border-radius: 10px;
+  }
+
+  .member-card-header {
+    padding: 12px;
+  }
+
+  .member-card-header .member-name {
+    font-size: 0.9375rem;
+  }
+
+  .member-card-header .member-points-badge {
+    font-size: 0.75rem;
+    padding: 3px 10px;
+  }
+
+  .member-card-body {
+    padding: 12px;
+  }
+
+  .member-label {
+    font-size: 0.7rem;
+  }
+
+  .member-value {
+    font-size: 0.875rem;
+  }
+
+  .member-card-footer {
+    padding: 10px 12px;
+  }
+}
+
+/* Animations */
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.member-card {
+  animation: slideInUp 0.3s ease;
+}
+
+/* Accessibility */
+.member-card:focus-within {
+  outline: 2px solid #FF6B35;
+  outline-offset: 2px;
+}
+
+.member-table tbody tr:focus-within {
+  outline: 2px solid #FF6B35;
+  outline-offset: -2px;
+}

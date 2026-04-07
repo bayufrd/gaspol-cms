@@ -1,10 +1,13 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { MenuModal } from "../components/MenuModal";
+import { useTheme } from "../contexts/ThemeContext";
 import axios from "axios";
+import "../styles/menu-module.css";
 
 const apiBaseUrl = process.env.REACT_APP_API_BASE_URL;
 
 const Menu = ({ userTokenData }) => {
+  const { isDark } = useTheme();
   const [menus, setMenus] = useState([]);
   const [filteredMenus, setFilteredMenus] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
@@ -101,117 +104,27 @@ const Menu = ({ userTokenData }) => {
   };
 
   const renderGridView = () => (
-    <div className="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 row-cols-xl-5 g-4">
+    <div className="menu-grid-container">
       {filteredMenus.map((menu) => (
-        <div className="col" key={menu.id}>
+        <div key={menu.id} className="menu-card-wrapper">
           <div
-            className="card h-100 shadow-lg product-card transition-all"
-            style={{
-              borderRadius: '12px',
-              transition: 'all 0.3s ease',
-              transform: 'translateY(0)',
-              willChange: 'transform, box-shadow'
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.transform = 'translateY(-10px)';
-              e.currentTarget.style.boxShadow = '0 15px 30px rgba(0,0,0,0.15)';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.transform = 'translateY(0)';
-              e.currentTarget.style.boxShadow = '';
-            }}
+            className="menu-card"
+            onClick={() => openModal(menu.id)}
           >
-            <div
-              className="menu-image-container position-relative"
-              style={{
-                height: '180px',
-                backgroundColor: '#f8f9fa',
-                display: 'flex',
-                justifyContent: 'center',
-                alignItems: 'center',
-                overflow: 'hidden',
-                borderTopLeftRadius: '12px',
-                borderTopRightRadius: '12px'
-              }}
-            >
+            <div className="menu-image-container">
               <img
                 src={menu.image_url ? `${apiBaseUrl}/${menu.image_url}` : "/assets/images/menu-template.svg"}
                 alt={menu.name}
-                style={{
-                  maxWidth: '90%',
-                  maxHeight: '90%',
-                  objectFit: 'contain',
-                  transition: 'transform 0.3s ease'
-                }}
-                className="product-image"
+                className="menu-image"
               />
-              <span
-                className={`position-absolute top-0 end-0 m-2 badge ${menu.is_active === 1 ? 'bg-success' : 'bg-danger'}`}
-                style={{
-                  fontSize: '0.7em',
-                  fontWeight: 'normal',
-                  borderRadius: '4px'
-                }}
-              >
+              <span className={`menu-badge ${menu.is_active === 1 ? 'badge-active' : 'badge-inactive'}`}>
                 {menu.is_active === 1 ? "Aktif" : "Tidak Aktif"}
               </span>
             </div>
-            <div
-              className="card-body text-center p-3"
-              style={{
-                backgroundColor: 'white',
-                borderBottomLeftRadius: '12px',
-                borderBottomRightRadius: '12px'
-              }}
-            >
-              <h6
-                className="card-title mb-2"
-                style={{
-                  whiteSpace: 'nowrap',
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                  fontWeight: '600'
-                }}
-              >
-                {menu.name}
-              </h6>
-              <p
-                className="card-text text-muted mb-1"
-                style={{
-                  fontSize: '0.8em',
-                  color: '#6c757d'
-                }}
-              >
-                {menu.menu_type}
-              </p>
-              <h6
-                className="card-subtitle mb-3 text-success"
-                style={{
-                  fontSize: '0.9em',
-                  fontWeight: 'bold'
-                }}
-              >
-                Rp. {menu.price.toLocaleString()}
-              </h6>
-              <div className="action-buttons">
-                <button
-                  className="btn btn-primary btn-sm rounded-pill px-3 shadow-sm"
-                  onClick={() => openModal(menu.id)}
-                  style={{
-                    transition: 'all 0.3s ease',
-                    transform: 'scale(1)',
-                    willChange: 'transform'
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.transform = 'scale(1.05)';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.transform = 'scale(1)';
-                  }}
-                >
-                  <i className="bi bi-pencil me-2"></i>Edit
-                </button>
-              </div>
+            <div className="menu-card-body">
+              <h6 className="menu-card-title">{menu.name}</h6>
+              <p className="menu-card-type">{menu.menu_type}</p>
+              <h6 className="menu-card-price">Rp. {menu.price.toLocaleString()}</h6>
             </div>
           </div>
         </div>
@@ -220,40 +133,33 @@ const Menu = ({ userTokenData }) => {
   );
 
   const renderListView = () => (
-    <div className="table-responsive">
-      <table className="table table-striped table-hover">
-        <thead>
-          <tr>
-            <th>Nama Menu</th>
-            <th>Tipe Menu</th>
-            <th>Harga</th>
-            <th>Status</th>
-            <th>Aksi</th>
-          </tr>
-        </thead>
-        <tbody>
-          {filteredMenus.map((menu) => (
-            <tr key={menu.id}>
-              <td>{menu.name}</td>
-              <td>{menu.menu_type}</td>
-              <td>Rp. {menu.price.toLocaleString()}</td>
-              <td>
-                <span className={`badge ${menu.is_active === 1 ? 'bg-success' : 'bg-danger'}`}>
-                  {menu.is_active === 1 ? "Aktif" : "Tidak Aktif"}
-                </span>
-              </td>
-              <td>
-                <button
-                  className="btn btn-sm btn-primary"
-                  onClick={() => openModal(menu.id)}
-                >
-                  <i className="bi bi-pencil me-2"></i>Edit
-                </button>
-              </td>
+    <div className="menu-list-container">
+      <div className="table-responsive">
+        <table className="table table-striped">
+          <thead>
+            <tr>
+              <th>Nama Menu</th>
+              <th>Tipe Menu</th>
+              <th>Harga</th>
+              <th>Status</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {filteredMenus.map((menu) => (
+              <tr key={menu.id} className="menu-list-row" onClick={() => openModal(menu.id)}>
+                <td>{menu.name}</td>
+                <td>{menu.menu_type}</td>
+                <td>Rp. {menu.price.toLocaleString()}</td>
+                <td>
+                  <span className={`menu-status-badge ${menu.is_active === 1 ? 'status-active' : 'status-inactive'}`}>
+                    {menu.is_active === 1 ? "Aktif" : "Tidak Aktif"}
+                  </span>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 
@@ -270,46 +176,46 @@ const Menu = ({ userTokenData }) => {
         <section className="section">
           <div className="card">
             <div className="card-header">
-              <div className="container-fluid px-0">
-                <div className="row g-2 align-items-center">
-                  <div className="col-12 col-md-6 col-lg-8">
-                    <div className="input-group">
-                      <span className="input-group-text"><i className="bi bi-search"></i></span>
-                      <input
-                        type="text"
-                        className="form-control"
-                        placeholder="Search by name, type or price"
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                      />
-                    </div>
+              <div className="menu-header-controls">
+                <div className="menu-search-wrapper">
+                  <div className="input-group">
+                    <span className="input-group-text"><i className="bi bi-search"></i></span>
+                    <input
+                      type="text"
+                      className="form-control"
+                      placeholder="Search by name, type or price"
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                    />
                   </div>
-                  <div className="col-12 col-md-3 col-lg-2">
-                    <div className="btn-group w-100" role="group">
-                      <button
-                        type="button"
-                        className={`btn ${viewMode === 'grid' ? 'btn-primary' : 'btn-outline-primary'}`}
-                        onClick={() => setViewMode('grid')}
-                      >
-                        <i className="bi bi-grid"></i>
-                      </button>
-                      <button
-                        type="button"
-                        className={`btn ${viewMode === 'list' ? 'btn-primary' : 'btn-outline-primary'}`}
-                        onClick={() => setViewMode('list')}
-                      >
-                        <i className="bi bi-list-ul"></i>
-                      </button>
-                    </div>
-                  </div>
-                  <div className="col-12 col-md-3 col-lg-2">
+                </div>
+                <div className="menu-view-toggle">
+                  <div className="btn-group" role="group">
                     <button
-                      className="btn btn-primary rounded-pill w-100"
-                      onClick={() => openModal(null)}
+                      type="button"
+                      className={`btn ${viewMode === 'grid' ? 'btn-primary' : 'btn-outline-primary'}`}
+                      onClick={() => setViewMode('grid')}
+                      title="Grid View"
                     >
-                      <i className="bi bi-plus"></i> Tambah Data
+                      <i className="bi bi-grid"></i>
+                    </button>
+                    <button
+                      type="button"
+                      className={`btn ${viewMode === 'list' ? 'btn-primary' : 'btn-outline-primary'}`}
+                      onClick={() => setViewMode('list')}
+                      title="List View"
+                    >
+                      <i className="bi bi-list-ul"></i>
                     </button>
                   </div>
+                </div>
+                <div className="menu-add-button">
+                  <button
+                    className="btn btn-primary"
+                    onClick={() => openModal(null)}
+                  >
+                    <i className="bi bi-plus"></i> Tambah Data
+                  </button>
                 </div>
               </div>
             </div>

@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo } from "react";
 import Swal from "sweetalert2";
 import axios from "axios";
 import { DeleteConfirmationModal } from "./DeleteConfirmationModal";
+import "../styles/user-modal.css";
 
 export const UserModal = ({
   show,
@@ -188,64 +189,71 @@ export const UserModal = ({
           role="document"
         >
           <div class="modal-content">
-            <div class="modal-header">
-              <h4 class="modal-title" id="myModalLabel33">
-                {selectedUserId ? "Edit User" : "Add User"}
+            <div className="modal-header user-modal-header">
+              <h4 className="modal-title user-modal-title" id="myModalLabel33">
+                <i className={`bi ${selectedUserId ? "bi-pencil" : "bi-plus-circle"}`}></i>
+                {selectedUserId ? "Edit User" : "Tambah User Baru"}
               </h4>
               <button
                 type="button"
-                class="close"
+                className="btn-close user-modal-close"
                 data-bs-dismiss="modal"
                 aria-label="Close"
                 onClick={onClose}
               >
-                <i data-feather="x"></i>x
               </button>
             </div>
             <div>
-              <div class="modal-body scrollable-content">
-                <label>Nama: </label>
-                <div class="form-group">
-                  <input
-                    type="text"
-                    placeholder="nama user"
-                    class={`form-control ${!isFormValid && user.name === "" ? "is-invalid" : ""}`}
-                    value={user.name}
-                    onChange={(e) => {
-                      handleInputChange("name", e.target.value);
-                      setIsFormValid(true);
-                    }}
-                  />
-                  {!isFormValid && user.name === "" ? (
-                    <div className="invalid-feedback">
-                      Nama user harus diisi
-                    </div>
-                  ): null }
+              <div className="modal-body user-modal-body scrollable-content">
+                <div className="form-section">
+                  <label className="form-label">Nama Pengguna</label>
+                  <div className="form-group">
+                    <input
+                      type="text"
+                      placeholder="Masukkan nama pengguna"
+                      className={`form-control user-input ${!isFormValid && user.name === "" ? "is-invalid" : ""}`}
+                      value={user.name}
+                      onChange={(e) => {
+                        handleInputChange("name", e.target.value);
+                        setIsFormValid(true);
+                      }}
+                    />
+                    {!isFormValid && user.name === "" ? (
+                      <div className="invalid-feedback">
+                        <i className="bi bi-exclamation-circle"></i> Nama pengguna harus diisi
+                      </div>
+                    ): null }
+                  </div>
                 </div>
-                <label>Username: </label>
-                <div class="form-group">
-                  <input
-                    type="text"
-                    placeholder="username"
-                    class={`form-control ${!isFormValid && user.username === "" ? "is-invalid" : ""}`}
-                    value={user.username}
-                    onChange={(e) => {
-                      handleInputChange("username", e.target.value);
-                      setIsFormValid(true);
-                    }}
-                  />
-                  {!isFormValid && user.username === "" ? (
-                    <div className="invalid-feedback">Username harus diisi</div>
-                  ) : null}
+                
+                <div className="form-section">
+                  <label className="form-label">Username</label>
+                  <div className="form-group">
+                    <input
+                      type="text"
+                      placeholder="Masukkan username"
+                      className={`form-control user-input ${!isFormValid && user.username === "" ? "is-invalid" : ""}`}
+                      value={user.username}
+                      onChange={(e) => {
+                        handleInputChange("username", e.target.value);
+                        setIsFormValid(true);
+                      }}
+                    />
+                    {!isFormValid && user.username === "" ? (
+                      <div className="invalid-feedback">
+                        <i className="bi bi-exclamation-circle"></i> Username harus diisi
+                      </div>
+                    ) : null}
+                  </div>
                 </div>
                 {!selectedUserId && (
-                  <>
-                    <label>Password: </label>
-                    <div class="form-group">
+                  <div className="form-section">
+                    <label className="form-label">Password</label>
+                    <div className="form-group">
                       <input
                         type="password"
-                        placeholder="password"
-                        class={`form-control ${
+                        placeholder="Masukkan password (min. 5 karakter)"
+                        className={`form-control user-input ${
                           !isFormValid && user.password.length < 5 ? "is-invalid" : "" 
                         }`}
                         value={user.password}
@@ -256,172 +264,174 @@ export const UserModal = ({
                       />
                       {!isFormValid && user.password.length < 5 ? (
                         <div className="invalid-feedback">
-                          Password harus diisi dan minimal 5 karakter!
+                          <i className="bi bi-exclamation-circle"></i> Password harus diisi dan minimal 5 karakter
                         </div>
                       ) : null}
                     </div>
-                  </>
+                  </div>
                 )}
-                <label>Outlet:</label>
-                <div className="form-group">
-                  <select
-                    className="form-select"
-                    value={user.outlet_id}
-                    onChange={(e) =>
-                      handleInputChange("outlet_id", e.target.value)
-                    }
-                  >
-                    {outlets &&
-                      outlets
-                        .filter(outlet => outlet.id !== 4 && outlet.name !== 'Development Testing')
-                        .map((outlet) => (
-                        <option key={outlet.id} value={outlet.id}>
-                          {outlet.name}
-                        </option>
-                      ))}
-                  </select>
+                <div className="form-section">
+                  <label className="form-label">Outlet</label>
+                  <div className="form-group">
+                    <select
+                      className="form-select user-select"
+                      value={user.outlet_id}
+                      onChange={(e) =>
+                        handleInputChange("outlet_id", e.target.value)
+                      }
+                    >
+                      {outlets &&
+                        outlets
+                          .filter(outlet => outlet.id !== 4 && outlet.name !== 'Development Testing')
+                          .map((outlet) => (
+                          <option key={outlet.id} value={outlet.id}>
+                            {outlet.name}
+                          </option>
+                        ))}
+                    </select>
+                  </div>
                 </div>
-                <label>Akses Menu:</label>
-                <div class="form-check">
-                  <input
-                    type="checkbox"
-                    class="form-check-input"
-                    id="menuCheckbox"
-                    checked={menuAccess.menu}
-                    onChange={() => handleCheckboxChange("menu")}
-                  />
-                  <label class="form-check-label" for="menuCheckbox">
-                    Menu
-                  </label>
-                </div>
-                <div class="form-check">
-                  <input
-                    type="checkbox"
-                    class="form-check-input"
-                    id="discountCheckbox"
-                    checked={menuAccess.discount}
-                    onChange={() => handleCheckboxChange("discount")}
-                  />
-                  <label class="form-check-label" for="discountCheckbox">
-                    Discount
-                  </label>
-                </div>
-                <div class="form-check">
-                  <input
-                    type="checkbox"
-                    class="form-check-input"
-                    id="discountCheckbox"
-                    checked={menuAccess.report}
-                    onChange={() => handleCheckboxChange("report")}
-                  />
-                  <label class="form-check-label" for="discountCheckbox">
-                    Report
-                  </label>
-                </div>
-                <div class="form-check">
-                  <input
-                    type="checkbox"
-                    class="form-check-input"
-                    id="discountCheckbox"
-                    checked={menuAccess.serving_type}
-                    onChange={() => handleCheckboxChange("serving_type")}
-                  />
-                  <label class="form-check-label" for="discountCheckbox">
-                    Serving Type
-                  </label>
-                </div>
-                <div class="form-check">
-                  <input
-                    type="checkbox"
-                    class="form-check-input"
-                    id="discountCheckbox"
-                    checked={menuAccess.payment_type}
-                    onChange={() => handleCheckboxChange("payment_type")}
-                  />
-                  <label class="form-check-label" for="discountCheckbox">
-                    Payment Type
-                  </label>
-                </div>
-                <div class="form-check">
-                  <input
-                    type="checkbox"
-                    class="form-check-input"
-                    id="discountCheckbox"
-                    checked={menuAccess.member}
-                    onChange={() => handleCheckboxChange("member")}
-                  />
-                  <label class="form-check-label" for="discountCheckbox">
-                    Membership
-                  </label>
-                </div>
-                <div class="form-check">
-                  <input
-                    type="checkbox"
-                    class="form-check-input"
-                    id="discountCheckbox"
-                    checked={menuAccess.whatsapp}
-                    onChange={() => handleCheckboxChange("whatsapp")}
-                  />
-                  <label class="form-check-label" for="discountCheckbox">
-                    Whatsapp Management
-                  </label>
-                </div>
-                <div class="form-check">
-                  <input
-                    type="checkbox"
-                    class="form-check-input"
-                    id="discountCheckbox"
-                    checked={menuAccess.ingredients_order}
-                    onChange={() => handleCheckboxChange("ingredients_order")}
-                  />
-                  <label class="form-check-label" for="discountCheckbox">
-                    Ingredients Order
-                  </label>
-                </div>
-                <div class="form-check">
-                  <input
-                    type="checkbox"
-                    class="form-check-input"
-                    id="discountCheckbox"
-                    checked={menuAccess.ingredients_report}
-                    onChange={() => handleCheckboxChange("ingredients_report")}
-                  />
-                  <label class="form-check-label" for="discountCheckbox">
-                    Ingredients Report
-                  </label>
+                <div className="form-section">
+                  <label className="form-label">Akses Menu</label>
+                  <div className="checkbox-grid">
+                    <div className="form-check user-form-check">
+                      <input
+                        type="checkbox"
+                        className="form-check-input"
+                        id="menuCheckbox"
+                        checked={menuAccess.menu}
+                        onChange={() => handleCheckboxChange("menu")}
+                      />
+                      <label className="form-check-label" htmlFor="menuCheckbox">
+                        <i className="bi bi-shop"></i> Menu
+                      </label>
+                    </div>
+                    <div className="form-check user-form-check">
+                      <input
+                        type="checkbox"
+                        className="form-check-input"
+                        id="discountCheckbox"
+                        checked={menuAccess.discount}
+                        onChange={() => handleCheckboxChange("discount")}
+                      />
+                      <label className="form-check-label" htmlFor="discountCheckbox">
+                        <i className="bi bi-tag"></i> Discount
+                      </label>
+                    </div>
+                    <div className="form-check user-form-check">
+                      <input
+                        type="checkbox"
+                        className="form-check-input"
+                        id="reportCheckbox"
+                        checked={menuAccess.report}
+                        onChange={() => handleCheckboxChange("report")}
+                      />
+                      <label className="form-check-label" htmlFor="reportCheckbox">
+                        <i className="bi bi-bar-chart"></i> Report
+                      </label>
+                    </div>
+                    <div className="form-check user-form-check">
+                      <input
+                        type="checkbox"
+                        className="form-check-input"
+                        id="servingTypeCheckbox"
+                        checked={menuAccess.serving_type}
+                        onChange={() => handleCheckboxChange("serving_type")}
+                      />
+                      <label className="form-check-label" htmlFor="servingTypeCheckbox">
+                        <i className="bi bi-cup"></i> Serving Type
+                      </label>
+                    </div>
+                    <div className="form-check user-form-check">
+                      <input
+                        type="checkbox"
+                        className="form-check-input"
+                        id="paymentTypeCheckbox"
+                        checked={menuAccess.payment_type}
+                        onChange={() => handleCheckboxChange("payment_type")}
+                      />
+                      <label className="form-check-label" htmlFor="paymentTypeCheckbox">
+                        <i className="bi bi-credit-card"></i> Payment Type
+                      </label>
+                    </div>
+                    <div className="form-check user-form-check">
+                      <input
+                        type="checkbox"
+                        className="form-check-input"
+                        id="memberCheckbox"
+                        checked={menuAccess.member}
+                        onChange={() => handleCheckboxChange("member")}
+                      />
+                      <label className="form-check-label" htmlFor="memberCheckbox">
+                        <i className="bi bi-people"></i> Membership
+                      </label>
+                    </div>
+                    <div className="form-check user-form-check">
+                      <input
+                        type="checkbox"
+                        className="form-check-input"
+                        id="whatsappCheckbox"
+                        checked={menuAccess.whatsapp}
+                        onChange={() => handleCheckboxChange("whatsapp")}
+                      />
+                      <label className="form-check-label" htmlFor="whatsappCheckbox">
+                        <i className="bi bi-chat-dots"></i> WhatsApp
+                      </label>
+                    </div>
+                    <div className="form-check user-form-check">
+                      <input
+                        type="checkbox"
+                        className="form-check-input"
+                        id="ingredientsOrderCheckbox"
+                        checked={menuAccess.ingredients_order}
+                        onChange={() => handleCheckboxChange("ingredients_order")}
+                      />
+                      <label className="form-check-label" htmlFor="ingredientsOrderCheckbox">
+                        <i className="bi bi-basket"></i> Ingredients Order
+                      </label>
+                    </div>
+                    <div className="form-check user-form-check">
+                      <input
+                        type="checkbox"
+                        className="form-check-input"
+                        id="ingredientsReportCheckbox"
+                        checked={menuAccess.ingredients_report}
+                        onChange={() => handleCheckboxChange("ingredients_report")}
+                      />
+                      <label className="form-check-label" htmlFor="ingredientsReportCheckbox">
+                        <i className="bi bi-graph-up"></i> Ingredients Report
+                      </label>
+                    </div>
+                  </div>
                 </div>
               </div>
-              {selectedUserId && (
-                <div className="modal-footer delete-menu">
+              <div className="modal-footer user-modal-footer">
+                {selectedUserId && (
                   <button
                     type="button"
-                    class="btn btn-danger rounded-pill"
-                    data-bs-dismiss="modal"
+                    className="btn btn-danger btn-sm delete-btn"
                     onClick={() => setShowDeleteConfirmation(true)}
                   >
-                    <span class="d-none d-sm-block">Hapus User !</span>
+                    <i className="bi bi-trash"></i> Hapus User
+                  </button>
+                )}
+                <div className="footer-actions">
+                  <button
+                    type="button"
+                    className="btn btn-secondary btn-sm"
+                    data-bs-dismiss="modal"
+                    onClick={onClose}
+                  >
+                    <i className="bi bi-x-circle"></i> Batal
+                  </button>
+                  <button
+                    type="button"
+                    className="btn btn-primary btn-sm"
+                    onClick={handleSave}
+                  >
+                    <i className="bi bi-check-circle"></i> {selectedUserId ? "Simpan Perubahan" : "Tambah User"}
                   </button>
                 </div>
-              )}
-              <div class="modal-footer">
-                <button
-                  type="button"
-                  class="btn btn-light-secondary"
-                  data-bs-dismiss="modal"
-                  onClick={onClose}
-                >
-                  <i class="bx bx-x d-block d-sm-none"></i>
-                  <span class="d-none d-sm-block">Close</span>
-                </button>
-                <button
-                  type="button"
-                  class="btn btn-primary ml-1"
-                  data-bs-dismiss="modal"
-                  onClick={handleSave}
-                >
-                  <i class="bx bx-check d-block d-sm-none"></i>
-                  <span class="d-none d-sm-block">Submit</span>
-                </button>
               </div>
             </div>
           </div>
