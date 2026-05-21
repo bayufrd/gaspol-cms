@@ -14,6 +14,7 @@ export const CustomPriceModal = ({
   const [customPrice, setCustomPrice] = useState([]);
   const [customMenuVariants, setCustomMenuVariants] = useState([]);
   const [updatedCustomMenuPrice, setUpdatedCustomMenuPrice] = useState([]);
+  const [openSections, setOpenSections] = useState({});
 
   useEffect(() => {
     if (showCustomPriceModal && selectedMenuId) {
@@ -57,6 +58,7 @@ export const CustomPriceModal = ({
               return acc;
             }, []);
           setCustomMenuVariants(uniqueVariants);
+          setOpenSections({});
         } catch (error) {
           console.error("Error fetching custom price:", error);
         }
@@ -65,6 +67,7 @@ export const CustomPriceModal = ({
     } else {
       setCustomPrice([]);
       setCustomMenuVariants([]);
+      setOpenSections({});
     }
   }, [showCustomPriceModal, selectedMenuId, apiBaseUrl, userTokenData]);
 
@@ -102,6 +105,35 @@ export const CustomPriceModal = ({
 
     // Perbarui state updatedCustomMenuPrice dengan nilai yang telah diubah
     setUpdatedCustomMenuPrice(updatedPrice);
+  };
+
+  const toggleSection = (sectionKey) => {
+    setOpenSections((prev) => ({
+      ...prev,
+      [sectionKey]: !prev[sectionKey],
+    }));
+  };
+
+  const renderPriceInputs = (menuDetailId = 0) => {
+    return customPrice.map((price) => {
+      const value =
+        menuDetailId === 0
+          ? getCustomPriceForId(price.id)
+          : getCustomVariantPrice(menuDetailId, price.id);
+
+      return (
+        <div key={`${menuDetailId}-${price.id}`} className="mb-3">
+          <label className="form-label fw-semibold">{price.name}</label>
+          <input
+            type="number"
+            placeholder={menuDetailId === 0 ? `${price.name} Price` : "Custom Price"}
+            className="form-control"
+            value={value}
+            onChange={(e) => handleInputChange(price.id, e.target.value, menuDetailId)}
+          />
+        </div>
+      );
+    });
   };
 
   const handleSaveCustomPrice = async (e) => {
@@ -166,50 +198,55 @@ export const CustomPriceModal = ({
               </button>
             </div>
             <div class="modal-body scrollable-content">
-              {/* Loop through custom prices */}
-              <h5 className="text-center">Harga Utama</h5>
-              {customPrice.map((price) => (
-                <div key={price.id}>
-                  <label>{price.name}</label>
-                  <input
-                    type="number"
-                    placeholder={price.name + " Price"}
-                    className="form-control mb-2"
-                    value={getCustomPriceForId(price.id)}
-                    onChange={(e) => handleInputChange(price.id, e.target.value)}
-                  />
+              <div className="d-flex flex-column gap-3">
+                <div className="border rounded p-3 mb-3 bg-light">
+                  <div className="d-flex justify-content-between align-items-center mb-2">
+                    <div>
+                      <h5 className="mb-1">Menu Utama</h5>
+                      <small className="text-muted">Atur harga custom untuk menu utama</small>
+                    </div>
+                    <button
+                      type="button"
+                      className={`btn btn-sm ${openSections.main ? "btn-outline-secondary" : "btn-primary"}`}
+                      onClick={() => toggleSection("main")}
+                    >
+                      {openSections.main ? "Hide" : "Show"}
+                    </button>
+                  </div>
+                  {openSections.main && (
+                    <div className="pt-2 border-top">
+                      {renderPriceInputs()}
+                    </div>
+                  )}
                 </div>
-              ))}
 
-              <hr></hr>
+                {customMenuVariants.length > 0 && customMenuVariants.map((item) => {
+                  const sectionKey = `variant-${item.menu_detail_id}`;
 
-              {/* Loop through custom menu variants */}
-              {customMenuVariants.length > 0 && (
-                <>
-                  <h5 className="text-center">Harga Varian</h5>
-                  {customMenuVariants.map((item) => (
-                    <>
-                      <hr></hr>
-                      <h6 className="text-center">{item.varian}</h6>
-                      {customPrice.map((price) => (
-                        <div key={price.id}>
-                          <label>{price.name}</label>
-                          <input
-                            type="number"
-                            placeholder="Custom Price"
-                            className="form-control mb-2"
-                            value={getCustomVariantPrice(
-                              item.menu_detail_id,
-                              price.id
-                            )}
-                            onChange={(e) => handleInputChange(price.id, e.target.value, item.menu_detail_id)}
-                          />
+                  return (
+                    <div key={item.menu_detail_id} className="border rounded p-3 mb-3">
+                      <div className="d-flex justify-content-between align-items-center mb-2">
+                        <div>
+                          <h5 className="mb-1">Menu Varian {item.varian}</h5>
+                          <small className="text-muted">Atur harga custom untuk varian ini</small>
                         </div>
-                      ))}
-                    </>
-                  ))}
-                </>
-              )}
+                        <button
+                          type="button"
+                          className={`btn btn-sm ${openSections[sectionKey] ? "btn-outline-secondary" : "btn-primary"}`}
+                          onClick={() => toggleSection(sectionKey)}
+                        >
+                          {openSections[sectionKey] ? "Hide" : "Show"}
+                        </button>
+                      </div>
+                      {openSections[sectionKey] && (
+                        <div className="pt-2 border-top">
+                          {renderPriceInputs(item.menu_detail_id)}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
 
               <div class="modal-footer">
                 <button

@@ -98,7 +98,11 @@ export const MenuModal = ({
     if (show && selectedMenuId) {
       const fetchData = async () => {
         try {
-          const response = await axios.get(`${apiBaseUrl}/v2/menu/${selectedMenuId}`);
+          const response = await axios.get(`${apiBaseUrl}/v2/menu/${selectedMenuId}`, {
+            params: {
+              outlet_id: userTokenData.outlet_id,
+            },
+          });
           const menuData = response.data.data;
           setMenu(menuData);
 
