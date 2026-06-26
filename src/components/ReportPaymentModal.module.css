@@ -1,0 +1,336 @@
+/* CSS Variables for Light/Dark Mode */
+:root {
+  --modal-bg: #ffffff;
+  --modal-border: none;
+  --modal-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  --modal-radius: 12px;
+  
+  --header-border: 1px solid #e5e7eb;
+  --header-padding: 1rem 1.5rem;
+  --title-color: #111827;
+  --title-font-size: 1.25rem;
+  --title-font-weight: 600;
+  
+  --close-color: #6b7280;
+  --close-hover-color: #111827;
+  
+  --body-padding: 1.5rem;
+  
+  --section-bg: #f9fafb;
+  --section-border: 1px solid #e5e7eb;
+  --section-radius: 8px;
+  --section-padding: 1rem;
+  
+  --text-color: #111827;
+  --text-muted: #6b7280;
+  --text-heading: #374151;
+  
+  --checkbox-accent: #FF6B35;
+  --checkbox-size: 18px;
+  
+  --button-radius: 8px;
+  --button-padding: 0.75rem;
+  --button-font-weight: 500;
+  --button-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  --button-hover-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  
+  --btn-primary-bg: linear-gradient(135deg, #FF6B35 0%, #FF8A5B 100%);
+  --btn-info-bg: #3B82F6;
+  --btn-warning-bg: #F59E0B;
+  --btn-success-bg: #10B981;
+  --btn-secondary-bg: #6b7280;
+}
+
+/* Dark Mode Variables */
+.dark {
+  --modal-bg: #1e293b;
+  --modal-border: 1px solid #334155;
+  
+  --header-border: 1px solid #334155;
+  --title-color: #f1f5f9;
+  
+  --close-color: #94a3b8;
+  --close-hover-color: #f1f5f9;
+  
+  --section-bg: rgba(15, 23, 42, 0.5);
+  --section-border: 1px solid #334155;
+  
+  --text-color: #cbd5e1;
+  --text-muted: #94a3b8;
+  --text-heading: #f1f5f9;
+}
+
+/* Modal Structure */
+.modalContent {
+  background-color: var(--modal-bg);
+  border-radius: var(--modal-radius);
+  box-shadow: var(--modal-shadow);
+  border: var(--modal-border);
+  width: 100%;
+  max-width: 500px;
+  margin: auto;
+  position: relative;
+  pointer-events: auto;
+}
+
+.modalHeader {
+  border-bottom: var(--header-border);
+  padding: var(--header-padding);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.modalTitle {
+  font-weight: var(--title-font-weight);
+  font-size: var(--title-font-size);
+  color: var(--title-color);
+  margin: 0;
+}
+
+.btnClose {
+  opacity: 1;
+  font-size: 1.5rem;
+  color: var(--close-color);
+  transition: all 0.25s ease;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.btnClose:hover {
+  opacity: 0.8;
+  color: var(--close-hover-color);
+}
+
+.modalBody {
+  padding: var(--body-padding);
+}
+
+/* Sections */
+.infoSection,
+.checkboxSection,
+.mainSection {
+  background-color: var(--section-bg);
+  border: var(--section-border);
+  border-radius: var(--section-radius);
+  padding: var(--section-padding);
+  margin-bottom: 1.5rem;
+}
+
+.sectionTitle {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--text-heading);
+  margin-bottom: 0.5rem;
+}
+
+.previewHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.sectionEyebrow {
+  margin: 0 0 0.25rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.previewTitle {
+  margin: 0;
+  font-size: 1rem;
+  line-height: 1.4;
+  color: var(--text-heading);
+}
+
+.previewBadge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.375rem 0.75rem;
+  border-radius: 999px;
+  background: rgba(107, 114, 128, 0.12);
+  color: var(--text-heading);
+  font-size: 0.75rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.summaryGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.875rem;
+  margin-bottom: 1rem;
+}
+
+.summaryItem {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding: 0.875rem 1rem;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.6);
+  border: 1px solid rgba(229, 231, 235, 0.9);
+}
+
+.summaryLabel {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.summaryValue {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--text-heading);
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+
+/* Checkbox Styling */
+.formCheck {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.25rem 0;
+}
+
+.formCheckInput {
+  accent-color: var(--checkbox-accent);
+  width: var(--checkbox-size);
+  height: var(--checkbox-size);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.formCheckLabel {
+  font-size: 0.875rem;
+  color: var(--text-color);
+  cursor: pointer;
+  margin: 0;
+  line-height: 1.4;
+}
+
+.formCheckLabel.muted {
+  color: var(--text-muted);
+}
+
+/* Button Styling */
+.btn {
+  padding: var(--button-padding);
+  font-weight: var(--button-font-weight);
+  border-radius: var(--button-radius);
+  border: none;
+  box-shadow: var(--button-shadow);
+  transition: all 0.25s ease;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--button-hover-shadow);
+}
+
+.btnPrimary {
+  background: var(--btn-primary-bg);
+  color: white;
+}
+
+.btnInfo {
+  background-color: var(--btn-info-bg);
+  color: white;
+}
+
+.btnWarning {
+  background-color: var(--btn-warning-bg);
+  color: white;
+}
+
+.btnSuccess {
+  background-color: var(--btn-success-bg);
+  color: white;
+}
+
+.btnSecondary {
+  background-color: var(--btn-secondary-bg);
+  color: white;
+}
+
+.btnDisabled {
+  filter: grayscale(1);
+  opacity: 0.55;
+  cursor: not-allowed;
+  pointer-events: none;
+  box-shadow: none;
+}
+
+.checkboxGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.checkboxColumn,
+.checkboxColumnFull {
+  min-width: 0;
+}
+
+.checkboxColumnFull {
+  grid-column: 1 / -1;
+}
+
+/* Responsive Layout */
+.row {
+  --gutter: 1rem;
+  display: flex;
+  flex-wrap: wrap;
+  margin: calc(-1 * var(--gutter));
+}
+
+.row > * {
+  flex-shrink: 0;
+  width: 100%;
+  max-width: 100%;
+  padding: var(--gutter);
+}
+
+.col6 {
+  flex: 0 0 auto;
+  width: 50%;
+}
+
+@media (max-width: 576px) {
+  .modalContent {
+    max-width: 90%;
+  }
+
+  .previewHeader {
+    flex-direction: column;
+  }
+
+  .previewBadge {
+    white-space: normal;
+  }
+
+  .summaryGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .checkboxGrid {
+    grid-template-columns: 1fr;
+  }
+  
+  .col6 {
+    width: 100%;
+  }
+}

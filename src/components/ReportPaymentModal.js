@@ -3,7 +3,8 @@ import axios from "axios";
 import { useReactToPrint } from "react-to-print";
 import { ReportDetailModal } from "./ReportDetailModal";
 import Swal from "sweetalert2";
-import * as XLSX from 'xlsx'; 
+import * as XLSX from 'xlsx';
+import styles from "./ReportPaymentModal.module.css";
 
 export const ReportPaymentModal = ({
   show,
@@ -13,6 +14,7 @@ export const ReportPaymentModal = ({
   endDate,
   shiftNumber,
   selectedShift,
+  darkMode = false,
 }) => {
   const apiBaseUrl = process.env.REACT_APP_API_BASE_URL;
 
@@ -321,6 +323,14 @@ export const ReportPaymentModal = ({
       thermalWindow.print();
     }, 1000);
   };
+
+  const formatSummaryRange = startDateShift && endDateShift
+    ? `${startDateShift} - ${endDateShift}`
+    : "-";
+
+  const summaryTransactionCount = paymentReport?.transactions?.length || 0;
+  const summaryTotalAmount = paymentReport?.shift_details?.total_amount || 0;
+  const summaryShift = selectedShift || "-";
 
   const handleDiscountType = (
     withOutDiscountCheck,
@@ -857,7 +867,7 @@ export const ReportPaymentModal = ({
               </div>
             </div>
           </div>
-          <div className={show ? "modal-backdrop fade show" : undefined}></div>
+          <div className={show ? "modal-backdrop fade show" : undefined} style={{ zIndex: "1040" }}></div>
 
           {/* Download Data Modal */}
           <div
@@ -867,156 +877,144 @@ export const ReportPaymentModal = ({
             aria-labelledby="downloadModalLabel"
             aria-modal={showDownloadModal ? "true" : undefined}
             aria-hidden={showDownloadModal ? undefined : "true"}
+            data-theme={darkMode ? "dark" : "light"}
             style={{
               display: showDownloadModal ? "block" : "none",
-              zIndex: "1050",
+              zIndex: "1060",
             }}
           >
-            <div className="modal-dialog modal-dialog-centered" role="document">
-              <div className="modal-content">
-                <div className="modal-header">
-                  <h5 className="modal-title" id="downloadModalLabel">
+            <div className="modal-dialog modal-dialog-centered" role="document" style={{ zIndex: "1061" }}>
+              <div className={`${styles.modalContent} ${darkMode ? styles.dark : ''}`}>
+                <div className={styles.modalHeader}>
+                  <h5 className={styles.modalTitle} id="downloadModalLabel">
                     📥 Download Data
                   </h5>
                   <button
                     type="button"
-                    className="btn-close"
+                    className={styles.btnClose}
                     aria-label="Close"
                     onClick={() => setShowDownloadModal(false)}
                   ></button>
                 </div>
-                <div className="modal-body">
-                  {/* Shift Info */}
-                  <div className="mb-3 p-2 border rounded bg-light">
-                    <small className="text-muted d-block mb-2">
-                      <strong>Shift :</strong> {selectedShift}
-                    </small>
-                    <small className="text-muted d-block">
-                      {startDateShift === endDateShift
-                        ? `"${startDateShift}"`
-                        : `"${startDateShift}" -- s/d -- "${endDateShift}"`}
-                    </small>
-                  </div>
+                <div className={styles.modalBody}>
+                  <div className={styles.mainSection}>
+                    <div className={styles.previewHeader}>
+                      <div>
+                        <p className={styles.sectionEyebrow}>Ringkasan Data</p>
+                        <h6 className={styles.previewTitle}>Periksa data laporan sebelum memilih format output.</h6>
+                      </div>
+                    </div>
+                    <div className={styles.summaryGrid}>
+                      <div className={styles.summaryItem}>
+                        <span className={styles.summaryLabel}>Rentang tanggal</span>
+                        <span className={styles.summaryValue}>{formatSummaryRange}</span>
+                      </div>
+                      <div className={styles.summaryItem}>
+                        <span className={styles.summaryLabel}>Shift</span>
+                        <span className={styles.summaryValue}>{summaryShift}</span>
+                      </div>
+                      <div className={styles.summaryItem}>
+                        <span className={styles.summaryLabel}>Total transaksi</span>
+                        <span className={styles.summaryValue}>{summaryTransactionCount} transaksi</span>
+                      </div>
+                      <div className={styles.summaryItem}>
+                        <span className={styles.summaryLabel}>Total amount</span>
+                        <span className={styles.summaryValue}>Rp{formatRupiah(summaryTotalAmount)}</span>
+                      </div>
+                    </div>
 
-                  {/* Section Checkboxes */}
-                  <div className="mb-3 p-2 border rounded bg-light">
-                    <small className="text-muted d-block mb-2">
-                      <i className="bi bi-check2-square me-1"></i>
+                    <p className={styles.sectionTitle}>
+                      <i className="bi bi-check2-square me-2"></i>
                       Pilih bagian yang akan diikutsertakan:
-                    </small>
-                    <div className="row">
-                      <div className="col-12 mb-2">
-                        <div className="form-check">
+                    </p>
+                    <div className={styles.checkboxGrid}>
+                      <div className={styles.checkboxColumnFull}>
+                        <div className={styles.formCheck}>
                           <input
-                            className="form-check-input"
+                            className={styles.formCheckInput}
                             type="checkbox"
                             id="chkShift"
                             checked={true}
                             disabled
                           />
-                          <label className="form-check-label small text-muted" htmlFor="chkShift">
-                            ► Rincian Shift (Default ON tidak bisa di off)
+                          <label className={`${styles.formCheckLabel} ${styles.muted}`} htmlFor="chkShift">
+                            Rincian Shift (wajib)
                           </label>
                         </div>
-                        <div className="form-check">
+                        <div className={styles.formCheck}>
                           <input
-                            className="form-check-input"
+                            className={styles.formCheckInput}
                             type="checkbox"
                             id="chkLaporan"
                             checked={true}
                             disabled
                           />
-                          <label className="form-check-label small text-muted" htmlFor="chkLaporan">
-                            ► Rincian Laporan (Default ON tidak bisa di off)
+                          <label className={`${styles.formCheckLabel} ${styles.muted}`} htmlFor="chkLaporan">
+                            Rincian Laporan (wajib)
                           </label>
                         </div>
                       </div>
-                      <div className="col-6">
-                        <div className="form-check">
+                      <div className={styles.checkboxColumn}>
+                        <div className={styles.formCheck}>
                           <input
-                            className="form-check-input"
+                            className={styles.formCheckInput}
                             type="checkbox"
                             id="chkExpenditure"
                             checked={downloadSections.expenditure}
-                            onChange={(e) =>
-                              setDownloadSections((prev) => ({
-                                ...prev,
-                                expenditure: e.target.checked,
-                              }))
-                            }
+                            onChange={(e) => setDownloadSections((prev) => ({ ...prev, expenditure: e.target.checked }))}
                           />
-                          <label className="form-check-label small" htmlFor="chkExpenditure">
-                            ► Rincian Expenditure / Pengeluaran
+                          <label className={styles.formCheckLabel} htmlFor="chkExpenditure">
+                            Rincian Pengeluaran
                           </label>
                         </div>
-                        <div className="form-check">
+                        <div className={styles.formCheck}>
                           <input
-                            className="form-check-input"
+                            className={styles.formCheckInput}
                             type="checkbox"
                             id="chkPemasukan"
                             checked={downloadSections.pemasukan}
-                            onChange={(e) =>
-                              setDownloadSections((prev) => ({
-                                ...prev,
-                                pemasukan: e.target.checked,
-                              }))
-                            }
+                            onChange={(e) => setDownloadSections((prev) => ({ ...prev, pemasukan: e.target.checked }))}
                           />
-                          <label className="form-check-label small" htmlFor="chkPemasukan">
-                            ► Rincian Pemasukan
+                          <label className={styles.formCheckLabel} htmlFor="chkPemasukan">
+                            Rincian Pemasukan
                           </label>
                         </div>
-                        <div className="form-check">
+                        <div className={styles.formCheck}>
                           <input
-                            className="form-check-input"
+                            className={styles.formCheckInput}
                             type="checkbox"
                             id="chkTransaksi"
                             checked={downloadSections.transaksi}
-                            onChange={(e) =>
-                              setDownloadSections((prev) => ({
-                                ...prev,
-                                transaksi: e.target.checked,
-                              }))
-                            }
+                            onChange={(e) => setDownloadSections((prev) => ({ ...prev, transaksi: e.target.checked }))}
                           />
-                          <label className="form-check-label small" htmlFor="chkTransaksi">
-                            ► Semua Transaksi
+                          <label className={styles.formCheckLabel} htmlFor="chkTransaksi">
+                            Semua Transaksi
                           </label>
                         </div>
                       </div>
-                      <div className="col-6">
-                        <div className="form-check">
+                      <div className={styles.checkboxColumn}>
+                        <div className={styles.formCheck}>
                           <input
-                            className="form-check-input"
+                            className={styles.formCheckInput}
                             type="checkbox"
                             id="chkDetailPemasukan"
                             checked={downloadSections.detailPemasukan}
-                            onChange={(e) =>
-                              setDownloadSections((prev) => ({
-                                ...prev,
-                                detailPemasukan: e.target.checked,
-                              }))
-                            }
+                            onChange={(e) => setDownloadSections((prev) => ({ ...prev, detailPemasukan: e.target.checked }))}
                           />
-                          <label className="form-check-label small" htmlFor="chkDetailPemasukan">
-                            ► Detail Pemasukan
+                          <label className={styles.formCheckLabel} htmlFor="chkDetailPemasukan">
+                            Detail Pemasukan
                           </label>
                         </div>
-                        <div className="form-check">
+                        <div className={styles.formCheck}>
                           <input
-                            className="form-check-input"
+                            className={styles.formCheckInput}
                             type="checkbox"
                             id="chkPengeluaranRefunded"
                             checked={downloadSections.pengeluaranRefunded}
-                            onChange={(e) =>
-                              setDownloadSections((prev) => ({
-                                ...prev,
-                                pengeluaranRefunded: e.target.checked,
-                              }))
-                            }
+                            onChange={(e) => setDownloadSections((prev) => ({ ...prev, pengeluaranRefunded: e.target.checked }))}
                           />
-                          <label className="form-check-label small" htmlFor="chkPengeluaranRefunded">
-                            ► Pengeluaran / Refunded
+                          <label className={styles.formCheckLabel} htmlFor="chkPengeluaranRefunded">
+                            Pengeluaran / Refund
                           </label>
                         </div>
                       </div>
@@ -1024,53 +1022,61 @@ export const ReportPaymentModal = ({
                   </div>
 
                   {/* Download Format Buttons */}
-                  <div className="row g-2">
-                    <div className="col-6">
+                  <div className={styles.row}>
+                    <div className={styles.col6}>
                       <button
                         type="button"
-                        className="btn btn-primary w-100"
+                        className={`${styles.btn} ${styles.btnPrimary}`}
                         onClick={() => {
                           handleExportPDF();
                           setShowDownloadModal(false);
                         }}
+                        title="Download PDF"
+                        aria-label="Download PDF"
                       >
-                        <i className="bi bi-file-pdf me-1"></i> PDF
+                        <i className="bi bi-file-pdf me-2"></i> PDF
                       </button>
                     </div>
-                    <div className="col-6">
+                    <div className={styles.col6}>
                       <button
                         type="button"
-                        className="btn btn-info w-100"
+                        className={`${styles.btn} ${styles.btnInfo}`}
                         onClick={() => {
                           handleExportDOCX();
                           setShowDownloadModal(false);
                         }}
+                        title="Download DOCX"
+                        aria-label="Download DOCX"
                       >
-                        <i className="bi bi-file-word me-1"></i> DOCX
+                        <i className="bi bi-file-word me-2"></i> DOCX
                       </button>
                     </div>
-                    <div className="col-6">
+                    <div className={styles.col6}>
                       <button
                         type="button"
-                        className="btn btn-warning w-100"
+                        className={`${styles.btn} ${styles.btnWarning}`}
                         onClick={() => {
                           handlePrintThermal();
                           setShowDownloadModal(false);
                         }}
+                        title="Print Thermal"
+                        aria-label="Print Thermal"
                       >
-                        <i className="bi bi-receipt me-1"></i> Thermal
+                        <i className="bi bi-receipt me-2"></i> Thermal
                       </button>
                     </div>
-                    <div className="col-6">
+                    <div className={styles.col6}>
                       <button
                         type="button"
-                        className="btn btn-success w-100"
+                        className={`${styles.btn} ${styles.btnSuccess}`}
                         onClick={() => {
                           handleExportExcel();
                           setShowDownloadModal(false);
                         }}
+                        title="Download Excel"
+                        aria-label="Download Excel"
                       >
-                        <i className="bi bi-file-spreadsheet me-1"></i> Excel
+                        <i className="bi bi-file-spreadsheet me-2"></i> Excel
                       </button>
                     </div>
                   </div>
@@ -1078,16 +1084,16 @@ export const ReportPaymentModal = ({
                 <div className="modal-footer">
                   <button
                     type="button"
-                    className="btn btn-secondary"
+                    className={`${styles.btn} ${styles.btnSecondary}`}
                     onClick={() => setShowDownloadModal(false)}
                   >
-                    Close
+                    Tutup
                   </button>
                 </div>
               </div>
             </div>
           </div>
-          {showDownloadModal && <div className="modal-backdrop fade show"></div>}
+          {showDownloadModal && <div className="modal-backdrop fade show" style={{ zIndex: "1055" }}></div>}
 
           <ReportDetailModal
             show={showDetailPaymentModal}

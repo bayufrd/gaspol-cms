@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useTheme } from "../contexts/ThemeContext";
-import "../styles/report-detail-modal.css";
 
 export const ReportDetailModal = ({ show, onClose, selectedTransactionId }) => {
   const apiBaseUrl = process.env.REACT_APP_API_BASE_URL;
