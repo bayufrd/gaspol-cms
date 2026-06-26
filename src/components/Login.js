@@ -345,7 +345,7 @@ const LoginForm = ({ setIsLoggedIn, setUserTokenData }) => {
 
           {/* Brand Icon */}
           <div style={styles.brandIconContainer}>
-            <span style={styles.brandIcon}>🍽️</span>
+            <i className="bi bi-cup-hot-fill" style={styles.brandIcon} aria-hidden="true"></i>
           </div>
 
           {/* Tambahkan Judul Login */}
@@ -459,7 +459,7 @@ const LoginForm = ({ setIsLoggedIn, setUserTokenData }) => {
                   onMouseOver={(e) => e.target.style.color = 'var(--primary-orange)'}
                   onMouseOut={(e) => e.target.style.color = 'var(--text-tertiary)'}
                 >
-                  {showPassword ? '👁️' : '👁️‍🗨️'}
+                  <i className={`bi ${showPassword ? 'bi-eye-slash-fill' : 'bi-eye-fill'}`} aria-hidden="true"></i>
                 </button>
               </div>
             </div>
@@ -484,7 +484,7 @@ const LoginForm = ({ setIsLoggedIn, setUserTokenData }) => {
             >
               {isLoading ? (
                 <span>
-                  <span className="animate-spin" style={{display: 'inline-block', marginRight: '8px'}}>⏳</span>
+                  <i className="bi bi-arrow-repeat animate-spin" style={{display: 'inline-block', marginRight: '8px'}} aria-hidden="true"></i>
                   Memproses...
                 </span>
               ) : (

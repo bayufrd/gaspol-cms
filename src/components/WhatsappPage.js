@@ -778,12 +778,22 @@ const WhatsappPage = ({ userTokenData }) => {
             <div className="whatsapp-status-row">
               <span className="whatsapp-status-label">Status</span>
               <span className={`whatsapp-status-value ${connectionStatus.connected ? 'whatsapp-status-connected' : 'whatsapp-status-disconnected'}`}>
-                {connectionStatus.connected ? '✅ Connected' : '❌ Disconnected'}
+                {connectionStatus.connected ? (
+                  <><i className="bi bi-check-circle-fill" style={{ marginRight: '6px' }} aria-hidden="true"></i>Connected</>
+                ) : (
+                  <><i className="bi bi-x-circle-fill" style={{ marginRight: '6px' }} aria-hidden="true"></i>Disconnected</>
+                )}
               </span>
             </div>
             <div className="whatsapp-status-row">
               <span className="whatsapp-status-label">QR Code</span>
-              <span className="whatsapp-status-value">{qrCode ? "✅ Tersedia, Silahkan Scan/Scan Ulang QR Code" : "❌ Tidak Tersedia"}</span>
+              <span className="whatsapp-status-value">
+                {qrCode ? (
+                  <><i className="bi bi-check-circle-fill" style={{ marginRight: '6px' }} aria-hidden="true"></i>Tersedia, Silahkan Scan/Scan Ulang QR Code</>
+                ) : (
+                  <><i className="bi bi-x-circle-fill" style={{ marginRight: '6px' }} aria-hidden="true"></i>Tidak Tersedia</>
+                )}
+              </span>
             </div>
             <div className="whatsapp-status-row">
               <span className="whatsapp-status-label">Terakhir Update</span>
@@ -844,7 +854,7 @@ const WhatsappPage = ({ userTokenData }) => {
                     <div key={msg.id || idx} className="whatsapp-log-message">
                       <div className="whatsapp-message-bubble">
                         {msg.phoneNumber && (
-                          <div className="whatsapp-message-phone">📱 +{msg.phoneNumber}</div>
+                          <div className="whatsapp-message-phone"><i className="bi bi-phone-fill" style={{ marginRight: '6px' }} aria-hidden="true"></i>+{msg.phoneNumber}</div>
                         )}
                         <div style={{ fontSize: 14, lineHeight: '1.4' }}>{displayContent}</div>
                         {isLongMsg && (
@@ -857,7 +867,7 @@ const WhatsappPage = ({ userTokenData }) => {
                         )}
                         <div className="whatsapp-message-time">
                           <span>{msg.timestamp || '-'}</span>
-                          <span style={{ color: '#53bdeb' }}>✓✓</span>
+                          <span style={{ color: '#53bdeb' }}><i className="bi bi-check2-all" aria-hidden="true"></i></span>
                         </div>
                       </div>
                     </div>
@@ -949,7 +959,7 @@ const WhatsappPage = ({ userTokenData }) => {
               disabled={isSending}
               style={{ opacity: isSending ? 0.6 : 1, cursor: isSending ? 'not-allowed' : 'pointer', flex: '0 1 auto', minWidth: '150px' }}
             >
-              {isSending ? `Tunggu ${sendCountdown}s...` : '📤 Kirim Pesan'}
+              {isSending ? `Tunggu ${sendCountdown}s...` : <><i className="bi bi-send-fill" style={{ marginRight: '8px' }} aria-hidden="true"></i>Kirim Pesan</>}
             </button>
           </div>
         </div>
@@ -965,7 +975,7 @@ const WhatsappPage = ({ userTokenData }) => {
                 onClick={() => setShowModal(false)}
                 className="whatsapp-modal-close"
               >
-                ✖
+                <i className="bi bi-x-lg" aria-hidden="true"></i>
               </button>
             </div>
 
@@ -1009,7 +1019,7 @@ const WhatsappPage = ({ userTokenData }) => {
                             setShowModal(false);
                           }}
                         >
-                          ✅ Pilih
+                          <><i className="bi bi-check-circle-fill" style={{ marginRight: '6px' }} aria-hidden="true"></i>Pilih</>
                         </button>
                       </td>
                     </tr>

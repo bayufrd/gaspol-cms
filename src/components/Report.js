@@ -431,7 +431,7 @@ const Report = ({ userTokenData }) => {
                       onChange={() => setSelectedChart('bar')}
                       className="chart-radio"
                     />
-                    <span className="chart-label">📊 Bar Chart</span>
+                    <span className="chart-label"><i className="bi bi-bar-chart-fill me-2" aria-hidden="true"></i>Bar Chart</span>
                   </label>
                   <label className="chart-option">
                     <input
@@ -441,7 +441,7 @@ const Report = ({ userTokenData }) => {
                       onChange={() => setSelectedChart('line')}
                       className="chart-radio"
                     />
-                    <span className="chart-label">📈 Line Chart</span>
+                    <span className="chart-label"><i className="bi bi-graph-up-arrow me-2" aria-hidden="true"></i>Line Chart</span>
                   </label>
                   <label className="chart-option">
                     <input
@@ -451,7 +451,7 @@ const Report = ({ userTokenData }) => {
                       onChange={() => setSelectedChart('pie')}
                       className="chart-radio"
                     />
-                    <span className="chart-label">🥧 Pie Chart</span>
+                    <span className="chart-label"><i className="bi bi-pie-chart-fill me-2" aria-hidden="true"></i>Pie Chart</span>
                   </label>
                 </div>
               </div>

@@ -43,8 +43,7 @@ export const RevenueGeneratorDocModal = ({ show, onHide }) => {
         <div className="modal-content">
           <div className="modal-header bg-primary text-white">
             <h5 className="modal-title">
-              <i className="bi bi-book me-2"></i>
-              📚 Dokumentasi Revenue Generator
+              <i className="bi bi-journal-text me-2" aria-hidden="true"></i>Dokumentasi Revenue Generator
             </h5>
             <button 
               type="button" 

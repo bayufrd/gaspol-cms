@@ -355,7 +355,7 @@ const RevenueGenerator = ({ userTokenData }) => {
     const { value: password } = await Swal.fire({
       title: "Konfirmasi Hard Delete",
       html: `
-        <p><strong style="color: red;">⚠️ PERHATIAN: Ini adalah HARD DELETE!</strong></p>
+        <p><strong style="color: red;"><i class="bi bi-exclamation-triangle-fill" style="margin-right: 8px;"></i>PERHATIAN: Ini adalah HARD DELETE!</strong></p>
         <p>Data akan dihapus permanen dari database, tidak bisa dikembalikan!</p>
         <ul style="text-align: left;">
           <li>Outlet: ${outletName}</li>

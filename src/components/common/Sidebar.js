@@ -111,11 +111,11 @@ const Sidebar = ({ onToggleSidebar, isOpen, userTokenData }) => {
               <Link to="/">
                 {isOpen ? (
                   <>
-                    <span style={{fontSize: '1.5rem'}}>🍽️</span>
+                    <i className="bi bi-cup-hot-fill" style={{fontSize: '1.5rem'}} aria-hidden="true"></i>
                     <span>GASPOLL</span>
                   </>
                 ) : (
-                  <span style={{fontSize: '1.5rem'}}>🍽️</span>
+                  <i className="bi bi-cup-hot-fill" style={{fontSize: '1.5rem'}} aria-hidden="true"></i>
                 )}
               </Link>
             </div>

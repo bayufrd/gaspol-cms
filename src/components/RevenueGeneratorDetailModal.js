@@ -529,24 +529,24 @@ export const RevenueGeneratorDetailModal = ({ show, onClose, batchId }) => {
                   <div className="card-body">
                     <div className="d-flex flex-wrap gap-3">
                       <span className={`badge ${batchData.use_ppn ? 'bg-success' : 'bg-secondary'}`}>
-                        {batchData.use_ppn ? '✓' : '✗'} PPN
+                        <i className={`bi ${batchData.use_ppn ? 'bi-check-lg' : 'bi-x-lg'} me-1`} aria-hidden="true"></i>PPN
                       </span>
                       <span className={`badge ${batchData.weekend_boost ? 'bg-success' : 'bg-secondary'}`}>
-                        {batchData.weekend_boost ? '✓' : '✗'} Weekend Boost
+                        <i className={`bi ${batchData.weekend_boost ? 'bi-check-lg' : 'bi-x-lg'} me-1`} aria-hidden="true"></i>Weekend Boost
                       </span>
                       <span className={`badge ${batchData.booking_mode ? 'bg-success' : 'bg-secondary'}`}>
-                        {batchData.booking_mode ? '✓' : '✗'} Booking Mode
+                        <i className={`bi ${batchData.booking_mode ? 'bi-check-lg' : 'bi-x-lg'} me-1`} aria-hidden="true"></i>Booking Mode
                       </span>
                       <span className={`badge ${batchData.generate_refunds ? 'bg-success' : 'bg-secondary'}`}>
-                        {batchData.generate_refunds ? '✓' : '✗'} Generate Refunds
+                        <i className={`bi ${batchData.generate_refunds ? 'bi-check-lg' : 'bi-x-lg'} me-1`} aria-hidden="true"></i>Generate Refunds
                       </span>
                       <span className={`badge ${batchData.generate_expenditures ? 'bg-success' : 'bg-secondary'}`}>
-                        {batchData.generate_expenditures ? '✓' : '✗'} Generate Expenditures
+                        <i className={`bi ${batchData.generate_expenditures ? 'bi-check-lg' : 'bi-x-lg'} me-1`} aria-hidden="true"></i>Generate Expenditures
                       </span>
                       {(batchData.math_perfect_mode === 1 || batchData.math_perfect_mode === true) && (
                         <span className="badge bg-warning text-dark">
-                          <i className="bi bi-lightning-charge-fill me-1"></i>
-                          Math Perfect Mode 🧪
+                          <i className="bi bi-lightning-charge-fill me-1" aria-hidden="true"></i>
+                          Math Perfect Mode <i className="bi bi-flask-fill ms-1" aria-hidden="true"></i>
                         </span>
                       )}
                       {batchData.price_adjustment_percent !== 0 && (
@@ -569,7 +569,7 @@ export const RevenueGeneratorDetailModal = ({ show, onClose, batchId }) => {
                       <i className="bi bi-printer me-2 text-white"></i>
                       Print Laporan Kasir
                     </h6>
-                    <span className="text-white">{showCashierInput ? '▼' : '►'}</span>
+                    <span className="text-white"><i className={`bi ${showCashierInput ? 'bi-caret-down-fill' : 'bi-caret-right-fill'}`} aria-hidden="true"></i></span>
                   </div>
                   {showCashierInput && (
                     <div className="card-body">

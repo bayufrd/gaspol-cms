@@ -442,7 +442,7 @@ export const ReportPaymentModal = ({
                       onClick={() => setShowDownloadModal(true)}
                       title="Download Data"
                     >
-                      📥 Download Data
+                      <><i className="bi bi-download me-2" aria-hidden="true"></i>Download Data</>
                     </button>
 
                     <button
@@ -452,7 +452,7 @@ export const ReportPaymentModal = ({
                       aria-label="Close"
                       onClick={onClose}
                     >
-                      ✕ Close
+                      <><i className="bi bi-x-lg me-2" aria-hidden="true"></i>Close</>
                     </button>
                   </div>
                 </div>
@@ -478,7 +478,7 @@ export const ReportPaymentModal = ({
                             style={{ cursor: "pointer", textAlign: "center" }}
                             onClick={() => setShowShiftDetails(!showShiftDetails)}
                           >
-                            {showShiftDetails ? "▼" : "►"} Rincian Shift
+                            <><i className={`bi ${showShiftDetails ? 'bi-caret-down-fill' : 'bi-caret-right-fill'} me-2`} aria-hidden="true"></i>Rincian Shift</>
                           </h5>
                           {showShiftDetails && (
                             <table className="table table-striped text-center">
@@ -506,7 +506,7 @@ export const ReportPaymentModal = ({
                                 style={{ cursor: "pointer", textAlign: "center" }}
                                 onClick={() => setShowExpenditures(!showExpenditures)}
                               >
-                                {showExpenditures ? "▼" : "►"} Rincian Expenditure / Pengeluaran
+                                <><i className={`bi ${showExpenditures ? 'bi-caret-down-fill' : 'bi-caret-right-fill'} me-2`} aria-hidden="true"></i>Rincian Expenditure / Pengeluaran</>
                               </h5>
                               {showExpenditures && (
                                 <table className="table table-striped">
@@ -539,7 +539,7 @@ export const ReportPaymentModal = ({
                         style={{ cursor: "pointer", textAlign: "center" }}
                         onClick={() => setShowPaymentReports(!showPaymentReports)}
                       >
-                        {showPaymentReports ? "▼" : "►"} Rincian Laporan
+                        <><i className={`bi ${showPaymentReports ? 'bi-caret-down-fill' : 'bi-caret-right-fill'} me-2`} aria-hidden="true"></i>Rincian Laporan</>
                       </h5>
                       {showPaymentReports && (
                         <table className="table table-striped">
@@ -568,7 +568,7 @@ export const ReportPaymentModal = ({
                         style={{ cursor: "pointer", textAlign: "center" }}
                         onClick={() => setShowDetailIncome(!showDetailIncome)}
                       >
-                        {showDetailIncome ? "▼" : "►"} Rincian Pemasukan
+                        <><i className={`bi ${showDetailIncome ? 'bi-caret-down-fill' : 'bi-caret-right-fill'} me-2`} aria-hidden="true"></i>Rincian Pemasukan</>
                       </h5>
                       {showDetailIncome && (
 
@@ -608,7 +608,7 @@ export const ReportPaymentModal = ({
                         style={{ cursor: "pointer", textAlign: "center" }}
                         onClick={() => setShowTransactions(!showTransactions)}
                       >
-                        {showTransactions ? "▼" : "►"} Semua Transaksi
+                        <><i className={`bi ${showTransactions ? 'bi-caret-down-fill' : 'bi-caret-right-fill'} me-2`} aria-hidden="true"></i>Semua Transaksi</>
                       </h5>
 
                       {showTransactions && (
@@ -743,7 +743,7 @@ export const ReportPaymentModal = ({
                         style={{ cursor: "pointer", textAlign: "center" }}
                         onClick={() => setShowDetailIncome(!showDetailIncome)}
                       >
-                        {showDetailIncome ? "▼" : "►"} Detail Pemasukan
+                        <><i className={`bi ${showDetailIncome ? 'bi-caret-down-fill' : 'bi-caret-right-fill'} me-2`} aria-hidden="true"></i>Detail Pemasukan</>
                       </h5>
                       {showDetailIncome && (
 
@@ -801,7 +801,7 @@ export const ReportPaymentModal = ({
                         style={{ cursor: "pointer", textAlign: "center" }}
                         onClick={() => setShowRefunds(!showRefunds)}
                       >
-                        {showRefunds ? "▼" : "►"} Pengeluaran / Refunded
+                        <><i className={`bi ${showRefunds ? 'bi-caret-down-fill' : 'bi-caret-right-fill'} me-2`} aria-hidden="true"></i>Pengeluaran / Refunded</>
                       </h5>
                       {showRefunds && (
                         paymentReport.refund && paymentReport.refund[0] ? (
@@ -887,7 +887,7 @@ export const ReportPaymentModal = ({
               <div className={`${styles.modalContent} ${darkMode ? styles.dark : ''}`}>
                 <div className={styles.modalHeader}>
                   <h5 className={styles.modalTitle} id="downloadModalLabel">
-                    📥 Download Data
+                    <><i className="bi bi-download me-2" aria-hidden="true"></i>Download Data</>
                   </h5>
                   <button
                     type="button"
