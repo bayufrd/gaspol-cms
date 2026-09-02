@@ -115,25 +115,27 @@ export const CustomPriceModal = ({
   };
 
   const renderPriceInputs = (menuDetailId = 0) => {
-    return customPrice.map((price) => {
-      const value =
-        menuDetailId === 0
-          ? getCustomPriceForId(price.id)
-          : getCustomVariantPrice(menuDetailId, price.id);
+    return customPrice
+      .filter((price) => Number(price.is_active) === 1)
+      .map((price) => {
+        const value =
+          menuDetailId === 0
+            ? getCustomPriceForId(price.id)
+            : getCustomVariantPrice(menuDetailId, price.id);
 
-      return (
-        <div key={`${menuDetailId}-${price.id}`} className="mb-3">
-          <label className="form-label fw-semibold">{price.name}</label>
-          <input
-            type="number"
-            placeholder={menuDetailId === 0 ? `${price.name} Price` : "Custom Price"}
-            className="form-control"
-            value={value}
-            onChange={(e) => handleInputChange(price.id, e.target.value, menuDetailId)}
-          />
-        </div>
-      );
-    });
+        return (
+          <div key={`${menuDetailId}-${price.id}`} className="mb-3">
+            <label className="form-label fw-semibold">{price.name}</label>
+            <input
+              type="number"
+              placeholder={menuDetailId === 0 ? `${price.name} Price` : "Custom Price"}
+              className="form-control"
+              value={value}
+              onChange={(e) => handleInputChange(price.id, e.target.value, menuDetailId)}
+            />
+          </div>
+        );
+      });
   };
 
   const handleSaveCustomPrice = async (e) => {
