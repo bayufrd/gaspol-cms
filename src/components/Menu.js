@@ -16,8 +16,6 @@ const Menu = ({ userTokenData }) => {
   const [selectedMenuId, setSelectedMenuId] = useState(null);
   const [viewMode, setViewMode] = useState('grid'); // Add view mode state
 
-  const [isGlobalSyncing, setIsGlobalSyncing] = useState(false);
-
   useEffect(() => {
     document.title = "Dashboard - Gaspoll Content Management System";
 
@@ -25,10 +23,6 @@ const Menu = ({ userTokenData }) => {
   }, []);
 
   const getMenus = async () => {
-    await axios.post(`${apiBaseUrl}/custom-menu-price/sync`, {
-      outlet_id: userTokenData.outlet_id,
-    });
-
     const response = await axios.get(`${apiBaseUrl}/v2/menu`, {
       params: {
         outlet_id: userTokenData.outlet_id,
@@ -36,30 +30,6 @@ const Menu = ({ userTokenData }) => {
     });
     setMenus(response.data.data);
     setFilteredMenus(response.data.data);
-  };
-
-  const handleGlobalSync = async () => {
-    try {
-      setIsGlobalSyncing(true);
-      await axios.post(`${apiBaseUrl}/custom-menu-price/sync`, {
-        outlet_id: userTokenData.outlet_id,
-        scope: "global",
-      });
-      await getMenus();
-      Swal.fire({
-        icon: "success",
-        title: "Berhasil!",
-        text: "Sinkronisasi semua menu semua outlet selesai.",
-      });
-    } catch (error) {
-      Swal.fire({
-        icon: "error",
-        title: "Gagal",
-        text: error?.response?.data?.message || "Sinkronisasi global gagal.",
-      });
-    } finally {
-      setIsGlobalSyncing(false);
-    }
   };
 
   useEffect(() => {
@@ -121,6 +91,10 @@ const Menu = ({ userTokenData }) => {
             maxHeight: '100%',
             objectFit: 'contain'
           }}
+          onError={(e) => {
+            e.target.onerror = null;
+            e.target.src = "/assets/images/menu-template.svg";
+          }}
         />
         <span
           className={`position-absolute top-0 end-0 m-2 badge ${menu.is_active === 1
@@ -147,6 +121,10 @@ const Menu = ({ userTokenData }) => {
                 src={menu.image_url ? `${apiBaseUrl}/${menu.image_url}` : "/assets/images/menu-template.svg"}
                 alt={menu.name}
                 className="menu-image"
+                onError={(e) => {
+                  e.target.onerror = null;
+                  e.target.src = "/assets/images/menu-template.svg";
+                }}
               />
               <span className={`menu-badge ${menu.is_active === 1 ? 'badge-active' : 'badge-inactive'}`}>
                 {menu.is_active === 1 ? "Aktif" : "Tidak Aktif"}
@@ -240,15 +218,7 @@ const Menu = ({ userTokenData }) => {
                     </button>
                   </div>
                 </div>
-                <div className="menu-add-button d-flex gap-2">
-                  <button
-                    className="btn btn-outline-primary"
-                    onClick={handleGlobalSync}
-                    disabled={isGlobalSyncing}
-                  >
-                    <i className="bi bi-arrow-repeat"></i>{" "}
-                    {isGlobalSyncing ? "Syncing..." : "Sync Semua Outlet"}
-                  </button>
+                <div className="menu-add-button">
                   <button
                     className="btn btn-primary"
                     onClick={() => openModal(null)}

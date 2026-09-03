@@ -98,10 +98,6 @@ export const MenuModal = ({
     if (show && selectedMenuId) {
       const fetchData = async () => {
         try {
-          await axios.post(`${apiBaseUrl}/custom-menu-price/sync`, {
-            outlet_id: userTokenData.outlet_id,
-            menu_id: selectedMenuId,
-          });
 
           const response = await axios.get(`${apiBaseUrl}/v2/menu/${selectedMenuId}`, {
             params: {
@@ -342,11 +338,25 @@ export const MenuModal = ({
               ></button>
             </div>
             <div className="modal-body">
-              <div className="row">
-                <div className="col-md-4">
+              {/* Image Section - Centered at Top */}
+              <div className="text-center mb-4">
+                <div
+                  className="d-inline-block position-relative"
+                  style={{
+                    width: '200px',
+                    height: '200px',
+                    cursor: previewImageUrl ? 'pointer' : 'default'
+                  }}
+                >
                   <div
-                    className="position-relative"
-                    style={{ cursor: previewImageUrl ? 'pointer' : 'default' }}
+                    style={{
+                      width: '200px',
+                      height: '200px',
+                      borderRadius: '12px',
+                      overflow: 'hidden',
+                      border: '2px solid #e0e0e0',
+                      backgroundColor: '#f8f9fa'
+                    }}
                   >
                     <FilePond
                       files={files}
@@ -386,106 +396,127 @@ export const MenuModal = ({
                       allowMultiple={false}
                       maxFiles={1}
                       name="image"
-                      labelIdle='Drag & Drop gambar atau <span class="filepond--label-action">Browse</span>'
+                      labelIdle='<span class="filepond--label-action">Upload Gambar</span>'
                       acceptedFileTypes={['image/png', 'image/jpeg', 'image/gif', 'image/blob']}
                       stylePanelLayout="compact"
                       styleLoadIndicatorPosition="center bottom"
                       styleButtonRemoveItemPosition="center bottom"
                     />
-                    {previewImageUrl && (
-                      <div
-                        className="position-absolute top-0 end-0 m-2 bg-white rounded-circle shadow-sm"
-                        style={{
-                          width: '40px',
-                          height: '40px',
-                          display: 'flex',
-                          justifyContent: 'center',
-                          alignItems: 'center',
-                          cursor: 'pointer'
-                        }}
-                        onClick={handleOpenImagePreview}
-                      >
-                        <i className="bi bi-zoom-in text-primary"></i>
-                      </div>
-                    )}
                   </div>
+                  {previewImageUrl && (
+                    <div
+                      className="position-absolute top-0 end-0 m-2 bg-white rounded-circle shadow-sm"
+                      style={{
+                        width: '35px',
+                        height: '35px',
+                        display: 'flex',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        cursor: 'pointer',
+                        zIndex: 10
+                      }}
+                      onClick={handleOpenImagePreview}
+                    >
+                      <i className="bi bi-zoom-in text-primary"></i>
+                    </div>
+                  )}
                 </div>
-                <div className="col-md-8">
-                  {/* Form fields remain the same as in the original component */}
-                  {/* Include all previous input fields for name, type, price, etc. */}
+              </div>
+
+              {/* Form Section - Inline Layout */}
+              <div>
                   <div className="row g-3">
-                    <div className="col-12">
-                      <label className="form-label">Nama Menu</label>
-                      <input
-                        type="text"
-                        className={`form-control ${!isFormValid && menu.name === "" ? "is-invalid" : ""
-                          }`}
-                        value={menu.name}
-                        onChange={(e) => {
-                          handleInputChange("name", e.target.value);
-                          setIsFormValid(true);
-                        }}
-                        placeholder="Nama Menu"
-                      />
-                      {!isFormValid && menu.name === "" && (
-                        <div className="invalid-feedback">Nama menu harus diisi</div>
-                      )}
+                    {/* Nama Menu */}
+                    <div className="col-12 mb-3">
+                      <div className="d-flex align-items-center gap-3">
+                        <label className="fw-bold mb-0" style={{ minWidth: '120px' }}>Nama Menu</label>
+                        <div className="flex-grow-1">
+                          <input
+                            type="text"
+                            className={`form-control ${!isFormValid && menu.name === "" ? "is-invalid" : ""}`}
+                            value={menu.name}
+                            onChange={(e) => {
+                              handleInputChange("name", e.target.value);
+                              setIsFormValid(true);
+                            }}
+                            placeholder="Masukkan nama menu"
+                          />
+                          {!isFormValid && menu.name === "" && (
+                            <div className="invalid-feedback">Nama menu harus diisi</div>
+                          )}
+                        </div>
+                      </div>
                     </div>
 
-                    <div className="col-md-6">
-                      <label className="form-label">Tipe Menu</label>
-                      <select
-                        className="form-select"
-                        value={menu.menu_type}
-                        onChange={(e) => handleInputChange("menu_type", e.target.value)}
-                      >
-                        <option value="Makanan">Makanan</option>
-                        <option value="Minuman">Minuman</option>
-                        <option value="Additional Makanan">Additional Makanan</option>
-                        <option value="Additional Minuman">Additional Minuman</option>
-                      </select>
+                    {/* Tipe Menu */}
+                    <div className="col-12 mb-3">
+                      <div className="d-flex align-items-center gap-3">
+                        <label className="fw-bold mb-0" style={{ minWidth: '120px' }}>Tipe Menu</label>
+                        <div className="flex-grow-1">
+                          <select
+                            className="form-select"
+                            value={menu.menu_type}
+                            onChange={(e) => handleInputChange("menu_type", e.target.value)}
+                          >
+                            <option value="Makanan">Makanan</option>
+                            <option value="Minuman">Minuman</option>
+                            <option value="Additional Makanan">Additional Makanan</option>
+                            <option value="Additional Minuman">Additional Minuman</option>
+                          </select>
+                        </div>
+                      </div>
                     </div>
 
+                    {/* Harga - hanya untuk menu baru */}
                     {!selectedMenuId && (
-                      <div className="col-md-6">
-                        <label className="form-label">Harga</label>
-                        <input
-                          type="number"
-                          className={`form-control ${!isFormValid && menu.price === "" ? "is-invalid" : ""
-                            }`}
-                          value={menu.price}
-                          onChange={(e) => {
-                            handleInputChange("price", e.target.value);
-                            setIsFormValid(true);
-                          }}
-                          placeholder="Harga Menu"
-                        />
-                        {!isFormValid && menu.price === "" && (
-                          <div className="invalid-feedback">Harga menu harus diisi</div>
-                        )}
+                      <div className="col-12 mb-3">
+                        <div className="d-flex align-items-center gap-3">
+                          <label className="fw-bold mb-0" style={{ minWidth: '120px' }}>Harga</label>
+                          <div className="flex-grow-1">
+                            <input
+                              type="number"
+                              className={`form-control ${!isFormValid && menu.price === "" ? "is-invalid" : ""}`}
+                              value={menu.price}
+                              onChange={(e) => {
+                                handleInputChange("price", e.target.value);
+                                setIsFormValid(true);
+                              }}
+                              placeholder="Masukkan harga menu"
+                            />
+                            {!isFormValid && menu.price === "" && (
+                              <div className="invalid-feedback">Harga menu harus diisi</div>
+                            )}
+                          </div>
+                        </div>
                       </div>
                     )}
 
-                    <div className="col-12">
-                      <label className="form-label">Status Aktif</label>
-                      <select
-                        className="form-select"
-                        value={menu.is_active}
-                        onChange={(e) => handleInputChange("is_active", e.target.value)}
-                      >
-                        <option value="1">Aktif</option>
-                        <option value="0">Tidak Aktif</option>
-                      </select>
+                    {/* Status Aktif */}
+                    <div className="col-12 mb-3">
+                      <div className="d-flex align-items-center gap-3">
+                        <label className="fw-bold mb-0" style={{ minWidth: '120px' }}>Status Aktif</label>
+                        <div className="flex-grow-1">
+                          <select
+                            className="form-select"
+                            value={menu.is_active}
+                            onChange={(e) => handleInputChange("is_active", e.target.value)}
+                          >
+                            <option value="1">Aktif</option>
+                            <option value="0">Tidak Aktif</option>
+                          </select>
+                        </div>
+                      </div>
                     </div>
 
+                    {/* Custom Price Button */}
                     {selectedMenuId && (
-                      <div className="col-12 text-center">
+                      <div className="col-12 text-center mt-3">
                         <button
                           type="button"
                           className="btn btn-secondary rounded-pill"
                           onClick={openCustomPriceModal}
                         >
-                          Custom Price
+                          <i className="bi bi-currency-dollar me-2"></i>Custom Price
                         </button>
                       </div>
                     )}
@@ -508,52 +539,60 @@ export const MenuModal = ({
                   )}
 
                   {/* Menu Details Section */}
-                  <div className="mt-3">
-                    <h6>Detail Menu Varian</h6>
-                    {menu.menu_details.map((menuDetail, index) => (
-                      <div key={index} className="row mb-2">
-                        <div className="col-5">
-                          <input
-                            type="text"
-                            className="form-control"
-                            placeholder="Varian"
-                            value={menuDetail.varian}
-                            onChange={(e) =>
-                              handleMenuDetailChange(index, "varian", e.target.value)
-                            }
-                          />
-                        </div>
-                        <div className="col-5">
-                          <input
-                            type="number"
-                            className="form-control"
-                            placeholder="Harga"
-                            value={menuDetail.price}
-                            onChange={(e) =>
-                              handleMenuDetailChange(index, "price", e.target.value)
-                            }
-                          />
-                        </div>
-                        <div className="col-2">
-                          <button
-                            type="button"
-                            className="btn btn-danger"
-                            onClick={() => handleRemoveMenuDetail(index)}
-                          >
-                            <i className="bi bi-trash"></i>
-                          </button>
-                        </div>
+                  <div className="mt-4">
+                    <div className="d-flex justify-content-between align-items-center mb-3">
+                      <h6 className="mb-0 fw-bold">Detail Menu Varian</h6>
+                      <button
+                        className="btn btn-sm btn-primary"
+                        onClick={handleAddMenuDetail}
+                        type="button"
+                      >
+                        <i className="bi bi-plus-circle me-1"></i> Tambah Varian
+                      </button>
+                    </div>
+                    
+                    {menu.menu_details.length > 0 ? (
+                      <div className="list-group">
+                        {menu.menu_details.map((menuDetail, index) => (
+                          <div key={index} className="list-group-item">
+                            <div className="row align-items-center">
+                              <div className="col-auto">
+                                <span className="badge bg-secondary rounded-circle" style={{ width: '30px', height: '30px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                  {index + 1}
+                                </span>
+                              </div>
+                              <div className="col">
+                                <input
+                                  type="text"
+                                  className="form-control"
+                                  placeholder="Nama varian"
+                                  value={menuDetail.varian}
+                                  onChange={(e) =>
+                                    handleMenuDetailChange(index, "varian", e.target.value)
+                                  }
+                                />
+                              </div>
+                              <div className="col-auto">
+                                <button
+                                  type="button"
+                                  className="btn btn-sm btn-danger"
+                                  onClick={() => handleRemoveMenuDetail(index)}
+                                  title="Hapus varian"
+                                >
+                                  <i className="bi bi-trash"></i>
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
                       </div>
-                    ))}
-
-                    <button
-                      className="btn btn-light"
-                      onClick={handleAddMenuDetail}
-                    >
-                      <i className="bi bi-plus"></i> Tambah Varian
-                    </button>
+                    ) : (
+                      <div className="alert alert-info mb-0">
+                        <i className="bi bi-info-circle me-2"></i>
+                        Belum ada varian. Klik "Tambah Varian" untuk menambahkan.
+                      </div>
+                    )}
                   </div>
-                </div>
               </div>
             </div>
             <div className="modal-footer">

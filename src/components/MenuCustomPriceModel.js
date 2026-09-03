@@ -182,17 +182,17 @@ export const CustomPriceModal = ({
         }
       >
         <div
-          class="modal-dialog modal-dialog-centered modal-dialog-scrollable"
+          className="modal-dialog modal-dialog-centered modal-dialog-scrollable"
           role="document"
         >
-          <div class="modal-content">
-            <div class="modal-header">
-              <h4 class="modal-title" id="myModalLabel33">
+          <div className="modal-content">
+            <div className="modal-header">
+              <h4 className="modal-title" id="myModalLabel33">
                 {menuName}
               </h4>
               <button
                 type="button"
-                class="close"
+                className="close"
                 data-bs-dismiss="modal"
                 aria-label="Close"
                 onClick={onCloseCustomPrice}
@@ -200,7 +200,7 @@ export const CustomPriceModal = ({
                 <i data-feather="x"></i>x
               </button>
             </div>
-            <div class="modal-body scrollable-content">
+            <div className="modal-body scrollable-content">
               <div className="d-flex flex-column gap-3">
                 <div className="border rounded p-3 mb-3 bg-light">
                   <div className="d-flex justify-content-between align-items-center mb-2">
@@ -251,31 +251,31 @@ export const CustomPriceModal = ({
                 })}
               </div>
 
-              <div class="modal-footer">
+              <div className="modal-footer">
                 <button
                   type="button"
-                  class="btn btn-light-secondary"
+                  className="btn btn-light-secondary"
                   data-bs-dismiss="modal"
                   onClick={onCloseCustomPrice}
                 >
-                  <i class="bx bx-x d-block d-sm-none"></i>
-                  <span class="d-none d-sm-block">Close</span>
+                  <i className="bx bx-x d-block d-sm-none"></i>
+                  <span className="d-none d-sm-block">Close</span>
                 </button>
                 <button
                   type="button"
-                  class="btn btn-primary ml-1"
+                  className="btn btn-primary ml-1"
                   data-bs-dismiss="modal"
                   onClick={handleSaveCustomPrice}
                 >
-                  <i class="bx bx-check d-block d-sm-none"></i>
-                  <span class="d-none d-sm-block">Submit</span>
+                  <i className="bx bx-check d-block d-sm-none"></i>
+                  <span className="d-none d-sm-block">Submit</span>
                 </button>
               </div>
             </div>
           </div>
         </div>
       </div>
-      <div className={showCustomPriceModal && `modal-backdrop fade show`}></div>
+      {showCustomPriceModal && <div className="modal-backdrop fade show"></div>}
     </>
   );
 
