@@ -6,7 +6,7 @@ import { FilePond, registerPlugin } from "react-filepond";
 import FilePondPluginImagePreview from "filepond-plugin-image-preview";
 import FilePondPluginFileValidateType from "filepond-plugin-file-validate-type";
 import { DeleteConfirmationModal } from "./DeleteConfirmationModal";
-import { CustomPriceModal } from "./MenuCustomPriceModel";
+import { MenuVariantModal } from "./MenuVariantModal";
 
 // Import CSS
 import "filepond/dist/filepond.min.css";
@@ -87,11 +87,14 @@ export const MenuModal = ({
   const [isFormValid, setIsFormValid] = useState(true);
   const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
   const [initialMenuDetailsLength, setInitialMenuDetailsLength] = useState(0);
-  const [showCustomPriceModal, setShowCustomPriceModal] = useState(false);
 
   // State untuk modal gambar
   const [showImagePreviewModal, setShowImagePreviewModal] = useState(false);
   const [previewImageUrl, setPreviewImageUrl] = useState(null);
+
+  // State untuk modal varian
+  const [showVariantModal, setShowVariantModal] = useState(false);
+  const [editingVariantIndex, setEditingVariantIndex] = useState(null);
 
 
   useEffect(() => {
@@ -99,7 +102,7 @@ export const MenuModal = ({
       const fetchData = async () => {
         try {
 
-          const response = await axios.get(`${apiBaseUrl}/v2/menu/${selectedMenuId}`, {
+          const response = await axios.get(`${apiBaseUrl}/v3/menu/${selectedMenuId}`, {
             params: {
               outlet_id: userTokenData.outlet_id,
             },
@@ -215,10 +218,15 @@ export const MenuModal = ({
   };
 
   const handleAddMenuDetail = () => {
-    setMenu((prev) => ({
-      ...prev,
-      menu_details: [...prev.menu_details, { varian: "", price: "" }],
-    }));
+    // Open modal for new variant (no variantId)
+    setEditingVariantIndex(-1); // Use -1 to indicate new variant
+    setShowVariantModal(true);
+  };
+
+  const handleEditVariant = (index) => {
+    // Open modal for existing variant
+    setEditingVariantIndex(index);
+    setShowVariantModal(true);
   };
 
   const handleRemoveMenuDetail = (index) => {
@@ -227,8 +235,29 @@ export const MenuModal = ({
     setMenu((prev) => ({ ...prev, menu_details: updatedMenuDetails }));
   };
 
-  const openCustomPriceModal = () => {
-    setShowCustomPriceModal(true);
+  const handleVariantModalClose = (newVariantData) => {
+    setShowVariantModal(false);
+    setEditingVariantIndex(null);
+    
+    // If new variant data passed, add it to menu_details
+    if (newVariantData && newVariantData.varian) {
+      setMenu((prev) => ({
+        ...prev,
+        menu_details: [
+          ...prev.menu_details,
+          {
+            varian: newVariantData.varian,
+            price: 0,
+            prices: newVariantData.prices || []
+          }
+        ],
+      }));
+    }
+    
+    // Refresh to get latest data
+    if (selectedMenuId) {
+      getMenus();
+    }
   };
 
   const handleDeleteMenu = async () => {
@@ -259,9 +288,9 @@ export const MenuModal = ({
 
     // Validate input
     const isMenuNameValid = menu.name.trim() !== "";
-    const isMenuPriceValid = menu.price !== "";
+    const isMenuPriceValid = selectedMenuId || menu.price !== ""; // Price not required for edit
     const isMenuDetailsValid = menu.menu_details.every(
-      (detail) => detail.varian.trim() !== "" && detail.price !== ""
+      (detail) => detail.varian.trim() !== ""
     );
 
     if (!isMenuNameValid || !isMenuPriceValid || !isMenuDetailsValid) {
@@ -277,8 +306,14 @@ export const MenuModal = ({
       formData.append("outlet_id", menu.outlet_id);
       formData.append("is_active", menu.is_active);
 
+      // Prepare menu_details - prices will be managed via Edit Harga modal
       if (menu.menu_details.length > 0) {
-        formData.append("menu_details", JSON.stringify(menu.menu_details));
+        const menuDetailsToSave = menu.menu_details.map(detail => ({
+          varian: detail.varian,
+          price: detail.price || 0,
+          menu_detail_id: detail.menu_detail_id // Include for updates
+        }));
+        formData.append("menu_details", JSON.stringify(menuDetailsToSave));
       }
 
       // Handle image upload
@@ -322,7 +357,7 @@ export const MenuModal = ({
         style={{
           display: show ? "block" : "none",
           backgroundColor: 'rgba(0,0,0,0.5)',
-          ...(showCustomPriceModal ? { zIndex: "1039" } : {}),
+          ...(showVariantModal ? { zIndex: "1039" } : {}),
         }}
       >
         <div className="modal-dialog modal-dialog-centered modal-lg">
@@ -337,7 +372,7 @@ export const MenuModal = ({
                 onClick={onClose}
               ></button>
             </div>
-            <div className="modal-body">
+            <div className="modal-body" style={{ maxHeight: '70vh', overflowY: 'auto' }}>
               {/* Image Section - Centered at Top */}
               <div className="text-center mb-4">
                 <div
@@ -425,10 +460,10 @@ export const MenuModal = ({
 
               {/* Form Section - Inline Layout */}
               <div>
-                  <div className="row g-3">
+                  <div className="row g-2">
                     {/* Nama Menu */}
-                    <div className="col-12 mb-3">
-                      <div className="d-flex align-items-center gap-3">
+                    <div className="col-12 mb-2">
+                      <div className="d-flex align-items-center gap-2">
                         <label className="fw-bold mb-0" style={{ minWidth: '120px' }}>Nama Menu</label>
                         <div className="flex-grow-1">
                           <input
@@ -449,8 +484,8 @@ export const MenuModal = ({
                     </div>
 
                     {/* Tipe Menu */}
-                    <div className="col-12 mb-3">
-                      <div className="d-flex align-items-center gap-3">
+                    <div className="col-12 mb-2">
+                      <div className="d-flex align-items-center gap-2">
                         <label className="fw-bold mb-0" style={{ minWidth: '120px' }}>Tipe Menu</label>
                         <div className="flex-grow-1">
                           <select
@@ -469,8 +504,8 @@ export const MenuModal = ({
 
                     {/* Harga - hanya untuk menu baru */}
                     {!selectedMenuId && (
-                      <div className="col-12 mb-3">
-                        <div className="d-flex align-items-center gap-3">
+                      <div className="col-12 mb-2">
+                        <div className="d-flex align-items-center gap-2">
                           <label className="fw-bold mb-0" style={{ minWidth: '120px' }}>Harga</label>
                           <div className="flex-grow-1">
                             <input
@@ -492,8 +527,8 @@ export const MenuModal = ({
                     )}
 
                     {/* Status Aktif */}
-                    <div className="col-12 mb-3">
-                      <div className="d-flex align-items-center gap-3">
+                    <div className="col-12 mb-2">
+                      <div className="d-flex align-items-center gap-2">
                         <label className="fw-bold mb-0" style={{ minWidth: '120px' }}>Status Aktif</label>
                         <div className="flex-grow-1">
                           <select
@@ -508,35 +543,49 @@ export const MenuModal = ({
                       </div>
                     </div>
 
-                    {/* Custom Price Button */}
+                    {/* Rincian Harga Menu Utama */}
+                    {selectedMenuId && menu.main_prices && menu.main_prices.length > 0 && (
+                      <div className="col-12 mb-2">
+                        <div className="d-flex align-items-start gap-2">
+                          <label className="fw-bold mb-0" style={{ minWidth: '120px' }}>Rincian Harga</label>
+                          <div className="flex-grow-1">
+                            <small className="text-muted d-block">
+                              {menu.main_prices.map(p => `${p.name}: Rp ${p.price.toLocaleString()}`).join(', ')}
+                            </small>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Edit Harga Utama & Delete Button - Side by Side */}
                     {selectedMenuId && (
-                      <div className="col-12 text-center mt-3">
-                        <button
-                          type="button"
-                          className="btn btn-secondary rounded-pill"
-                          onClick={openCustomPriceModal}
-                        >
-                          <i className="bi bi-currency-dollar me-2"></i>Custom Price
-                        </button>
+                      <div className="col-12 mt-3">
+                        <div className="d-flex gap-2">
+                          <div style={{ flex: '1' }}>
+                            <button
+                              type="button"
+                              className="btn btn-primary w-100"
+                              onClick={() => {
+                                setEditingVariantIndex('main'); // Use 'main' to indicate main menu price edit
+                                setShowVariantModal(true);
+                              }}
+                            >
+                              <i className="bi bi-pencil-square me-2"></i>Edit Harga Utama
+                            </button>
+                          </div>
+                          <div style={{ flex: '1' }}>
+                            <button
+                              type="button"
+                              className="btn btn-danger w-100"
+                              onClick={() => setShowDeleteConfirmation(true)}
+                            >
+                              <i className="bi bi-trash me-2"></i>Hapus Menu
+                            </button>
+                          </div>
+                        </div>
                       </div>
                     )}
                   </div>
-
-                  {/* Menu Details Section */}
-
-
-                  {/* Tombol Hapus Menu (hanya muncul saat edit) */}
-                  {selectedMenuId && (
-                    <div className="mt-3 text-center">
-                      <button
-                        type="button"
-                        className="btn btn-danger rounded-pill"
-                        onClick={() => setShowDeleteConfirmation(true)}
-                      >
-                        <i className="bi bi-trash me-2"></i>Hapus Menu
-                      </button>
-                    </div>
-                  )}
 
                   {/* Menu Details Section */}
                   <div className="mt-4">
@@ -555,33 +604,34 @@ export const MenuModal = ({
                       <div className="list-group">
                         {menu.menu_details.map((menuDetail, index) => (
                           <div key={index} className="list-group-item">
-                            <div className="row align-items-center">
-                              <div className="col-auto">
-                                <span className="badge bg-secondary rounded-circle" style={{ width: '30px', height: '30px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                  {index + 1}
-                                </span>
+                            <div className="d-flex align-items-center gap-2">
+                              <span className="badge bg-secondary rounded-circle" style={{ width: '30px', height: '30px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                {index + 1}
+                              </span>
+                              <div className="flex-grow-1">
+                                <div className="fw-bold">{menuDetail.varian}</div>
+                                {menuDetail.prices && menuDetail.prices.length > 0 && (
+                                  <small className="text-muted">
+                                    {menuDetail.prices.map(p => `${p.serving_type_name || p.name || p.custom_price_name}: Rp ${p.price.toLocaleString()}`).join(', ')}
+                                  </small>
+                                )}
                               </div>
-                              <div className="col">
-                                <input
-                                  type="text"
-                                  className="form-control"
-                                  placeholder="Nama varian"
-                                  value={menuDetail.varian}
-                                  onChange={(e) =>
-                                    handleMenuDetailChange(index, "varian", e.target.value)
-                                  }
-                                />
-                              </div>
-                              <div className="col-auto">
-                                <button
-                                  type="button"
-                                  className="btn btn-sm btn-danger"
-                                  onClick={() => handleRemoveMenuDetail(index)}
-                                  title="Hapus varian"
-                                >
-                                  <i className="bi bi-trash"></i>
-                                </button>
-                              </div>
+                              <button
+                                type="button"
+                                className="btn btn-sm btn-outline-primary"
+                                onClick={() => handleEditVariant(index)}
+                                title="Edit varian"
+                              >
+                                <i className="bi bi-pencil"></i>
+                              </button>
+                              <button
+                                type="button"
+                                className="btn btn-sm btn-danger"
+                                onClick={() => handleRemoveMenuDetail(index)}
+                                title="Hapus varian"
+                              >
+                                <i className="bi bi-trash"></i>
+                              </button>
                             </div>
                           </div>
                         ))}
@@ -630,13 +680,27 @@ export const MenuModal = ({
         purposeDialog="menu"
       />
 
-      {/* Modal untuk Custom Price */}
-      <CustomPriceModal
-        showCustomPriceModal={showCustomPriceModal}
-        selectedMenuId={selectedMenuId}
-        menuName={menu.name}
-        onCloseCustomPrice={() => setShowCustomPriceModal(false)}
-        userTokenData={userTokenData}
+      {/* Modal untuk Edit Harga (Utama atau Varian) */}
+      <MenuVariantModal
+        show={showVariantModal}
+        onClose={handleVariantModalClose}
+        onRefresh={getMenus}
+        menuId={selectedMenuId}
+        variantId={
+          editingVariantIndex === 'main'
+            ? 0  // Edit harga menu utama
+            : editingVariantIndex >= 0
+            ? menu.menu_details[editingVariantIndex]?.menu_detail_id  // Edit varian
+            : null  // Tambah varian baru
+        }
+        variantName={
+          editingVariantIndex === 'main'
+            ? ''  // No variant name for main menu
+            : editingVariantIndex >= 0
+            ? menu.menu_details[editingVariantIndex]?.varian
+            : ''
+        }
+        outletId={userTokenData.outlet_id}
       />
     </>
   );

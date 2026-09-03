@@ -28,6 +28,10 @@ export const ServingTypeModal = ({
   const [servingType, setServingType] = useState(initialServingTypeState);
   const [isFormValid, setIsFormValid] = useState(true);
   const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
+  const isProtectedServingType = useMemo(
+    () => String(servingType.name || "").trim().toLowerCase() === "dine in",
+    [servingType.name]
+  );
 
   useEffect(() => {
     if (show && selectedServingTypeId) {
@@ -175,6 +179,7 @@ export const ServingTypeModal = ({
                       handleInputChange("name", e.target.value);
                       setIsFormValid(true);
                     }}
+                    disabled={selectedServingTypeId && isProtectedServingType}
                   />
                   {!isFormValid && servingType.name === "" ? (
                     <div className="invalid-feedback">
@@ -190,6 +195,7 @@ export const ServingTypeModal = ({
                     onChange={(e) => {
                       handleInputChange("is_active", e.target.value);
                     }}
+                    disabled={selectedServingTypeId && isProtectedServingType}
                   >
                     <option value="1">Ya</option>
                     <option value="0">Tidak</option>

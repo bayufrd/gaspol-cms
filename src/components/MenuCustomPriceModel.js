@@ -143,10 +143,21 @@ export const CustomPriceModal = ({
 
     try {
       if (selectedMenuId) {
+        // Filter hanya serving type yang is_active = 1
+        const activeServingTypeIds = new Set(
+          customPrice
+            .filter(price => Number(price.is_active) === 1)
+            .map(price => price.id)
+        );
+        
+        const filteredCustomPrices = updatedCustomMenuPrice.filter(
+          price => activeServingTypeIds.has(price.serving_type_id)
+        );
+
         await axios.patch(
-          `${apiBaseUrl}/custom-menu-price/${selectedMenuId}`,
+          `${apiBaseUrl}/v2/custom-menu-price/${selectedMenuId}`,
           {
-            custom_prices: updatedCustomMenuPrice,
+            custom_prices: filteredCustomPrices,
             outlet_id: userTokenData.outlet_id,
           }
         );
@@ -206,7 +217,6 @@ export const CustomPriceModal = ({
                   <div className="d-flex justify-content-between align-items-center mb-2">
                     <div>
                       <h5 className="mb-1">Menu Utama</h5>
-                      <small className="text-muted">Atur harga custom untuk menu utama</small>
                     </div>
                     <button
                       type="button"
@@ -231,7 +241,6 @@ export const CustomPriceModal = ({
                       <div className="d-flex justify-content-between align-items-center mb-2">
                         <div>
                           <h5 className="mb-1">Menu Varian {item.varian}</h5>
-                          <small className="text-muted">Atur harga custom untuk varian ini</small>
                         </div>
                         <button
                           type="button"
