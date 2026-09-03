@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect } from "react";
+import Swal from "sweetalert2";
 import { MenuModal } from "../components/MenuModal";
 import { useTheme } from "../contexts/ThemeContext";
 import axios from "axios";
@@ -14,6 +15,8 @@ const Menu = ({ userTokenData }) => {
   const [showModal, setShowModal] = useState(false);
   const [selectedMenuId, setSelectedMenuId] = useState(null);
   const [viewMode, setViewMode] = useState('grid'); // Add view mode state
+
+  const [isGlobalSyncing, setIsGlobalSyncing] = useState(false);
 
   useEffect(() => {
     document.title = "Dashboard - Gaspoll Content Management System";
@@ -33,6 +36,30 @@ const Menu = ({ userTokenData }) => {
     });
     setMenus(response.data.data);
     setFilteredMenus(response.data.data);
+  };
+
+  const handleGlobalSync = async () => {
+    try {
+      setIsGlobalSyncing(true);
+      await axios.post(`${apiBaseUrl}/custom-menu-price/sync`, {
+        outlet_id: userTokenData.outlet_id,
+        scope: "global",
+      });
+      await getMenus();
+      Swal.fire({
+        icon: "success",
+        title: "Berhasil!",
+        text: "Sinkronisasi semua menu semua outlet selesai.",
+      });
+    } catch (error) {
+      Swal.fire({
+        icon: "error",
+        title: "Gagal",
+        text: error?.response?.data?.message || "Sinkronisasi global gagal.",
+      });
+    } finally {
+      setIsGlobalSyncing(false);
+    }
   };
 
   useEffect(() => {
@@ -213,7 +240,15 @@ const Menu = ({ userTokenData }) => {
                     </button>
                   </div>
                 </div>
-                <div className="menu-add-button">
+                <div className="menu-add-button d-flex gap-2">
+                  <button
+                    className="btn btn-outline-primary"
+                    onClick={handleGlobalSync}
+                    disabled={isGlobalSyncing}
+                  >
+                    <i className="bi bi-arrow-repeat"></i>{" "}
+                    {isGlobalSyncing ? "Syncing..." : "Sync Semua Outlet"}
+                  </button>
                   <button
                     className="btn btn-primary"
                     onClick={() => openModal(null)}
