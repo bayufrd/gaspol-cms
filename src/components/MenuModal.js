@@ -98,6 +98,11 @@ export const MenuModal = ({
     if (show && selectedMenuId) {
       const fetchData = async () => {
         try {
+          await axios.post(`${apiBaseUrl}/custom-menu-price/sync`, {
+            outlet_id: userTokenData.outlet_id,
+            menu_id: selectedMenuId,
+          });
+
           const response = await axios.get(`${apiBaseUrl}/v2/menu/${selectedMenuId}`, {
             params: {
               outlet_id: userTokenData.outlet_id,

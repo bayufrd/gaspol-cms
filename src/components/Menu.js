@@ -22,6 +22,10 @@ const Menu = ({ userTokenData }) => {
   }, []);
 
   const getMenus = async () => {
+    await axios.post(`${apiBaseUrl}/custom-menu-price/sync`, {
+      outlet_id: userTokenData.outlet_id,
+    });
+
     const response = await axios.get(`${apiBaseUrl}/v2/menu`, {
       params: {
         outlet_id: userTokenData.outlet_id,

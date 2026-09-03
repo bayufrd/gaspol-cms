@@ -147,6 +147,7 @@ export const CustomPriceModal = ({
           `${apiBaseUrl}/custom-menu-price/${selectedMenuId}`,
           {
             custom_prices: updatedCustomMenuPrice,
+            outlet_id: userTokenData.outlet_id,
           }
         );
 
