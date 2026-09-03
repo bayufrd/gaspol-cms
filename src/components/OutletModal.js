@@ -83,7 +83,7 @@ export const OutletModal = ({
           setIsFormValid(false);
           return;
         }
-        await axios.post(`${apiBaseUrl}/outlet/`, outlet);
+        await axios.post(`${apiBaseUrl}/v2/outlet/`, outlet);
         Swal.fire({
           icon: "success",
           title: "Success!",
