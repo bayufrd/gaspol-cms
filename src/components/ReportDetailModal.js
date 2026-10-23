@@ -171,7 +171,7 @@ export const ReportDetailModal = ({ show, onClose, selectedTransactionId }) => {
                             </div>
                             <div className="cart-item-body">
                               <div className="cart-item-row">
-                                <span className="cart-item-label">Paid Time</span>
+                                <span className="cart-item-label">Item Updated At</span>
                                 <span className="cart-item-value">{item.updated_at}</span>
                               </div>
                               <div className="cart-item-row">
