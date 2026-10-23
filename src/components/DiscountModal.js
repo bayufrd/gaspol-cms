@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useRef } from "react";
-import Swal from "sweetalert2";
+import Swal from "../utils/alerts";
 import axios from "axios";
 import { useTheme } from "../contexts/ThemeContext";
 import flatpickr from "flatpickr";

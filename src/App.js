@@ -9,7 +9,7 @@ import { normalizeMenuAccess } from "./helpers/normalizeMenuAccess";
 import Footer from "./components/common/Footer";
 import Header from "./components/common/Header";
 import Sidebar from "./components/common/Sidebar";
-import Swal from "sweetalert2";
+import Swal from "./utils/alerts";
 import 'antd/dist/reset.css'; // Ant Design CSS reset
 import './styles/modern-theme.css'; // Modern theme variables
 

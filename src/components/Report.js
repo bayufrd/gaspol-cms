@@ -1,11 +1,13 @@
 import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
+import { Checkbox, DatePicker, Select, Tooltip as AntTooltip } from "antd";
+import idID from "antd/es/date-picker/locale/id_ID";
+import dayjs from "dayjs";
+import "dayjs/locale/id";
 import { useTheme } from "../contexts/ThemeContext";
 import { ReportDetailModal } from "./ReportDetailModal";
 import { ReportPaymentModal } from "./ReportPaymentModal";
-import flatpickr from "flatpickr";
-import Swal from "sweetalert2";
-import "flatpickr/dist/flatpickr.min.css";
+import Swal from "../utils/alerts";
 import {
   ResponsiveContainer,
   BarChart,
@@ -24,6 +26,7 @@ import {
 import "../styles/report-module.css";
 
 const apiBaseUrl = process.env.REACT_APP_API_BASE_URL;
+const REPORT_BATCH_SIZE = 50;
 const CHART_COLORS = [
   "#FF6B35",
   "#3B82F6",
@@ -35,18 +38,27 @@ const CHART_COLORS = [
   "#84CC16",
 ];
 
+const { RangePicker } = DatePicker;
+dayjs.locale("id");
+
+const formatLocalDate = (date = new Date()) => {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+};
+
 const Report = ({ userTokenData }) => {
   const { isDark } = useTheme();
 
   const [reports, setReports] = useState([]);
   const [shifts, setShifts] = useState([]);
-  // Set default dates to today (April 7, 2026)
-  const today = new Date(2026, 3, 7).toISOString().split('T')[0]; // April 7, 2026
+  const today = formatLocalDate();
   const [startDate, setStartDate] = useState(today);
   const [endDate, setEndDate] = useState(today);
-  const startDateInputRef = useRef(null);
-  const endDateInputRef = useRef(null);
-  const [isSuccess, setIsSuccess] = useState(true);
+  const [draftRange, setDraftRange] = useState([dayjs(today), dayjs(today)]);
+  const [isRangeOpen, setIsRangeOpen] = useState(false);
+  const isSuccess = true;
   const [isPending, setIsPending] = useState(true);
   const [isShift, setIsShift] = useState(0);
   const [selectedShift, setSelectedShift] = useState(null);
@@ -55,15 +67,18 @@ const Report = ({ userTokenData }) => {
   const [isCashierReportEnabled, setIsCashierReportEnabled] = useState(false);
   const [showReportPaymentModal, setShowReportPaymentModal] = useState(false);
   const [selectedChart, setSelectedChart] = useState('bar'); // Default to bar chart
-  const [searchQuery, setSearchQuery] = useState(''); // Search functionality
-
-
+  const [searchQuery, setSearchQuery] = useState('');
+  const [visibleCount, setVisibleCount] = useState(REPORT_BATCH_SIZE);
+  const [reportError, setReportError] = useState(null);
   const [chartData, setChartData] = useState([]);
 
   // Loader states
   const [loading, setLoading] = useState(false);
   const [loadingProgress, setLoadingProgress] = useState(0);
   const loadingIntervalRef = useRef(null);
+  const loadMoreRef = useRef(null);
+  const loadingMoreRef = useRef(false);
+  const requestControllerRef = useRef(null);
 
 
   function formatRupiah(value) {
@@ -78,9 +93,6 @@ const Report = ({ userTokenData }) => {
   }
 
   useEffect(() => {
-    getReports();
-  }, []);
-  useEffect(() => {
     const triggerSearch = () => {
       if (startDate && endDate) {
         handleSearch();
@@ -89,6 +101,11 @@ const Report = ({ userTokenData }) => {
 
     triggerSearch();
   }, [startDate, endDate, isSuccess, isPending, isShift]); // Trigger search on changes
+
+  useEffect(() => () => {
+    requestControllerRef.current?.abort();
+    clearInterval(loadingIntervalRef.current);
+  }, []);
 
   useEffect(() => {
     if (showModal) {
@@ -104,51 +121,6 @@ const Report = ({ userTokenData }) => {
       document.body.classList.remove("modal-open");
     };
   }, [showModal]);
-
-  useEffect(() => {
-    let startDatePicker, endDatePicker;
-    if (startDateInputRef.current) {
-      startDatePicker = flatpickr(startDateInputRef.current, {
-        enableTime: false,
-        dateFormat: "Y-m-d",
-        onChange: (selectedDates, dateStr) => {
-          setStartDate(dateStr);
-        },
-      });
-    }
-
-    if (endDateInputRef.current) {
-      endDatePicker = flatpickr(endDateInputRef.current, {
-        enableTime: false,
-        dateFormat: "Y-m-d",
-        onChange: (selectedDates, dateStr) => {
-          setEndDate(dateStr);
-        },
-      });
-    }
-
-    return () => {
-      if (startDatePicker) {
-        startDatePicker.destroy();
-      }
-      if (endDatePicker) {
-        endDatePicker.destroy();
-      }
-    };
-  }, []);
-
-  const getReports = async () => {
-    const response = await axios.get(`${apiBaseUrl}/report`, {
-      params: {
-        outlet_id: userTokenData.outlet_id,
-      },
-    });
-    setReports(response.data.data);
-    setShifts(response.data.list_shift);
-
-    // Enable cashier report if there are reports
-    setIsCashierReportEnabled(response.data.data && response.data.data.length > 0);
-  };
 
   const openModal = (transactionId) => {
     setSelectedTransactionId(transactionId);
@@ -175,6 +147,25 @@ const Report = ({ userTokenData }) => {
       (formatRupiah(report.customer_change) && formatRupiah(report.customer_change).toLowerCase().includes(query))
     );
   });
+  const visibleReports = filteredReports.slice(0, visibleCount);
+  const hasMoreReports = visibleCount < filteredReports.length;
+
+  useEffect(() => {
+    setVisibleCount(REPORT_BATCH_SIZE);
+  }, [searchQuery, reports]);
+
+  useEffect(() => {
+    const target = loadMoreRef.current;
+    if (!target || !hasMoreReports) return undefined;
+    const observer = new IntersectionObserver((entries) => {
+      if (!entries[0].isIntersecting || loadingMoreRef.current) return;
+      loadingMoreRef.current = true;
+      setVisibleCount((count) => Math.min(count + REPORT_BATCH_SIZE, filteredReports.length));
+      window.requestAnimationFrame(() => { loadingMoreRef.current = false; });
+    }, { rootMargin: "240px 0px" });
+    observer.observe(target);
+    return () => observer.disconnect();
+  }, [hasMoreReports, filteredReports.length]);
 
   const openReportPaymentModal = async () => {
     try {
@@ -214,49 +205,30 @@ const Report = ({ userTokenData }) => {
   };
 
 
+  const applyDateRange = () => {
+    if (!draftRange?.[0] || !draftRange?.[1]) return;
+    setStartDate(draftRange[0].format("YYYY-MM-DD"));
+    setEndDate(draftRange[1].format("YYYY-MM-DD"));
+    setIsRangeOpen(false);
+  };
+
+  const clearDateRange = () => setDraftRange(null);
+
+  const cancelDateRange = () => {
+    setDraftRange(startDate && endDate ? [dayjs(startDate), dayjs(endDate)] : null);
+    setIsRangeOpen(false);
+  };
+
   const handleSearch = async () => {
+    if (!startDate || !endDate) return;
+    requestControllerRef.current?.abort();
+    const controller = new AbortController();
+    requestControllerRef.current = controller;
     setLoading(true);
+    setReportError(null);
+    setVisibleCount(REPORT_BATCH_SIZE);
     setLoadingProgress(0);
-    setLoadingInterval(); // Start loading progress interval
-
-    if ((startDate && !endDate) || (!startDate && endDate)) {
-      Swal.fire({
-        icon: "error",
-        title: "Gagal",
-        text: "Silakan pilih kedua tanggal (mulai dan akhir) untuk melakukan pencarian.",
-      });
-      clearInterval(loadingIntervalRef.current); // Clear loading interval if error
-      setLoading(false);
-      return;
-    }
-
-    const startDateObj = new Date(startDate);
-    const endDateObj = new Date(endDate);
-
-    if (startDateObj > endDateObj) {
-      Swal.fire({
-        icon: "error",
-        title: "Gagal",
-        text: "Tanggal mulai tidak boleh lebih besar dari tanggal akhir!",
-      });
-      clearInterval(loadingIntervalRef.current); // Clear loading interval if error
-      setLoading(false);
-      return;
-    }
-
-    const diffMilliseconds = endDateObj - startDateObj;
-    const diffDays = Math.ceil(diffMilliseconds / (1000 * 60 * 60 * 24));
-
-    // if (diffDays > 10) {
-    //   Swal.fire({
-    //     icon: "error",
-    //     title: "Gagal",
-    //     text: "Pemilihan tanggal tidak bisa melebihi 10 hari!",
-    //   });
-    //   clearInterval(loadingIntervalRef.current); // Clear loading interval if error
-    //   setLoading(false);
-    //   return;
-    // }
+    setLoadingInterval();
 
     const outlet_id = userTokenData.outlet_id;
     const start_date = startDate;
@@ -274,6 +246,7 @@ const Report = ({ userTokenData }) => {
           is_success,
           is_pending,
         },
+        signal: controller.signal,
       });
 
       setReports(response.data.data);
@@ -283,16 +256,16 @@ const Report = ({ userTokenData }) => {
       // Enable cashier report if there are reports
       setIsCashierReportEnabled(response.data.data && response.data.data.length > 0);
     } catch (error) {
-      console.error("Gagal mengambil data laporan:", error);
-      Swal.fire({
-        icon: "error",
-        title: "Gagal",
-        text: "Terjadi kesalahan saat mengambil laporan.",
-      });
+      if (error.code !== "ERR_CANCELED") {
+        console.error("Gagal mengambil data laporan:", error);
+        setReportError("Laporan gagal dimuat. Periksa koneksi lalu coba lagi.");
+      }
     } finally {
-      clearInterval(loadingIntervalRef.current); // Clear loading interval
-      setLoading(false); // End loading
-      setLoadingProgress(0); // Reset loading progress
+      if (requestControllerRef.current === controller) {
+        clearInterval(loadingIntervalRef.current);
+        setLoading(false);
+        setLoadingProgress(0);
+      }
     }
   };
   const setLoadingInterval = () => {
@@ -325,62 +298,56 @@ const Report = ({ userTokenData }) => {
           <div className="card">
             <div className="card-header">
               <div className="report-filters">
-                <div className="input-group">
-                  <span className="input-group-text"><i className="bi bi-calendar"></i></span>
-                  <input
-                    type="text"
-                    className="form-control"
-                    placeholder="Tanggal mulai"
-                    value={startDate || ""}
-                    ref={startDateInputRef}
-                    readOnly
+                <div className="report-range-filter">
+                  <label htmlFor="reportDateRange">Periode laporan</label>
+                  <RangePicker
+                    id="reportDateRange"
+                    className="report-range-picker"
+                    value={draftRange}
+                    open={isRangeOpen}
+                    locale={idID}
+                    format="DD MMM YYYY"
+                    separator={<i className="bi bi-arrow-right" aria-hidden="true"></i>}
+                    placeholder={["Tanggal mulai", "Tanggal selesai"]}
+                    allowClear={false}
+                    inputReadOnly
+                    onOpenChange={(open) => {
+                      if (open) {
+                        setDraftRange([dayjs(startDate), dayjs(endDate)]);
+                        setIsRangeOpen(true);
+                      }
+                    }}
+                    onCalendarChange={(dates) => setDraftRange(dates)}
+                    renderExtraFooter={() => (
+                      <div className="report-range-footer">
+                        <button type="button" className="btn btn-link" onClick={clearDateRange}>Reset</button>
+                        <div>
+                          <button type="button" className="btn btn-light" onClick={cancelDateRange}>Batal</button>
+                          <button type="button" className="btn btn-primary" disabled={!draftRange?.[0] || !draftRange?.[1]} onClick={applyDateRange}>Terapkan</button>
+                        </div>
+                      </div>
+                    )}
                   />
                 </div>
-                <div className="input-group">
-                  <span className="input-group-text"><i className="bi bi-calendar"></i></span>
-                  <input
-                    type="text"
-                    className="form-control"
-                    placeholder="Tanggal akhir"
-                    value={endDate || ""}
-                    ref={endDateInputRef}
-                    readOnly
-                  />
+                <div className="report-status-filter" aria-label="Filter status transaksi">
+                  <Checkbox checked={isSuccess} disabled>Sukses</Checkbox>
+                  <Checkbox checked={isPending} onChange={(event) => setIsPending(event.target.checked)}>Pending</Checkbox>
                 </div>
-                <div className="form-check">
-                  <input
-                    className="form-check-input"
-                    id="isSuccess"
-                    type="checkbox"
-                    checked={isSuccess}
-                    onChange={() => setIsSuccess(!isSuccess)}
-                  />
-                  <label className="form-check-label" htmlFor="isSuccess">Sukses</label>
-                </div>
-                <div className="form-check">
-                  <input
-                    className="form-check-input"
-                    id="isPending"
-                    type="checkbox"
-                    checked={isPending}
-                    onChange={() => setIsPending(!isPending)}
-                  />
-                  <label className="form-check-label" htmlFor="isPending">Pending</label>
-                </div>
-                <div className="input-group">
-                  <span className="input-group-text">Shift</span>
-                  <select
-                    className="form-select"
+                <div className="report-shift-filter">
+                  <label htmlFor="reportShift">Shift</label>
+                  <Select
+                    id="reportShift"
+                    className="report-shift-select"
                     value={isShift}
-                    onChange={(e) => setIsShift(e.target.value)}
-                  >
-                    <option value="0">Semua</option>
-                    {shifts.map((shift) => (
-                      <option key={shift.shift_number} value={shift.shift_number}>
-                        {shift.shift_number}
-                      </option>
-                    ))}
-                  </select>
+                    onChange={setIsShift}
+                    options={[
+                      { value: 0, label: "Semua shift" },
+                      ...shifts.map((shift) => ({
+                        value: shift.shift_number,
+                        label: `Shift ${shift.shift_number}`,
+                      })),
+                    ]}
+                  />
                 </div>
                 <div className="report-btn-group">
                   <button
@@ -421,38 +388,25 @@ const Report = ({ userTokenData }) => {
               )}
             </div>
             <div className="card-body">
-              <div className="chart-type-selector">
+              <div className="chart-type-selector" role="group" aria-label="Pilih jenis grafik">
                 <div className="chart-selector-group">
-                  <label className="chart-option">
-                    <input
-                      type="radio"
-                      name="chart"
-                      checked={selectedChart === 'bar'}
-                      onChange={() => setSelectedChart('bar')}
-                      className="chart-radio"
-                    />
-                    <span className="chart-label"><i className="bi bi-bar-chart-fill me-2" aria-hidden="true"></i>Bar Chart</span>
-                  </label>
-                  <label className="chart-option">
-                    <input
-                      type="radio"
-                      name="chart"
-                      checked={selectedChart === 'line'}
-                      onChange={() => setSelectedChart('line')}
-                      className="chart-radio"
-                    />
-                    <span className="chart-label"><i className="bi bi-graph-up-arrow me-2" aria-hidden="true"></i>Line Chart</span>
-                  </label>
-                  <label className="chart-option">
-                    <input
-                      type="radio"
-                      name="chart"
-                      checked={selectedChart === 'pie'}
-                      onChange={() => setSelectedChart('pie')}
-                      className="chart-radio"
-                    />
-                    <span className="chart-label"><i className="bi bi-pie-chart-fill me-2" aria-hidden="true"></i>Pie Chart</span>
-                  </label>
+                  {[
+                    { type: "bar", icon: "bi-bar-chart-fill", label: "Grafik batang" },
+                    { type: "line", icon: "bi-graph-up-arrow", label: "Grafik garis" },
+                    { type: "pie", icon: "bi-pie-chart-fill", label: "Grafik lingkaran" },
+                  ].map(({ type, icon, label }) => (
+                    <AntTooltip title={label} key={type}>
+                      <button
+                        type="button"
+                        className={`chart-icon-button${selectedChart === type ? " is-active" : ""}`}
+                        aria-label={label}
+                        aria-pressed={selectedChart === type}
+                        onClick={() => setSelectedChart(type)}
+                      >
+                        <i className={`bi ${icon}`} aria-hidden="true"></i>
+                      </button>
+                    </AntTooltip>
+                  ))}
                 </div>
               </div>
 
@@ -560,11 +514,17 @@ const Report = ({ userTokenData }) => {
                   </button>
                 )}
                 <small className="text-muted">
-                  Menampilkan {filteredReports.length} dari {reports.length} data
+                  Menampilkan {visibleReports.length} dari {filteredReports.length} transaksi
                 </small>
               </div>
 
-              {filteredReports.length > 0 ? (
+              {reportError ? (
+                <div className="report-error-state" role="alert">
+                  <i className="bi bi-wifi-off" aria-hidden="true"></i>
+                  <p>{reportError}</p>
+                  <button type="button" className="btn btn-outline-primary" onClick={handleSearch}>Coba lagi</button>
+                </div>
+              ) : filteredReports.length > 0 ? (
                 <>
                   {/* Desktop Table View */}
                   <div className="desktop-view">
@@ -585,7 +545,7 @@ const Report = ({ userTokenData }) => {
                         </tr>
                       </thead>
                       <tbody>
-                        {filteredReports.map((report, index) => (
+                        {visibleReports.map((report, index) => (
                           <tr key={report.id} onClick={() => openModal(report.id)} style={{ cursor: 'pointer' }}>
                             <td>{index + 1}</td>
                             <td className={`report-status-${report.status?.toLowerCase()}`}>
@@ -609,59 +569,49 @@ const Report = ({ userTokenData }) => {
                   {/* Mobile Card View */}
                   <div className="mobile-view">
                     <div className="reports-card-container">
-                      {filteredReports.map((report, index) => (
+                      {visibleReports.map((report, index) => (
                         <div
                           key={report.id}
                           className="report-card-item"
                           onClick={() => openModal(report.id)}
                         >
-                          <div className="report-card-header">
-                            <div className="report-card-number">{index + 1}</div>
-                            <div className="report-card-content">
-                              <span className={`report-status-badge report-status-${report.status?.toLowerCase()}`}>
-                                {report.status || "-"}
-                              </span>
-                              <span className="report-card-receipt">{report.receipt_number || "-"}</span>
+                          <div className="report-card-summary">
+                            <div className="report-card-identity">
+                              <span className="report-card-number">#{index + 1}</span>
+                              <div>
+                                <h6>{report.customer_name || "Tanpa nama"}</h6>
+                                <span className="report-card-receipt">{report.receipt_number || report.invoice_number || "-"}</span>
+                              </div>
+                            </div>
+                            <div className="report-card-total">
+                              <span>Total</span>
+                              <strong>Rp{formatRupiah(report.total) || "0"}</strong>
                             </div>
                           </div>
 
-                          <div className="report-card-body">
-                            <div className="report-card-row">
-                              <span className="report-card-label">Customer</span>
-                              <span className="report-card-value">{report.customer_name || "-"}</span>
-                            </div>
-                            <div className="report-card-row">
-                              <span className="report-card-label">Seat</span>
-                              <span className="report-card-value">{report.customer_seat || "-"}</span>
-                            </div>
-                            <div className="report-card-row">
-                              <span className="report-card-label">Total</span>
-                              <span className="report-card-value">{formatRupiah(report.total) || "-"}</span>
-                            </div>
-                            <div className="report-card-row">
-                              <span className="report-card-label">Cash</span>
-                              <span className="report-card-value">{formatRupiah(report.customer_cash) || "-"}</span>
-                            </div>
-                            <div className="report-card-row">
-                              <span className="report-card-label">Change</span>
-                              <span className="report-card-value">{formatRupiah(report.customer_change) || "-"}</span>
-                            </div>
-                            <div className="report-card-row">
-                              <span className="report-card-label">Payment</span>
-                              <span className="report-card-value">{report.payment_type || "-"}</span>
-                            </div>
-                            <div className="report-card-row">
-                              <span className="report-card-label">Invoice</span>
-                              <span className="report-card-value">{report.invoice_number || "-"}</span>
-                            </div>
-                            <div className="report-card-row">
-                              <span className="report-card-label">Updated</span>
-                              <span className="report-card-value">{report.invoice_due_date || report.updated_at}</span>
-                            </div>
+                          <div className="report-card-meta">
+                            <span className={`report-status-badge report-status-${report.status?.toLowerCase()}`}>
+                              {report.status || "-"}
+                            </span>
+                            {report.payment_type && <span><i className="bi bi-credit-card" aria-hidden="true"></i>{report.payment_type}</span>}
+                            {report.customer_seat !== null && report.customer_seat !== undefined && report.customer_seat !== "" && <span><i className="bi bi-geo-alt" aria-hidden="true"></i>Meja {report.customer_seat}</span>}
+                          </div>
+
+                          <div className="report-card-details">
+                            {report.invoice_number && <span title={report.invoice_number}><i className="bi bi-receipt" aria-hidden="true"></i>{report.invoice_number}</span>}
+                            {(report.invoice_due_date || report.updated_at) && <time><i className="bi bi-clock" aria-hidden="true"></i>{report.invoice_due_date || report.updated_at}</time>}
                           </div>
                         </div>
                       ))}
                     </div>
+                  </div>
+                  <div className="report-load-more" ref={loadMoreRef} aria-live="polite">
+                    {hasMoreReports ? (
+                      <>
+                        <span className="spinner-border spinner-border-sm" aria-hidden="true"></span>
+                        <span>Memuat transaksi berikutnya…</span>
+                      </>
+                    ) : <span>Semua transaksi sudah ditampilkan</span>}
                   </div>
                 </>
               ) : (

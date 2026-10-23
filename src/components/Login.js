@@ -4,10 +4,11 @@ import { extractUserTokenData } from "../helpers/token";
 import { normalizeMenuAccess } from "../helpers/normalizeMenuAccess";
 import { accessRoutes } from "../helpers/accessRoutes";
 import axios from 'axios';
-import Swal from "sweetalert2";
+import Swal from "../utils/alerts";
 import ThemeToggle from './ThemeToggle';
 import { useTheme } from '../contexts/ThemeContext';
 import '../styles/modern-theme.css';
+import '../styles/login-modern.css';
 
 const LoginForm = ({ setIsLoggedIn, setUserTokenData }) => {
   const [username, setUsername] = useState('');
@@ -323,12 +324,12 @@ const LoginForm = ({ setIsLoggedIn, setUserTokenData }) => {
 
   return (
     <>
-      <div style={styles.container}>
+      <div style={styles.container} className="login-page-modern">
         {/* Background Decorations */}
         <div style={{...styles.backgroundDecoration, ...styles.decoration1}}></div>
         <div style={{...styles.backgroundDecoration, ...styles.decoration2}}></div>
 
-        <div style={styles.loginWrapper} className="animate-fade-in">
+        <main style={styles.loginWrapper} className="login-panel-modern animate-fade-in">
           {/* Theme Toggle - Positioned at top right */}
           <div style={{
             position: 'absolute',
@@ -343,9 +344,9 @@ const LoginForm = ({ setIsLoggedIn, setUserTokenData }) => {
             }} />
           </div>
 
-          {/* Brand Icon */}
-          <div style={styles.brandIconContainer}>
-            <i className="bi bi-cup-hot-fill" style={styles.brandIcon} aria-hidden="true"></i>
+          {/* Brand */}
+          <div className="login-brand-modern">
+            <img src="/assets/images/brand/gaspoll.png" alt="Gaspoll" />
           </div>
 
           {/* Tambahkan Judul Login */}
@@ -408,11 +409,14 @@ const LoginForm = ({ setIsLoggedIn, setUserTokenData }) => {
             <div style={styles.dividerLine}></div>
           </div>
 
-          <form onSubmit={handleLogin} style={{ width: '100%' }}>
+          <form onSubmit={handleLogin} style={{ width: '100%' }} className="login-form-modern">
             <div style={styles.formGroup}>
-              <label style={styles.label}>Username</label>
+              <label style={styles.label} htmlFor="loginUsername">Username</label>
               <input
+                id="loginUsername"
+                name="username"
                 type="text"
+                autoComplete="username"
                 placeholder="Masukkan username"
                 style={styles.input}
                 value={username}
@@ -432,10 +436,13 @@ const LoginForm = ({ setIsLoggedIn, setUserTokenData }) => {
             </div>
 
             <div style={styles.formGroup}>
-              <label style={styles.label}>Password</label>
+              <label style={styles.label} htmlFor="loginPassword">Password</label>
               <div style={styles.passwordContainer}>
                 <input
+                  id="loginPassword"
+                  name="password"
                   type={showPassword ? "text" : "password"}
+                  autoComplete="current-password"
                   placeholder="Masukkan password"
                   style={styles.input}
                   value={password}
@@ -455,6 +462,7 @@ const LoginForm = ({ setIsLoggedIn, setUserTokenData }) => {
                 <button
                   type="button"
                   style={styles.passwordToggle}
+                  aria-label={showPassword ? "Sembunyikan password" : "Tampilkan password"}
                   onClick={() => setShowPassword(!showPassword)}
                   onMouseOver={(e) => e.target.style.color = 'var(--primary-orange)'}
                   onMouseOut={(e) => e.target.style.color = 'var(--text-tertiary)'}
@@ -526,7 +534,7 @@ const LoginForm = ({ setIsLoggedIn, setUserTokenData }) => {
               </a>
             </p>
           </div>
-        </div>
+        </main>
       </div>
     </>
   );

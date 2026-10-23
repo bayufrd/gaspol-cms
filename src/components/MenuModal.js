@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useRef } from "react";
-import Swal from "sweetalert2";
+import Swal from "../utils/alerts";
 import axios from "axios";
 import { useTheme } from "../contexts/ThemeContext";
 import { FilePond, registerPlugin } from "react-filepond";
@@ -353,7 +353,7 @@ export const MenuModal = ({
   return (
     <>
       <div
-        className={`modal fade text-left ${show ? "show" : ""}`}
+        className={`modal fade text-left menu-editor-modal ${show ? "show" : ""}`}
         style={{
           display: show ? "block" : "none",
           backgroundColor: 'rgba(0,0,0,0.5)',
@@ -363,16 +363,19 @@ export const MenuModal = ({
         <div className="modal-dialog modal-dialog-centered modal-lg">
           <div className="modal-content">
             <div className="modal-header">
-              <h4 className="modal-title">
-                {selectedMenuId ? "Edit Menu" : "Tambah Menu Baru"}
-              </h4>
+              <div className="menu-editor-title">
+                <span>{selectedMenuId ? "Kelola menu" : "Menu baru"}</span>
+                <h4 className="modal-title">
+                  {selectedMenuId ? "Edit Menu" : "Tambah Menu"}
+                </h4>
+              </div>
               <button
                 type="button"
                 className="btn-close"
                 onClick={onClose}
               ></button>
             </div>
-            <div className="modal-body" style={{ maxHeight: '70vh', overflowY: 'auto' }}>
+            <div className="modal-body">
               {/* Image Section - Centered at Top */}
               <div className="text-center mb-4">
                 <div
@@ -459,7 +462,7 @@ export const MenuModal = ({
               </div>
 
               {/* Form Section - Inline Layout */}
-              <div>
+              <div className="menu-editor-form">
                   <div className="row g-2">
                     {/* Nama Menu */}
                     <div className="col-12 mb-2">
@@ -588,7 +591,7 @@ export const MenuModal = ({
                   </div>
 
                   {/* Menu Details Section */}
-                  <div className="mt-4">
+                  <div className="menu-variant-section mt-4">
                     <div className="d-flex justify-content-between align-items-center mb-3">
                       <h6 className="mb-0 fw-bold">Detail Menu Varian</h6>
                       <button

@@ -1,11 +1,12 @@
-import React, { useState, useEffect } from "react";
-import Swal from "sweetalert2";
+import React, { useState, useEffect, useRef } from "react";
+import Swal from "../utils/alerts";
 import { MenuModal } from "../components/MenuModal";
 import { useTheme } from "../contexts/ThemeContext";
 import axios from "axios";
 import "../styles/menu-module.css";
 
 const apiBaseUrl = process.env.REACT_APP_API_BASE_URL;
+const MENU_BATCH_SIZE = 50;
 
 const Menu = ({ userTokenData }) => {
   const { isDark } = useTheme();
@@ -14,7 +15,10 @@ const Menu = ({ userTokenData }) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [showModal, setShowModal] = useState(false);
   const [selectedMenuId, setSelectedMenuId] = useState(null);
-  const [viewMode, setViewMode] = useState('grid'); // Add view mode state
+  const [viewMode, setViewMode] = useState('grid');
+  const [visibleCount, setVisibleCount] = useState(MENU_BATCH_SIZE);
+  const loadMoreRef = useRef(null);
+  const loadingMoreRef = useRef(false);
 
   useEffect(() => {
     document.title = "Dashboard - Gaspoll Content Management System";
@@ -40,6 +44,26 @@ const Menu = ({ userTokenData }) => {
     );
     setFilteredMenus(results);
   }, [searchTerm, menus]);
+
+  const visibleMenus = filteredMenus.slice(0, visibleCount);
+  const hasMoreMenus = visibleCount < filteredMenus.length;
+
+  useEffect(() => {
+    setVisibleCount(MENU_BATCH_SIZE);
+  }, [searchTerm, menus, viewMode]);
+
+  useEffect(() => {
+    const target = loadMoreRef.current;
+    if (!target || !hasMoreMenus) return undefined;
+    const observer = new IntersectionObserver((entries) => {
+      if (!entries[0].isIntersecting || loadingMoreRef.current) return;
+      loadingMoreRef.current = true;
+      setVisibleCount((count) => Math.min(count + MENU_BATCH_SIZE, filteredMenus.length));
+      window.requestAnimationFrame(() => { loadingMoreRef.current = false; });
+    }, { rootMargin: "240px 0px" });
+    observer.observe(target);
+    return () => observer.disconnect();
+  }, [hasMoreMenus, filteredMenus.length]);
 
   const openModal = (menuId) => {
     setSelectedMenuId(menuId);
@@ -110,32 +134,38 @@ const Menu = ({ userTokenData }) => {
 
   const renderGridView = () => (
     <div className="menu-grid-container">
-      {filteredMenus.map((menu) => (
+      {visibleMenus.map((menu) => (
         <div key={menu.id} className="menu-card-wrapper">
-          <div
+          <button
+            type="button"
             className="menu-card"
             onClick={() => openModal(menu.id)}
+            aria-label={`Buka detail menu ${menu.name}`}
           >
             <div className="menu-image-container">
               <img
                 src={menu.image_url ? `${apiBaseUrl}/${menu.image_url}` : "/assets/images/menu-template.svg"}
-                alt={menu.name}
+                alt=""
                 className="menu-image"
+                loading="lazy"
                 onError={(e) => {
                   e.target.onerror = null;
                   e.target.src = "/assets/images/menu-template.svg";
                 }}
               />
               <span className={`menu-badge ${menu.is_active === 1 ? 'badge-active' : 'badge-inactive'}`}>
-                {menu.is_active === 1 ? "Aktif" : "Tidak Aktif"}
+                <span aria-hidden="true"></span>{menu.is_active === 1 ? "Aktif" : "Nonaktif"}
               </span>
             </div>
             <div className="menu-card-body">
+              <span className="menu-card-type">{menu.menu_type || "Menu"}</span>
               <h6 className="menu-card-title">{menu.name}</h6>
-              <p className="menu-card-type">{menu.menu_type}</p>
-              <h6 className="menu-card-price">Rp. {menu.price.toLocaleString()}</h6>
+              <div className="menu-card-footer">
+                <strong className="menu-card-price">Rp{Number(menu.price || 0).toLocaleString("id-ID")}</strong>
+                <span className="menu-card-action" aria-hidden="true"><i className="bi bi-arrow-up-right"></i></span>
+              </div>
             </div>
-          </div>
+          </button>
         </div>
       ))}
     </div>
@@ -154,7 +184,7 @@ const Menu = ({ userTokenData }) => {
             </tr>
           </thead>
           <tbody>
-            {filteredMenus.map((menu) => (
+            {visibleMenus.map((menu) => (
               <tr key={menu.id} className="menu-list-row" onClick={() => openModal(menu.id)}>
                 <td>{menu.name}</td>
                 <td>{menu.menu_type}</td>
@@ -230,6 +260,15 @@ const Menu = ({ userTokenData }) => {
             </div>
             <div className="card-body">
               {viewMode === 'grid' ? renderGridView() : renderListView()}
+              <div className="menu-load-more" ref={loadMoreRef} aria-live="polite">
+                {hasMoreMenus ? (
+                  <><span className="spinner-border spinner-border-sm" aria-hidden="true"></span><span>Memuat menu berikutnya…</span></>
+                ) : filteredMenus.length > 0 ? (
+                  <span>Menampilkan {visibleMenus.length} dari {filteredMenus.length} menu</span>
+                ) : (
+                  <span>Tidak ada menu ditemukan</span>
+                )}
+              </div>
             </div>
           </div>
         </section>

@@ -2,7 +2,7 @@ import React, { useRef, useState, useEffect } from "react";
 import axios from "axios";
 import { useReactToPrint } from "react-to-print";
 import { ReportDetailModal } from "./ReportDetailModal";
-import Swal from "sweetalert2";
+import Swal from "../utils/alerts";
 import * as XLSX from 'xlsx';
 import styles from "./ReportPaymentModal.module.css";
 

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import Swal from "sweetalert2";
+import Swal from "../utils/alerts";
 
 const TaxCalculationCustom = ({ show, onClose, outletId, onSuccess }) => {
   const [loading, setLoading] = useState(false);

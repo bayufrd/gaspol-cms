@@ -86,40 +86,36 @@ const Sidebar = ({ onToggleSidebar, isOpen, userTokenData }) => {
     if (visibleItems.length === 0) return null;
 
     return (
-      <div key={section.title}>
+      <React.Fragment key={section.title}>
         <li className="sidebar-title">{section.title}</li>
         {visibleItems.map(item => (
           <li key={item.path} className="sidebar-item">
-            <Link to={item.path} className={`sidebar-link ${location.pathname === item.path ? "active" : ""}`}>
-              <i className={`bi ${item.icon}`}></i>
+            <Link
+              to={item.path}
+              className={`sidebar-link ${location.pathname === item.path ? "active" : ""}`}
+              aria-current={location.pathname === item.path ? "page" : undefined}
+              title={!isOpen ? item.label : undefined}
+            >
+              <span className="sidebar-link-icon"><i className={`bi ${item.icon}`} aria-hidden="true"></i></span>
               <span>{item.label}</span>
             </Link>
           </li>
         ))}
-      </div>
+      </React.Fragment>
     );
   };
 
   return (
-    <div id="sidebar" className={`sidebar ${isOpen ? "active" : ""}`}
-      style={{ width: isOpen ? "250px" : "80px" }}
+    <aside id="sidebar" className={`sidebar ${isOpen ? "active" : ""}`}
+      style={{ width: isOpen ? "260px" : "80px" }}
+      aria-label="Navigasi utama"
     >
       <div className="sidebar-wrapper active">
-        <div className="sidebar-header position-relative">
-          <div className="d-flex justify-content-between align-items-center">
-            <div className="logo">
-              <Link to="/">
-                {isOpen ? (
-                  <>
-                    <i className="bi bi-cup-hot-fill" style={{fontSize: '1.5rem'}} aria-hidden="true"></i>
-                    <span>GASPOLL</span>
-                  </>
-                ) : (
-                  <i className="bi bi-cup-hot-fill" style={{fontSize: '1.5rem'}} aria-hidden="true"></i>
-                )}
-              </Link>
-            </div>
-          </div>
+        <div className="sidebar-header">
+          <Link to="/" className="sidebar-brand" aria-label="Gaspoll Management Center">
+            <span className="sidebar-brand-mark"><img src="/assets/images/brand/gaspoll.png" alt="" /></span>
+            {isOpen && <span className="sidebar-brand-copy"><strong>GASPOLL</strong><small>Management Center</small></span>}
+          </Link>
         </div>
         <div className="sidebar-menu">
           <ul className="menu" style={{listStyle: 'none', padding: 0, margin: 0}}>
@@ -130,8 +126,8 @@ const Sidebar = ({ onToggleSidebar, isOpen, userTokenData }) => {
                 <li className="sidebar-title">Warehouse</li>
                 {warehouseMenus.map(item => (
                   <li key={item.path} className="sidebar-item">
-                    <Link to={item.path} className={`sidebar-link ${location.pathname === item.path ? "active" : ""}`}>
-                      <i className={`bi ${item.icon}`}></i>
+                    <Link to={item.path} className={`sidebar-link ${location.pathname === item.path ? "active" : ""}`} aria-current={location.pathname === item.path ? "page" : undefined} title={!isOpen ? item.label : undefined}>
+                      <span className="sidebar-link-icon"><i className={`bi ${item.icon}`} aria-hidden="true"></i></span>
                       <span>{item.label}</span>
                     </Link>
                   </li>
@@ -141,7 +137,7 @@ const Sidebar = ({ onToggleSidebar, isOpen, userTokenData }) => {
           </ul>
         </div>
       </div>
-    </div>
+    </aside>
   );
 };
 

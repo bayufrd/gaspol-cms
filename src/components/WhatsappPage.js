@@ -1,7 +1,7 @@
 
 import React, { useState, useCallback, useEffect, useRef } from "react";
 import axios from "axios";
-import Swal from "sweetalert2";
+import Swal from "../utils/alerts";
 import { useTheme } from "../contexts/ThemeContext";
 import "../styles/whatsapp-page.css";
 

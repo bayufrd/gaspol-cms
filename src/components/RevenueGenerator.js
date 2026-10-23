@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
-import Swal from "sweetalert2";
+import Swal from "../utils/alerts";
 import flatpickr from "flatpickr";
 import "flatpickr/dist/flatpickr.min.css";
 import { RevenueGeneratorDetailModal } from "./RevenueGeneratorDetailModal";

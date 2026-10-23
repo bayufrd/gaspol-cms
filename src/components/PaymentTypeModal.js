@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from "react";
-import Swal from "sweetalert2";
+import Swal from "../utils/alerts";
 import axios from "axios";
 import { DeleteConfirmationModal } from "./DeleteConfirmationModal";
 import { useTheme } from "../contexts/ThemeContext";

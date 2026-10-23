@@ -5,7 +5,7 @@ import { useTheme } from "../contexts/ThemeContext";
 import TaxFullscreen from "./TaxFullscreen";
 import TaxDonationDestinationModal from "./TaxDonationDestinationModal";
 import TaxDocumentPictureEditModal from "./TaxDocumentPictureEditModal";
-import Swal from "sweetalert2";
+import Swal from "../utils/alerts";
 import TaxDocumentPictureModal from "./TaxDocumentPictureModal";
 import TaxCalculationCustom from "./TaxCalculationCustom";
 

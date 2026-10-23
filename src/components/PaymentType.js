@@ -2,7 +2,7 @@
 import axios from "axios";
 import { PaymentTypeModal } from "./PaymentTypeModal";
 import { useTheme } from "../contexts/ThemeContext";
-import Swal from "sweetalert2";
+import Swal from "../utils/alerts";
 import "../styles/payment-type-module.css";
 
 const apiBaseUrl = process.env.REACT_APP_API_BASE_URL;

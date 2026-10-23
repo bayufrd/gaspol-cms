@@ -1,429 +1,269 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { useTheme } from "../contexts/ThemeContext";
+import "../styles/report-detail-modal.css";
+
+const hasValue = (value) =>
+  value !== null && value !== undefined && value !== "" && value !== "-";
+
+const fallback = (value) => hasValue(value) ? value : "-";
+
+const formatCurrency = (value) => {
+  if (value === null || value === undefined || value === "") return "-";
+  const number = Number(value);
+  if (!Number.isFinite(number)) return "-";
+  return new Intl.NumberFormat("id-ID", {
+    style: "currency",
+    currency: "IDR",
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  }).format(number);
+};
+
+const formatNumber = (value) => {
+  if (value === null || value === undefined || value === "") return "-";
+  const number = Number(value);
+  return Number.isFinite(number)
+    ? new Intl.NumberFormat("id-ID", { maximumFractionDigits: 2 }).format(number)
+    : fallback(value);
+};
+
+const formatDateTime = (value) => {
+  if (!value) return "-";
+  const normalized = typeof value === "string"
+    ? value.replace(/^[^,]+,\s*/, "").replace(" ", "T")
+    : value;
+  const date = new Date(normalized);
+  if (Number.isNaN(date.getTime())) return fallback(value);
+  return new Intl.DateTimeFormat("id-ID", {
+    weekday: "long",
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  }).format(date);
+};
+
+const formatDiscountType = (value) =>
+  value === 0 ? "Potongan" : value === 1 ? "Persentase" : "-";
+
+const formatDiscount = (value, isPercent) => {
+  if (value === null || value === undefined || value === "") return "-";
+  return isPercent === 1 ? `${formatNumber(value)}%` : formatCurrency(value);
+};
+
+const getStatusTone = (status) => {
+  const normalized = String(status || "").toLowerCase();
+  if (["success", "successful", "paid", "completed", "selesai"].some((key) => normalized.includes(key))) return "success";
+  if (["cancel", "failed", "gagal", "void"].some((key) => normalized.includes(key))) return "danger";
+  if (["refund", "pending", "process", "proses"].some((key) => normalized.includes(key))) return "warning";
+  return "neutral";
+};
+
+const InfoRow = ({ label, children, emphasis = false }) => {
+  if (!hasValue(children)) return null;
+
+  return (
+    <div className={`report-detail-row${emphasis ? " report-detail-row--emphasis" : ""}`}>
+      <dt>{label}</dt>
+      <dd>{children}</dd>
+    </div>
+  );
+};
+
+const Section = ({ title, count, children }) => (
+  <section className="report-detail-section">
+    <div className="report-detail-section__heading">
+      <h5>{title}</h5>
+      {count !== undefined && <span>{formatNumber(count)} item</span>}
+    </div>
+    {children}
+  </section>
+);
+
+const ItemCard = ({ item, index, type = "cart" }) => {
+  const canceled = type === "canceled";
+  const refund = type === "refund";
+  const title = refund ? "Item Refund" : canceled ? "Item Dibatalkan" : "Item Pesanan";
+  const price = refund ? item.menu_price : item.price;
+  const total = refund ? item.total_refund_price : item.total_price;
+
+  return (
+    <article className={`report-item-card report-item-card--${type}`}>
+      <header className="report-item-card__header">
+        <div>
+          <span className="report-item-card__eyebrow">{title} {index + 1}</span>
+          <h6>{fallback(item.menu_name)}</h6>
+        </div>
+        <strong>{formatCurrency(total)}</strong>
+      </header>
+      <dl className="report-item-card__grid">
+        <InfoRow label={refund ? "Waktu refund" : canceled ? "Waktu dibatalkan" : "Diperbarui"}>{formatDateTime(item.updated_at)}</InfoRow>
+        <InfoRow label="Jenis menu">{fallback(item.menu_type)}</InfoRow>
+        <InfoRow label="Varian">{fallback(item.varian)}</InfoRow>
+        <InfoRow label="Penyajian">{fallback(item.serving_type_name)}</InfoRow>
+        <InfoRow label="Catatan">{fallback(item.note_item)}</InfoRow>
+        <InfoRow label={refund ? "Qty refund" : "Qty"}>{formatNumber(refund ? item.qty_refund_item : item.qty)}</InfoRow>
+        <InfoRow label="Harga menu">{formatCurrency(price)}</InfoRow>
+        <InfoRow label="Kode diskon">{fallback(item.discount_code)}</InfoRow>
+        <InfoRow label="Jenis diskon">{formatDiscountType(item.discounts_is_percent)}</InfoRow>
+        <InfoRow label="Nilai diskon">{formatDiscount(item.discounts_value, item.discounts_is_percent)}</InfoRow>
+        {canceled && <InfoRow label="Alasan pembatalan">{fallback(item.cancel_reason)}</InfoRow>}
+        {refund && <InfoRow label="Alasan refund">{fallback(item.refund_reason_item)}</InfoRow>}
+        {refund && <InfoRow label="Metode refund">{fallback(item.payment_type_name)}</InfoRow>}
+      </dl>
+    </article>
+  );
+};
 
 export const ReportDetailModal = ({ show, onClose, selectedTransactionId }) => {
   const apiBaseUrl = process.env.REACT_APP_API_BASE_URL;
   const { isDark } = useTheme();
-
   const [transaction, setTransaction] = useState(null);
   const [showRefund, setShowRefund] = useState(false);
-  const [loading, setLoading] = useState(false); // State for loading
-  const [loadingProgress, setLoadingProgress] = useState(0); // State for loading progress
-  const [intervalId, setIntervalId] = useState(null); // State for managing the interval
+  const [loading, setLoading] = useState(false);
+  const [loadingProgress, setLoadingProgress] = useState(0);
 
   useEffect(() => {
-    if (show && selectedTransactionId) {
-      const fetchData = async () => {
-        setLoading(true); // Start loading
-        setLoadingProgress(0); // Reset progress before starting
-        let progress = 0;
-
-        // Start an interval to update loading progress
-        const id = setInterval(() => {
-          if (progress < 100) {
-            progress += 10; // Timer increases progress
-            setLoadingProgress(progress);
-          } else {
-            clearInterval(id); // Stop the interval when finished
-          }
-        }, 1000); // Update every second
-
-        setIntervalId(id); // Store the interval ID
-
-        try {
-          const response = await axios.get(
-            `${apiBaseUrl}/transaction/${selectedTransactionId}`, {
-            params: {
-              is_report: true,
-            },
-          }
-          );
-          const transactionsData = response.data.data;
-          setTransaction(transactionsData);
-          if (transactionsData.total_refund > 0) {
-            setShowRefund(true);
-          }
-        } catch (error) {
-          console.error("Error fetching transaction:", error);
-        } finally {
-          clearInterval(id); // Ensure the interval is cleared
-          setLoading(false); // Stop loading
-        }
-      };
-      fetchData();
-    } else {
+    if (!show || !selectedTransactionId) {
       setShowRefund(false);
+      return undefined;
     }
+
+    let active = true;
+    let progress = 0;
+    setLoading(true);
+    setLoadingProgress(0);
+    const id = setInterval(() => {
+      progress = Math.min(progress + 10, 90);
+      if (active) setLoadingProgress(progress);
+    }, 1000);
+
+    axios.get(`${apiBaseUrl}/transaction/${selectedTransactionId}`, {
+      params: { is_report: true },
+    }).then((response) => {
+      if (!active) return;
+      const data = response.data.data;
+      setTransaction(data);
+      setShowRefund(data.total_refund > 0);
+      setLoadingProgress(100);
+    }).catch((error) => {
+      console.error("Error fetching transaction:", error);
+    }).finally(() => {
+      clearInterval(id);
+      if (active) setLoading(false);
+    });
+
+    return () => {
+      active = false;
+      clearInterval(id);
+    };
   }, [show, selectedTransactionId, apiBaseUrl]);
 
-  // Clear interval on unmount
-  useEffect(() => {
-    return () => {
-      if (intervalId) clearInterval(intervalId);
-    };
-  }, [intervalId]);
-
-  const showRefundDetails =
-    transaction?.refund_details && transaction.refund_details.length > 0;
+  const cartDetails = transaction?.cart_details || [];
+  const canceledItems = transaction?.canceled_items || [];
+  const refundDetails = transaction?.refund_details || [];
 
   return (
     <>
-      <div className={`modal fade text-left ${show ? "show" : ""}`} id="inlineForm" role="dialog" aria-labelledby="myModalLabel33" aria-modal={show ? "true" : undefined} aria-hidden={show ? undefined : "true"} style={show ? { display: "block" } : { display: "none" }}>
-        <div className="modal-report modal-dialog modal-dialog-centered modal-dialog-scrollable" role="document">
+      <div
+        className={`modal fade text-left report-detail-modal ${show ? "show" : ""}`}
+        role="dialog"
+        aria-labelledby="reportDetailTitle"
+        aria-modal={show ? "true" : undefined}
+        aria-hidden={show ? undefined : "true"}
+        data-theme={isDark ? "dark" : "light"}
+        style={{ display: show ? "block" : "none" }}
+      >
+        <div className="modal-dialog modal-dialog-centered" role="document">
           <div className="modal-content">
-            <div className="modal-header">
-              <h4 className="modal-title" id="myModalLabel33">Detail Laporan</h4>
-              <button type="button" className="close" aria-label="Close" onClick={onClose}>
-                <i data-feather="x"></i>x
-              </button>
-            </div>
-            <div className="modal-body scrollable-content">
-              {/* Show loading UI with progress */}
+            <header className="modal-header">
+              <div className="report-detail-title">
+                <span className="report-detail-title__eyebrow">Laporan transaksi</span>
+                <h4 className="modal-title" id="reportDetailTitle">Detail Laporan</h4>
+              </div>
+              <div className="report-detail-header-actions">
+                {transaction && (
+                  <span className={`report-status report-status--${getStatusTone(transaction.status)}`}>
+                    {fallback(transaction.status)}
+                  </span>
+                )}
+                <button type="button" className="report-detail-close" aria-label="Tutup detail laporan" onClick={onClose}>
+                  <i className="bi bi-x-lg" aria-hidden="true"></i>
+                </button>
+              </div>
+            </header>
+
+            <div className="modal-body">
               {loading ? (
-                <div className="loading-content">
-                  <h5>Loading... {loadingProgress}%</h5>
-                  <div className="progress">
-                    <div className="progress-bar" role="progressbar" style={{ width: `${loadingProgress}%` }} aria-valuenow={loadingProgress} aria-valuemin="0" aria-valuemax="100">{loadingProgress}%</div>
-                  </div>
+                <div className="report-detail-loading" role="status" aria-live="polite">
+                  <div className="report-detail-loading__meta"><span>Memuat detail laporan</span><strong>{loadingProgress}%</strong></div>
+                  <div className="progress"><div className="progress-bar" style={{ width: `${loadingProgress}%` }} /></div>
                 </div>
               ) : transaction ? (
-                <>
-                  <h4 style={{ textAlign: "center", marginBottom: "3vh" }}>Transaction</h4>
-                  <h5 className={`status-${transaction.status?.toLowerCase()}`}>
-                    "{transaction.status}"
-                  </h5>
-                  <div className="transaction-info-card">
-                    <div className="transaction-info-row">
-                      <span className="transaction-info-label">Invoice Number</span>
-                      <span className="transaction-info-value">{transaction.invoice_number || "-"}</span>
-                    </div>
-                    <div className="transaction-info-row">
-                      <span className="transaction-info-label">Transaction Updated At</span>
-                      <span className="transaction-info-value">{transaction.transaction_date_show}</span>
-                    </div>
-                    <div className="transaction-info-row">
-                      <span className="transaction-info-label">Transaction Reference</span>
-                      <span className="transaction-info-value">{transaction.transaction_ref || '-'}</span>
-                    </div>
-                    <div className="transaction-info-row">
-                      <span className="transaction-info-label">Customer Name</span>
-                      <span className="transaction-info-value">{transaction.customer_name}</span>
-                    </div>
-                    <div className="transaction-info-row">
-                      <span className="transaction-info-label">Customer Seat</span>
-                      <span className="transaction-info-value">{transaction.customer_seat}</span>
-                    </div>
-                    <div className="transaction-info-row">
-                      <span className="transaction-info-label">Payment Type</span>
-                      <span className="transaction-info-value">{transaction.payment_type || "-"}</span>
-                    </div>
-                    <div className="transaction-info-row">
-                      <span className="transaction-info-label">Discount Code Cart</span>
-                      <span className="transaction-info-value">{transaction.discount_code || "-"}</span>
-                    </div>
-                    <div className="transaction-info-row">
-                      <span className="transaction-info-label">Discount Type Cart</span>
-                      <span className="transaction-info-value">{transaction.discounts_is_percent === 0 ? "Potongan" : transaction.discounts_is_percent === 1 ? "Persenan" : "-"}</span>
-                    </div>
-                    <div className="transaction-info-row">
-                      <span className="transaction-info-label">Discount Value Cart</span>
-                      <span className="transaction-info-value">{transaction.discounts_value ? transaction.discounts_value + (transaction.discounts_is_percent === 1 ? " %" : "") : "-"}</span>
-                    </div>
-                    <div className="transaction-info-row">
-                      <span className="transaction-info-label">Subtotal</span>
-                      <span className="transaction-info-value">{transaction.subtotal || "-"}</span>
-                    </div>
-                    <div className="transaction-info-row transaction-info-total">
-                      <span className="transaction-info-label">Total</span>
-                      <span className="transaction-info-value">{transaction.total || "-"}</span>
-                    </div>
-                  </div>
-                  {transaction.member_id !== null && (
-                    <>
-                      <hr></hr>
-                      <h4 style={{ textAlign: "center", marginBottom: "3vh" }}>
-                        Membership
-                      </h4>
-                      <div className="transaction-info-card">
-                        <div className="transaction-info-row">
-                          <span className="transaction-info-label">Name</span>
-                          <span className="transaction-info-value">{transaction.member_name || "-"}</span>
-                        </div>
-                        <div className="transaction-info-row">
-                          <span className="transaction-info-label">Phone</span>
-                          <span className="transaction-info-value">{transaction.member_phone_number || "-"}</span>
-                        </div>
-                      </div>
-                    </>
+                <div className="report-detail-content">
+                  <Section title="Transaksi">
+                    <dl className="report-detail-panel report-detail-grid">
+                      <InfoRow label="Nomor invoice">{fallback(transaction.invoice_number)}</InfoRow>
+                      <InfoRow label="Waktu transaksi">{formatDateTime(transaction.transaction_date_show)}</InfoRow>
+                      <InfoRow label="Referensi transaksi">{fallback(transaction.transaction_ref)}</InfoRow>
+                      <InfoRow label="Nama pelanggan">{fallback(transaction.customer_name)}</InfoRow>
+                      <InfoRow label="Nomor meja">{fallback(transaction.customer_seat)}</InfoRow>
+                      <InfoRow label="Metode pembayaran">{fallback(transaction.payment_type)}</InfoRow>
+                      <InfoRow label="Kode diskon cart">{fallback(transaction.discount_code)}</InfoRow>
+                      <InfoRow label="Jenis diskon cart">{formatDiscountType(transaction.discounts_is_percent)}</InfoRow>
+                      <InfoRow label="Nilai diskon cart">{formatDiscount(transaction.discounts_value, transaction.discounts_is_percent)}</InfoRow>
+                      <InfoRow label="Subtotal">{formatCurrency(transaction.subtotal)}</InfoRow>
+                      <InfoRow label="Total" emphasis>{formatCurrency(transaction.total)}</InfoRow>
+                    </dl>
+                  </Section>
+
+                  {transaction.member_id !== null && (hasValue(transaction.member_name) || hasValue(transaction.member_phone_number)) && (
+                    <Section title="Membership">
+                      <dl className="report-detail-panel report-detail-grid">
+                        <InfoRow label="Nama member">{transaction.member_name}</InfoRow>
+                        <InfoRow label="Nomor telepon">{transaction.member_phone_number}</InfoRow>
+                      </dl>
+                    </Section>
                   )}
-                  {transaction.cart_details.length > 0 && (
-                    <>
-                      <hr></hr>
-                      <h4 style={{ textAlign: "center", marginBottom: "3vh" }}>
-                        Cart
-                      </h4>
-                      <div className="cart-items-container">
-                        {transaction.cart_details.map((item, index) => (
-                          <div key={index} className="cart-item-card">
-                            <div className="cart-item-header">
-                              <span className="cart-item-number">Item {index + 1}</span>
-                            </div>
-                            <div className="cart-item-body">
-                              <div className="cart-item-row">
-                                <span className="cart-item-label">Item Updated At</span>
-                                <span className="cart-item-value">{item.updated_at}</span>
-                              </div>
-                              <div className="cart-item-row">
-                                <span className="cart-item-label">Menu Type</span>
-                                <span className="cart-item-value">{item.menu_type}</span>
-                              </div>
-                              <div className="cart-item-row">
-                                <span className="cart-item-label">Menu Name</span>
-                                <span className="cart-item-value">{item.menu_name}</span>
-                              </div>
-                              <div className="cart-item-row">
-                                <span className="cart-item-label">Varian</span>
-                                <span className="cart-item-value">{item.varian || "-"}</span>
-                              </div>
-                              <div className="cart-item-row">
-                                <span className="cart-item-label">Serving Type</span>
-                                <span className="cart-item-value">{item.serving_type_name}</span>
-                              </div>
-                              <div className="cart-item-row">
-                                <span className="cart-item-label">Note</span>
-                                <span className="cart-item-value">{item.note_item || "-"}</span>
-                              </div>
-                              <div className="cart-item-row">
-                                <span className="cart-item-label">Qty</span>
-                                <span className="cart-item-value">{item.qty}</span>
-                              </div>
-                              <div className="cart-item-row">
-                                <span className="cart-item-label">Menu Price</span>
-                                <span className="cart-item-value">{item.price}</span>
-                              </div>
-                              <div className="cart-item-row">
-                                <span className="cart-item-label">Discount Code</span>
-                                <span className="cart-item-value">{item.discount_code || "-"}</span>
-                              </div>
-                              <div className="cart-item-row">
-                                <span className="cart-item-label">Discount Value</span>
-                                <span className="cart-item-value">{item.discounts_value || "-"}</span>
-                              </div>
-                              <div className="cart-item-row">
-                                <span className="cart-item-label">Discount Type</span>
-                                <span className="cart-item-value">
-                                  {item.discounts_is_percent === 0
-                                    ? "Potongan"
-                                    : item.discounts_is_percent === 1
-                                      ? "Persenan"
-                                      : "-"}
-                                </span>
-                              </div>
-                              <div className="cart-item-row cart-item-total">
-                                <span className="cart-item-label">Total Price</span>
-                                <span className="cart-item-value">{item.total_price}</span>
-                              </div>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </>
+
+                  {cartDetails.length > 0 && (
+                    <Section title="Cart" count={cartDetails.length}>
+                      <div className="report-item-list">{cartDetails.map((item, index) => <ItemCard key={item.id || index} item={item} index={index} />)}</div>
+                    </Section>
                   )}
-                  {transaction.canceled_items.length > 0 && (
-                    <>
-                      <hr></hr>
-                      <h4 style={{ textAlign: "center", marginBottom: "3vh" }}>
-                        Canceled Items
-                      </h4>
-                      <div className="cart-items-container">
-                        {transaction.canceled_items.map((item, index) => (
-                          <div key={index} className="cart-item-card cart-item-canceled">
-                            <div className="cart-item-header">
-                              <span className="cart-item-number">Canceled Item {index + 1}</span>
-                            </div>
-                            <div className="cart-item-body">
-                              <div className="cart-item-row">
-                                <span className="cart-item-label">Cancel At</span>
-                                <span className="cart-item-value">{item.updated_at}</span>
-                              </div>
-                              <div className="cart-item-row">
-                                <span className="cart-item-label">Cancel Reason</span>
-                                <span className="cart-item-value">{item.cancel_reason}</span>
-                              </div>
-                              <div className="cart-item-row">
-                                <span className="cart-item-label">Menu Type</span>
-                                <span className="cart-item-value">{item.menu_type}</span>
-                              </div>
-                              <div className="cart-item-row">
-                                <span className="cart-item-label">Menu Name</span>
-                                <span className="cart-item-value">{item.menu_name}</span>
-                              </div>
-                              <div className="cart-item-row">
-                                <span className="cart-item-label">Varian</span>
-                                <span className="cart-item-value">{item.varian || "-"}</span>
-                              </div>
-                              <div className="cart-item-row">
-                                <span className="cart-item-label">Serving Type</span>
-                                <span className="cart-item-value">{item.serving_type_name}</span>
-                              </div>
-                              <div className="cart-item-row">
-                                <span className="cart-item-label">Note</span>
-                                <span className="cart-item-value">{item.note_item || "-"}</span>
-                              </div>
-                              <div className="cart-item-row">
-                                <span className="cart-item-label">Qty</span>
-                                <span className="cart-item-value">{item.qty}</span>
-                              </div>
-                              <div className="cart-item-row">
-                                <span className="cart-item-label">Menu Price</span>
-                                <span className="cart-item-value">{item.price}</span>
-                              </div>
-                              <div className="cart-item-row">
-                                <span className="cart-item-label">Discount Code</span>
-                                <span className="cart-item-value">{item.discount_code || "-"}</span>
-                              </div>
-                              <div className="cart-item-row">
-                                <span className="cart-item-label">Discount Value</span>
-                                <span className="cart-item-value">{item.discounts_value || "-"}</span>
-                              </div>
-                              <div className="cart-item-row">
-                                <span className="cart-item-label">Discount Type</span>
-                                <span className="cart-item-value">
-                                  {item.discounts_is_percent === 0
-                                    ? "Potongan"
-                                    : item.discounts_is_percent === 1
-                                      ? "Persenan"
-                                      : "-"}
-                                </span>
-                              </div>
-                              <div className="cart-item-row cart-item-total">
-                                <span className="cart-item-label">Total Price</span>
-                                <span className="cart-item-value">{item.total_price}</span>
-                              </div>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </>
+
+                  {canceledItems.length > 0 && (
+                    <Section title="Item Dibatalkan" count={canceledItems.length}>
+                      <div className="report-item-list">{canceledItems.map((item, index) => <ItemCard key={item.id || index} item={item} index={index} type="canceled" />)}</div>
+                    </Section>
                   )}
+
                   {showRefund && (
-                    <>
-                      <hr></hr>
-                      <h4
-                        style={{ textAlign: "center", marginBottom: "3vh" }}
-                      >
-                        Refund
-                      </h4>
-                      <div className="transaction-info-card">
-                        <div className="transaction-info-row">
-                          <span className="transaction-info-label">Status</span>
-                          <span className="transaction-info-value" style={{ color: transaction.is_refund_all ? '#fd7e14' : 'initial' }}>
-                            {transaction.is_refund_all ? "Refunded" : "-"}
-                          </span>
-                        </div>
-                        <div className="transaction-info-row">
-                          <span className="transaction-info-label">Refund All Reason</span>
-                          <span className="transaction-info-value">{transaction.refund_all_reason || "-"}</span>
-                        </div>
-                        <div className="transaction-info-row">
-                          <span className="transaction-info-label">Refund Payment Type All</span>
-                          <span className="transaction-info-value">{transaction.refund_payment_type_all_name || "-"}</span>
-                        </div>
-                        <div className="transaction-info-row transaction-info-total">
-                          <span className="transaction-info-label">Total Refund</span>
-                          <span className="transaction-info-value">{transaction.total_refund}</span>
-                        </div>
-                      </div>
-                    </>
+                    <Section title="Refund">
+                      <dl className="report-detail-panel report-detail-grid">
+                        <InfoRow label="Status">{transaction.is_refund_all ? "Refunded" : "-"}</InfoRow>
+                        <InfoRow label="Alasan refund penuh">{fallback(transaction.refund_all_reason)}</InfoRow>
+                        <InfoRow label="Metode refund">{fallback(transaction.refund_payment_type_all_name)}</InfoRow>
+                        <InfoRow label="Total refund" emphasis>{formatCurrency(transaction.total_refund)}</InfoRow>
+                      </dl>
+                    </Section>
                   )}
-                  {showRefundDetails && (
-                    <>
-                      <hr></hr>
-                      <h4
-                        style={{ textAlign: "center", marginBottom: "3vh" }}
-                      >
-                        Refund Detail
-                      </h4>
-                      <div className="cart-items-container">
-                        {transaction.refund_details.map((item, index) => (
-                          <div key={index} className="cart-item-card">
-                            <div className="cart-item-header">
-                              <span className="cart-item-number">Refund Item {index + 1}</span>
-                            </div>
-                            <div className="cart-item-body">
-                              <div className="cart-item-row">
-                                <span className="cart-item-label">Refund Time</span>
-                                <span className="cart-item-value">{item.updated_at}</span>
-                              </div>
-                              <div className="cart-item-row">
-                                <span className="cart-item-label">Menu Type</span>
-                                <span className="cart-item-value">{item.menu_type}</span>
-                              </div>
-                              <div className="cart-item-row">
-                                <span className="cart-item-label">Menu Name</span>
-                                <span className="cart-item-value">{item.menu_name}</span>
-                              </div>
-                              <div className="cart-item-row">
-                                <span className="cart-item-label">Menu Varian</span>
-                                <span className="cart-item-value">{item.varian || "-"}</span>
-                              </div>
-                              <div className="cart-item-row">
-                                <span className="cart-item-label">Serving Type</span>
-                                <span className="cart-item-value">{item.serving_type_name}</span>
-                              </div>
-                              <div className="cart-item-row">
-                                <span className="cart-item-label">Note Item</span>
-                                <span className="cart-item-value">{item.note_item || "-"}</span>
-                              </div>
-                              <div className="cart-item-row">
-                                <span className="cart-item-label">Qty Refund Item</span>
-                                <span className="cart-item-value">{item.qty_refund_item}</span>
-                              </div>
-                              <div className="cart-item-row">
-                                <span className="cart-item-label">Menu Price</span>
-                                <span className="cart-item-value">{item.menu_price}</span>
-                              </div>
-                              <div className="cart-item-row">
-                                <span className="cart-item-label">Discount Code</span>
-                                <span className="cart-item-value">{item.discount_code || "-"}</span>
-                              </div>
-                              <div className="cart-item-row">
-                                <span className="cart-item-label">Discount Value</span>
-                                <span className="cart-item-value">{item.discounts_value || "-"}</span>
-                              </div>
-                              <div className="cart-item-row">
-                                <span className="cart-item-label">Discount Type</span>
-                                <span className="cart-item-value">{item.discounts_is_percent ? (item.discounts_is_percent === 1 ? "Persen" : "Bukan Persen") : "-"}</span>
-                              </div>
-                              <div className="cart-item-row">
-                                <span className="cart-item-label">Refund Reason Item</span>
-                                <span className="cart-item-value">{item.refund_reason_item || "-"}</span>
-                              </div>
-                              <div className="cart-item-row">
-                                <span className="cart-item-label">Payment Type Refund</span>
-                                <span className="cart-item-value">{item.payment_type_name || "-"}</span>
-                              </div>
-                              <div className="cart-item-row cart-item-total">
-                                <span className="cart-item-label">Total Refund Price</span>
-                                <span className="cart-item-value">{item.total_refund_price}</span>
-                              </div>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </>
+
+                  {refundDetails.length > 0 && (
+                    <Section title="Detail Refund" count={refundDetails.length}>
+                      <div className="report-item-list">{refundDetails.map((item, index) => <ItemCard key={item.id || index} item={item} index={index} type="refund" />)}</div>
+                    </Section>
                   )}
-                </>
-              ) : null}
-            </div>
-            <div className="modal-footer">
-              <button type="button" className="btn btn-light-secondary" onClick={onClose}>Close</button>
+                </div>
+              ) : <div className="report-detail-empty">-</div>}
             </div>
           </div>
         </div>
       </div>
-      <div className={show ? "modal-backdrop fade show" : undefined}></div>
+      {show && <div className="modal-backdrop fade show"></div>}
     </>
   );
 };

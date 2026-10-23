@@ -1,0 +1,49 @@
+.login-page-modern {
+  min-height: 100dvh !important;
+  padding: 32px 20px !important;
+  background-color: #f8fafc !important;
+  background-image: radial-gradient(circle at 15% 15%, rgba(255, 107, 53, .09), transparent 28%), radial-gradient(circle at 85% 85%, rgba(15, 23, 42, .06), transparent 30%) !important;
+}
+
+.login-panel-modern {
+  width: min(100%, 440px) !important;
+  padding: 34px !important;
+  border: 1px solid #e4e7ec !important;
+  border-radius: 16px !important;
+  background: rgba(255, 255, 255, .96) !important;
+  box-shadow: 0 24px 60px rgba(16, 24, 40, .12) !important;
+  backdrop-filter: blur(14px);
+}
+
+.login-brand-modern {
+  display: grid;
+  width: 82px;
+  height: 72px;
+  place-items: center;
+  margin: 0 auto 18px;
+  overflow: hidden;
+  border: 1px solid #fed7c3;
+  border-radius: 16px;
+  background: #fff7ed;
+}
+
+.login-brand-modern img { width: 68px; height: 58px; object-fit: contain; }
+.login-form-modern input { min-height: 46px; border-radius: 9px !important; }
+.login-form-modern button[type="submit"] { min-height: 46px; border-radius: 9px !important; }
+.login-form-modern button:focus-visible, .login-form-modern input:focus-visible { outline: 2px solid #ff6b35; outline-offset: 2px; }
+
+body.theme-dark .login-page-modern { background-color: #0f172a !important; background-image: radial-gradient(circle at 15% 15%, rgba(255, 107, 53, .14), transparent 28%), radial-gradient(circle at 85% 85%, rgba(148, 163, 184, .05), transparent 30%) !important; }
+body.theme-dark .login-panel-modern { border-color: #334155 !important; background: rgba(30, 41, 59, .96) !important; }
+body.theme-dark .login-brand-modern { border-color: #7c2d12; background: #431407; }
+
+@media (max-width: 575.98px) {
+  .login-page-modern { align-items: flex-start !important; padding: 12px !important; }
+  .login-panel-modern { margin-block: 8px !important; padding: 28px 20px 22px !important; border-radius: 14px !important; }
+  .login-brand-modern { width: 72px; height: 64px; margin-bottom: 14px; }
+  .login-brand-modern img { width: 60px; height: 52px; }
+}
+
+@media (max-height: 760px) and (min-width: 576px) {
+  .login-page-modern { align-items: flex-start !important; }
+  .login-panel-modern { margin-block: 8px !important; }
+}

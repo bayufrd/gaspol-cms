@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
-import Swal from "sweetalert2";
+import Swal from "../utils/alerts";
 
 const apiBaseUrl = process.env.REACT_APP_API_BASE_URL;
 
