@@ -45,6 +45,20 @@ const LoginForm = ({ setIsLoggedIn, setUserTokenData }) => {
       title: "Sambel'e Nyah Ti",
       description: "Yogyakarta"
     },
+    {
+      src: "/assets/images/brand/doubleo.png",
+      alt: "DOUBLE O",
+      link: null,
+      title: "DOUBLE O",
+      description: "Yogyakarta"
+    },
+    {
+      src: "/assets/images/brand/greenbeans.png",
+      alt: "GreenBeans",
+      link: null,
+      title: "GreenBeans",
+      description: "Yogyakarta"
+    },
   ];
 
   // Styles dengan pendekatan responsif
