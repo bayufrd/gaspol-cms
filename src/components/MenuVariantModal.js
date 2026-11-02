@@ -79,11 +79,11 @@ export const MenuVariantModal = ({
     }));
   };
 
-  const handlePriceChange = (priceId, value) => {
+  const handlePriceChange = (servingTypeId, menuDetailId, value) => {
     setFormData(prev => ({
       ...prev,
       customMenuPrices: prev.customMenuPrices.map(p =>
-        p.id === priceId
+        p.serving_type_id === servingTypeId && p.menu_detail_id === menuDetailId
           ? { ...p, price: parseInt(value) || 0 }
           : p
       )
@@ -230,7 +230,7 @@ export const MenuVariantModal = ({
                   {formData.customMenuPrices.length > 0 ? (
                     <div className="list-group">
                       {formData.customMenuPrices.map((priceItem) => (
-                        <div key={priceItem.id} className="list-group-item">
+                        <div key={`${priceItem.menu_detail_id}-${priceItem.serving_type_id}`} className="list-group-item">
                           <div className="d-flex align-items-center gap-2">
                             <label className="fw-bold mb-0" style={{ minWidth: '150px' }}>
                               {priceItem.name}
@@ -241,7 +241,7 @@ export const MenuVariantModal = ({
                                 className="form-control"
                                 placeholder="0"
                                 value={priceItem.price}
-                                onChange={(e) => handlePriceChange(priceItem.id, e.target.value)}
+                                onChange={(e) => handlePriceChange(priceItem.serving_type_id, priceItem.menu_detail_id, e.target.value)}
                               />
                             </div>
                           </div>
