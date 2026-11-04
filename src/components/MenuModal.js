@@ -235,27 +235,58 @@ export const MenuModal = ({
     setMenu((prev) => ({ ...prev, menu_details: updatedMenuDetails }));
   };
 
-  const handleVariantModalClose = (newVariantData) => {
+  const refreshSelectedMenuDetails = async () => {
+    if (!selectedMenuId) return;
+    try {
+      const response = await axios.get(`${apiBaseUrl}/v3/menu/${selectedMenuId}`, {
+        params: {
+          outlet_id: userTokenData.outlet_id,
+        },
+      });
+      const menuData = response.data.data;
+      if (menuData) {
+        setMenu((prev) => ({
+          ...prev,
+          price: menuData.price,
+          main_prices: menuData.main_prices,
+          menu_details: menuData.menu_details || prev.menu_details,
+        }));
+      }
+    } catch (error) {
+      console.error("Error refreshing menu details:", error);
+    }
+  };
+
+  const handleVariantModalClose = async (newVariantData) => {
     setShowVariantModal(false);
     setEditingVariantIndex(null);
     
-    // If new variant data passed, add it to menu_details
+    // If new variant data passed, add it to menu_details (will be persisted on Simpan Menu)
     if (newVariantData && newVariantData.varian) {
+      const variantPrices = Array.isArray(newVariantData.prices) ? newVariantData.prices : [];
+      const dineInEntry =
+        variantPrices.find((p) => String(p.name || "").trim().toLowerCase() === "dine in") ||
+        variantPrices.find((p) => Number(p.price) > 0) ||
+        null;
+      const defaultPrice = dineInEntry ? Number(dineInEntry.price || 0) : 0;
+
       setMenu((prev) => ({
         ...prev,
         menu_details: [
           ...prev.menu_details,
           {
             varian: newVariantData.varian,
-            price: 0,
-            prices: newVariantData.prices || []
+            price: defaultPrice,
+            prices: variantPrices
           }
         ],
       }));
+      return;
     }
     
-    // Refresh to get latest data
+    // Refresh to get latest data when existing main/variant prices were updated
     if (selectedMenuId) {
+      await refreshSelectedMenuDetails();
       getMenus();
     }
   };
@@ -306,12 +337,13 @@ export const MenuModal = ({
       formData.append("outlet_id", menu.outlet_id);
       formData.append("is_active", menu.is_active);
 
-      // Prepare menu_details - prices will be managed via Edit Harga modal
+      // Prepare menu_details - include per-serving-type prices for newly added variants
       if (menu.menu_details.length > 0) {
         const menuDetailsToSave = menu.menu_details.map(detail => ({
           varian: detail.varian,
           price: detail.price || 0,
-          menu_detail_id: detail.menu_detail_id // Include for updates
+          menu_detail_id: detail.menu_detail_id, // Include for updates
+          prices: Array.isArray(detail.prices) ? detail.prices : []
         }));
         formData.append("menu_details", JSON.stringify(menuDetailsToSave));
       }

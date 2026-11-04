@@ -37,16 +37,18 @@ export const MenuVariantModal = ({
 
       const allPrices = response.data.data.custom_menu_prices || [];
       
-      // Filter hanya serving type yang is_active = 1
-      const activePrices = allPrices.filter(p => Number(p.outlet_id) === Number(outletId) || p.outlet_id === 1);
+      // Filter hanya serving type untuk outlet aktif (fallback ke allPrices jika belum ada tag outlet_id)
+      const sameOutletPrices = allPrices.filter(p => Number(p.outlet_id) === Number(outletId));
+      const activePrices = sameOutletPrices.length > 0 ? sameOutletPrices : allPrices;
       
       // Filter prices for display based on variantId:
       // - variantId === 0: menu utama (menu_detail_id = 0)
       // - variantId > 0: varian tertentu (menu_detail_id = variantId)
       // - variantId === null: tambah varian baru (menu_detail_id = 0 as template)
-      const variantPrices = variantId !== null
-        ? activePrices.filter(p => p.menu_detail_id === variantId)
-        : activePrices.filter(p => p.menu_detail_id === 0);
+      const targetDetailId = variantId !== null ? Number(variantId) : 0;
+      const variantPrices = activePrices.filter(
+        p => Number(p.menu_detail_id) === targetDetailId
+      );
       
       // Dapatkan info serving types dari response
       const servingTypes = response.data.data.custom_prices || [];
@@ -55,7 +57,7 @@ export const MenuVariantModal = ({
       setFormData({
         varian: variantName || '',
         customMenuPrices: variantPrices.filter(p =>
-          activeServingTypes.some(st => st.id === p.serving_type_id)
+          activeServingTypes.some(st => Number(st.id) === Number(p.serving_type_id))
         ),
         allPrices: activePrices,  // Keep ALL active prices for save
         activeServingTypeIds: new Set(activeServingTypes.map(st => st.id))
@@ -103,6 +105,16 @@ export const MenuVariantModal = ({
 
     setLoading(true);
     try {
+      // Jika tambah varian baru (variantId === null), jangan timpa menu_detail_id = 0 di server;
+      // kembalikan daftar harga varian baru ke MenuModal agar disimpan saat membuat varian baru.
+      if (variantId === null) {
+        onClose({
+          varian: formData.varian.trim(),
+          prices: formData.customMenuPrices
+        });
+        return;
+      }
+
       // If editing existing variant (variantId > 0) and name changed, update variant name first
       if (variantId > 0 && formData.varian.trim() && formData.varian !== variantName) {
         await axios.patch(`${apiBaseUrl}/menu-detail/${variantId}/variant`, {
@@ -110,37 +122,20 @@ export const MenuVariantModal = ({
         });
       }
 
-      // Merge edited prices with all prices to avoid deletion
-      const editedPricesMap = new Map();
-      formData.customMenuPrices.forEach(p => {
-        const key = `${p.menu_detail_id}_${p.serving_type_id}`;
-        editedPricesMap.set(key, p.price);
-      });
-
-      // Update allPrices with edited values, filter hanya is_active = 1
-      const custom_prices = formData.allPrices
+      // Kirim harga yang diedit khusus untuk variantId ini (menu utama = 0 atau varian > 0)
+      const custom_prices = formData.customMenuPrices
         .filter(p => formData.activeServingTypeIds.has(p.serving_type_id))
-        .map(p => {
-          const key = `${p.menu_detail_id}_${p.serving_type_id}`;
-          const editedPrice = editedPricesMap.get(key);
-          
-          return {
-            menu_detail_id: p.menu_detail_id,
-            serving_type_id: p.serving_type_id,
-            price: editedPrice !== undefined ? editedPrice : p.price  // Use edited or original
-          };
-        });
+        .map(p => ({
+          menu_detail_id: Number(variantId),
+          serving_type_id: p.serving_type_id,
+          price: Number(p.price || 0)
+        }));
 
       await axios.patch(`${apiBaseUrl}/v2/custom-menu-price/${menuId}`, {
         custom_prices
       });
 
-      // Jika tambah varian baru (variantId === null), pass the varian name back
-      if (variantId === null && formData.varian.trim()) {
-        onClose({ varian: formData.varian, prices: formData.customMenuPrices });
-      } else {
-        onClose();
-      }
+      onClose();
 
       Swal.fire({
         icon: 'success',
