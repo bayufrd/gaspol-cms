@@ -1,160 +1,111 @@
-/* ========================================
-   MEMBER MODULE - MODERN & MINIMALIST STYLES
-   ======================================== */
+/* ==========================================================================
+   MEMBER MODULE — TABLE, CARDS & HEADER CONTROLS
+   taste-skill v2 · Style: framed-sheet (seed 923402679 · light)
+   ========================================================================== */
 
-/* Header Controls */
 .member-header-controls {
   display: flex;
-  gap: 16px;
+  gap: 12px;
   align-items: stretch;
   flex-wrap: wrap;
 }
 
 .member-search-wrapper {
   flex: 1;
-  min-width: 250px;
+  min-width: 240px;
 }
 
 .member-search-wrapper .input-group {
-  background: #f3f4f6;
-  border-radius: 8px;
-  border: 1px solid #e5e7eb;
-  transition: all 0.25s ease;
+  background: var(--surface, #ffffff);
+  border-radius: 6px;
+  border: 1px solid var(--control, #cdced1);
+  overflow: hidden;
 }
 
 .member-search-wrapper .input-group:focus-within {
-  background: #ffffff;
-  border-color: #FF6B35;
-  box-shadow: 0 0 0 3px rgba(255, 107, 53, 0.1);
+  border-color: var(--accent, #1b6c80);
 }
 
 .member-search-wrapper .input-group-text {
-  background: transparent;
+  background: var(--raised, #f4f6f8);
   border: none;
-  color: #9ca3af;
+  border-right: 1px solid var(--rule, #f0f1f2);
+  color: var(--muted, #525558);
   padding: 0 12px;
 }
 
 .member-search-wrapper .form-control {
   background: transparent;
-  border: none;
-  padding: 10px 0;
-  color: #111827;
-  font-size: 0.9375rem;
+  border: none !important;
+  padding: 8px 12px;
+  color: var(--text, #131416);
+  font-size: 14px;
 }
 
-.member-search-wrapper .form-control:focus {
-  box-shadow: none;
-  background: transparent;
-  border: none;
-}
-
-.member-search-wrapper .form-control::placeholder {
-  color: #9ca3af;
-}
-
-/* Dark Mode - Header Controls */
-body.theme-dark .member-search-wrapper .input-group {
-  background: rgba(15, 23, 42, 0.5);
-  border-color: #334155;
-}
-
-body.theme-dark .member-search-wrapper .input-group:focus-within {
-  background: #0f172a;
-  border-color: #FF6B35;
-  box-shadow: 0 0 0 3px rgba(255, 107, 53, 0.1);
-}
-
-body.theme-dark .member-search-wrapper .input-group-text {
-  color: #64748b;
-}
-
-body.theme-dark .member-search-wrapper .form-control {
-  color: #f1f5f9;
-}
-
-body.theme-dark .member-search-wrapper .form-control::placeholder {
-  color: #64748b;
-}
-
-/* Action Buttons */
 .member-action-buttons {
   display: flex;
-  gap: 12px;
+  gap: 8px;
   flex-wrap: wrap;
 }
 
 .member-action-buttons .btn {
-  padding: 10px 16px;
-  border-radius: 8px;
+  padding: 8px 14px;
+  border-radius: 6px;
   font-weight: 500;
-  transition: all 0.25s ease;
   white-space: nowrap;
-  border: none;
-  cursor: pointer;
 }
 
-.member-action-buttons .btn-primary {
-  background: linear-gradient(135deg, #FF6B35 0%, #FF8A5B 100%);
-  color: white;
-}
-
-.member-action-buttons .btn-primary:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(255, 107, 53, 0.3);
-}
-
-/* Member Cards Container (Mobile) */
 .member-cards-container {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 20px;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 16px;
 }
 
 .member-card {
-  background: #ffffff;
-  border: 1px solid #e5e7eb;
-  border-radius: 12px;
+  background: var(--surface, #ffffff);
+  border: 1px solid var(--border, #e8eaec);
+  border-radius: 8px;
   overflow: hidden;
-  transition: all 0.25s ease;
   cursor: pointer;
   display: flex;
   flex-direction: column;
 }
 
 .member-card:hover {
-  transform: translateY(-8px);
-  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.12);
-  border-color: #FF6B35;
+  border-color: var(--accent, #1b6c80);
+  background: var(--raised, #f4f6f8);
 }
 
-/* Member Card Header */
 .member-card-header {
-  background: linear-gradient(135deg, #FF6B35 0%, #FF8A5B 100%);
-  padding: 16px;
+  background: var(--raised, #f4f6f8);
+  border-bottom: 1px solid var(--rule, #f0f1f2);
+  padding: 14px 16px;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  color: white;
+  color: var(--text, #131416);
 }
 
 .member-card-header .member-name {
   margin: 0;
-  font-size: 1rem;
+  font-size: 15px;
   font-weight: 600;
   flex: 1;
 }
 
-.member-card-header .member-points-badge {
-  background: rgba(255, 255, 255, 0.2);
-  padding: 4px 12px;
-  border-radius: 20px;
-  font-size: 0.8125rem;
-  font-weight: 500;
+.member-card-header .member-points-badge,
+.points-badge {
+  background: var(--pill-positive-bg, #dcfae5);
+  color: var(--pill-positive-ink, #04250e);
+  padding: 3px 10px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
   white-space: nowrap;
+  display: inline-block;
+  font-variant-numeric: tabular-nums;
 }
 
-/* Member Card Body */
 .member-card-body {
   padding: 16px;
   flex: 1;
@@ -163,8 +114,8 @@ body.theme-dark .member-search-wrapper .form-control::placeholder {
 .member-info-row {
   display: flex;
   flex-direction: column;
-  gap: 4px;
-  margin-bottom: 12px;
+  gap: 3px;
+  margin-bottom: 10px;
 }
 
 .member-info-row:last-child {
@@ -172,111 +123,41 @@ body.theme-dark .member-search-wrapper .form-control::placeholder {
 }
 
 .member-label {
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: #9ca3af;
-  text-transform: uppercase;
-  letter-spacing: 0.3px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--muted, #525558);
 }
 
 .member-value {
-  font-size: 0.9375rem;
-  color: #111827;
+  font-size: 14px;
+  color: var(--text, #131416);
   word-break: break-word;
 }
 
-/* Member Card Footer */
 .member-card-footer {
-  padding: 12px 16px;
-  border-top: 1px solid #e5e7eb;
+  padding: 10px 16px;
+  border-top: 1px solid var(--rule, #f0f1f2);
   display: flex;
   justify-content: flex-end;
 }
 
 .btn-whatsapp-footer {
-  background: #25D366;
-  color: white;
-  border: none;
-  padding: 8px 12px;
+  background: var(--positive, #1e7b4f);
+  color: #ffffff;
+  border: 1px solid var(--positive, #1e7b4f);
+  padding: 6px 12px;
   border-radius: 6px;
   cursor: pointer;
-  transition: all 0.25s ease;
-  font-size: 0.9375rem;
+  font-size: 13px;
+  font-weight: 500;
   display: flex;
   align-items: center;
   gap: 6px;
 }
 
-.btn-whatsapp-footer:hover {
-  background: #20ba58;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(37, 211, 102, 0.3);
-}
-
-/* Dark Mode - Member Cards */
-body.theme-dark .member-card {
-  background: #1e293b;
-  border-color: #334155;
-}
-
-body.theme-dark .member-card:hover {
-  border-color: #FF6B35;
-  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.3);
-}
-
-body.theme-dark .member-card-body {
-  background: #1e293b;
-  color: #f1f5f9;
-}
-
-body.theme-dark .member-label {
-  color: #94a3b8;
-}
-
-body.theme-dark .member-value {
-  color: #cbd5e1;
-}
-
-body.theme-dark .member-card-footer {
-  border-top-color: #334155;
-  background: #1e293b;
-}
-
-/* Member Table */
 .member-table {
   width: 100%;
   border-collapse: collapse;
-}
-
-.member-table thead {
-  background: #f3f4f6;
-}
-
-.member-table thead th {
-  padding: 14px 16px;
-  font-size: 0.8125rem;
-  font-weight: 600;
-  color: #374151;
-  text-transform: uppercase;
-  letter-spacing: 0.3px;
-  border-bottom: 1px solid #e5e7eb;
-  text-align: left;
-}
-
-.member-table tbody tr {
-  border-bottom: 1px solid #e5e7eb;
-  transition: all 0.25s ease;
-}
-
-.member-table tbody tr:hover {
-  background: #fef3f2;
-}
-
-.member-table tbody td {
-  padding: 14px 16px;
-  font-size: 0.9375rem;
-  color: #111827;
-  vertical-align: middle;
 }
 
 .member-phone-cell {
@@ -285,66 +166,12 @@ body.theme-dark .member-card-footer {
   gap: 8px;
 }
 
-.points-badge {
-  background: linear-gradient(135deg, #FF6B35 0%, #FF8A5B 100%);
-  color: white;
-  padding: 4px 12px;
-  border-radius: 20px;
-  font-size: 0.8125rem;
-  font-weight: 500;
-  display: inline-block;
-}
-
-/* Dark Mode - Member Table */
-body.theme-dark .member-table thead {
-  background: rgba(15, 23, 42, 0.5);
-}
-
-body.theme-dark .member-table thead th {
-  color: #cbd5e1;
-  border-bottom-color: #334155;
-}
-
-body.theme-dark .member-table tbody tr {
-  border-bottom-color: #334155;
-}
-
-body.theme-dark .member-table tbody tr:hover {
-  background: rgba(255, 107, 53, 0.08);
-}
-
-body.theme-dark .member-table tbody td {
-  color: #cbd5e1;
-}
-
-/* Empty State */
 .member-empty-state {
   text-align: center;
-  padding: 40px 20px;
-  color: #9ca3af;
+  padding: 36px 20px;
+  color: var(--muted, #525558);
 }
 
-.member-empty-state i {
-  font-size: 3rem;
-  color: #d1d5db;
-  margin-bottom: 16px;
-}
-
-.member-empty-state p {
-  margin: 0;
-  font-size: 1rem;
-}
-
-/* Dark Mode - Empty State */
-body.theme-dark .member-empty-state {
-  color: #64748b;
-}
-
-body.theme-dark .member-empty-state i {
-  color: #475569;
-}
-
-/* Desktop View */
 .desktop-view {
   display: block;
 }
@@ -353,23 +180,6 @@ body.theme-dark .member-empty-state i {
   display: none;
 }
 
-/* Responsive - Tablet */
-@media screen and (min-width: 769px) and (max-width: 1024px) {
-  .member-cards-container {
-    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-  }
-
-  .member-action-buttons {
-    flex-direction: column;
-    width: 100%;
-  }
-
-  .member-action-buttons .btn {
-    width: 100%;
-  }
-}
-
-/* Responsive - Mobile */
 @media screen and (max-width: 768px) {
   .desktop-view {
     display: none;
@@ -379,133 +189,22 @@ body.theme-dark .member-empty-state i {
     display: block;
   }
 
-  .member-header-controls {
+  .member-header-controls,
+  .member-action-buttons {
     flex-direction: column;
-    gap: 12px;
+    width: 100%;
   }
 
   .member-search-wrapper {
     min-width: auto;
   }
 
-  .member-action-buttons {
-    width: 100%;
-    flex-direction: column;
-  }
-
   .member-action-buttons .btn {
     width: 100%;
-    padding: 12px 16px;
   }
 
   .member-cards-container {
     grid-template-columns: 1fr;
-    gap: 12px;
-  }
-
-  .member-card {
-    border-radius: 10px;
-  }
-
-  .member-card-header {
-    padding: 12px;
-  }
-
-  .member-card-header .member-name {
-    font-size: 0.9375rem;
-  }
-
-  .member-card-header .member-points-badge {
-    font-size: 0.75rem;
-    padding: 3px 10px;
-  }
-
-  .member-card-body {
-    padding: 12px;
-  }
-
-  .member-label {
-    font-size: 0.7rem;
-  }
-
-  .member-value {
-    font-size: 0.875rem;
-  }
-
-  .member-card-footer {
-    padding: 10px 12px;
-  }
-}
-
-/* Animations */
-@keyframes slideInUp {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.member-card {
-  animation: slideInUp 0.3s ease;
-}
-
-/* Accessibility */
-.member-card:focus-within {
-  outline: 2px solid #FF6B35;
-  outline-offset: 2px;
-}
-
-.member-table tbody tr:focus-within {
-  outline: 2px solid #FF6B35;
-  outline-offset: -2px;
-}
-
-/* ========================================
-   MODAL BACKDROP STYLING
-   ======================================== */
-
-/* Modal Backdrop */
-.modal-backdrop {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.5);
-  animation: backdropFadeIn 0.3s ease;
-  z-index: 1040;
-}
-
-.modal-backdrop.show {
-  opacity: 1;
-}
-
-@keyframes backdropFadeIn {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
-
-/* Modal Animation */
-.modal.fade.show {
-  animation: modalSlideIn 0.3s ease;
-  z-index: 1050;
-}
-
-@keyframes modalSlideIn {
-  from {
-    transform: translateY(-50px);
-    opacity: 0;
-  }
-  to {
-    transform: translateY(0);
-    opacity: 1;
+    gap: 10px;
   }
 }

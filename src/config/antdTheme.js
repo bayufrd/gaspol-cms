@@ -1,129 +1,122 @@
 /* ========================================
-   ANT DESIGN CUSTOM THEME CONFIGURATION
-   F&B Optimized Color Scheme
+   ANT DESIGN THEME CONFIGURATION
+   taste-skill v2 · Style: framed-sheet
    ======================================== */
 
 export const antdThemeConfig = {
   token: {
-    // Primary Colors
-    colorPrimary: '#FF6B35',
-    colorSuccess: '#50C878',
-    colorWarning: '#FFC107',
-    colorError: '#EF4444',
-    colorInfo: '#4A90E2',
-    
-    // Font
-    fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+    colorPrimary: '#131416',
+    colorSuccess: '#1e7b4f',
+    colorWarning: '#92400e',
+    colorError: '#c4242a',
+    colorInfo: '#1b6c80',
+
+    fontFamily: '"IBM Plex Sans", Inter, system-ui, sans-serif',
     fontSize: 14,
-    fontSizeHeading1: 32,
-    fontSizeHeading2: 28,
-    fontSizeHeading3: 24,
-    fontSizeHeading4: 20,
-    fontSizeHeading5: 16,
-    
-    // Border Radius
-    borderRadius: 10,
-    borderRadiusLG: 16,
+    fontSizeHeading1: 24,
+    fontSizeHeading2: 20,
+    fontSizeHeading3: 18,
+    fontSizeHeading4: 16,
+    fontSizeHeading5: 14,
+
+    borderRadius: 6,
+    borderRadiusLG: 12,
     borderRadiusSM: 6,
-    
-    // Spacing
+
     padding: 16,
     paddingLG: 24,
     paddingSM: 12,
     paddingXS: 8,
-    
-    // Box Shadow
-    boxShadow: '0 2px 8px rgba(0, 0, 0, 0.06)',
-    boxShadowSecondary: '0 4px 16px rgba(0, 0, 0, 0.08)',
-    
-    // Line Height
+
+    boxShadow: 'none',
+    boxShadowSecondary: 'none',
+
     lineHeight: 1.5,
-    lineHeightHeading: 1.25,
+    lineHeightHeading: 1.3,
   },
-  
+
   components: {
     Button: {
-      controlHeight: 40,
-      controlHeightLG: 48,
+      controlHeight: 38,
+      controlHeightLG: 42,
       controlHeightSM: 32,
-      fontWeight: 600,
-      primaryShadow: '0 8px 16px rgba(255, 107, 53, 0.2)',
+      fontWeight: 500,
+      primaryShadow: 'none',
     },
-    
+
     Table: {
-      headerBg: '#F9FAFB',
-      headerColor: '#111827',
-      borderColor: '#E5E7EB',
-      rowHoverBg: '#FFF5EB',
+      headerBg: '#f4f6f8',
+      headerColor: '#525558',
+      borderColor: '#e8eaec',
+      rowHoverBg: '#f4f6f8',
     },
-    
+
     Input: {
-      controlHeight: 40,
-      controlHeightLG: 48,
+      controlHeight: 38,
+      controlHeightLG: 42,
       controlHeightSM: 32,
-      borderRadius: 10,
-      colorBorder: '#E5E7EB',
-      colorBgContainer: '#F9FAFB',
+      borderRadius: 6,
+      colorBorder: '#cdced1',
+      colorBgContainer: '#ffffff',
     },
-    
+
     Select: {
-      controlHeight: 40,
-      controlHeightLG: 48,
+      controlHeight: 38,
+      controlHeightLG: 42,
       controlHeightSM: 32,
-      borderRadius: 10,
+      borderRadius: 6,
     },
-    
+
     DatePicker: {
-      controlHeight: 40,
-      controlHeightLG: 48,
+      controlHeight: 38,
+      controlHeightLG: 42,
       controlHeightSM: 32,
-      borderRadius: 10,
+      borderRadius: 6,
     },
-    
+
     Modal: {
-      borderRadiusLG: 20,
-      headerBg: '#FFFFFF',
-      contentBg: '#FFFFFF',
+      borderRadiusLG: 12,
+      headerBg: '#ffffff',
+      contentBg: '#ffffff',
     },
-    
+
     Card: {
-      borderRadiusLG: 16,
-      boxShadow: '0 4px 12px rgba(0, 0, 0, 0.06)',
+      borderRadiusLG: 8,
+      boxShadow: 'none',
     },
-    
+
     Drawer: {
-      borderRadiusLG: 20,
+      borderRadiusLG: 12,
     },
-    
+
     Menu: {
       itemBg: 'transparent',
-      itemSelectedBg: 'rgba(255, 107, 53, 0.1)',
-      itemSelectedColor: '#FF6B35',
-      itemHoverBg: 'rgba(255, 107, 53, 0.05)',
+      itemSelectedBg: '#ebedee',
+      itemSelectedColor: '#131416',
+      itemHoverBg: '#f4f6f8',
     },
-    
+
     Tabs: {
-      inkBarColor: '#FF6B35',
-      itemActiveColor: '#FF6B35',
-      itemHoverColor: '#FF8C5A',
-      itemSelectedColor: '#FF6B35',
+      inkBarColor: '#131416',
+      itemActiveColor: '#131416',
+      itemHoverColor: '#1b6c80',
+      itemSelectedColor: '#131416',
     },
-    
+
     Tag: {
       borderRadiusSM: 6,
     },
-    
+
     Notification: {
-      borderRadiusLG: 16,
+      borderRadiusLG: 8,
     },
-    
+
     Message: {
-      borderRadiusLG: 16,
+      borderRadiusLG: 8,
     },
   },
 };
 
-// Locale Configuration (Indonesian)
 export const antdLocale = {
   locale: 'id',
   Pagination: {

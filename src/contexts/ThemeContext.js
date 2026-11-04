@@ -12,14 +12,9 @@ export const useTheme = () => {
 
 export const ThemeProvider = ({ children }) => {
   const [isDark, setIsDark] = useState(() => {
-    // Check localStorage first
-    const savedTheme = localStorage.getItem('theme');
+    const savedTheme = localStorage.getItem('gaspol_theme');
     if (savedTheme) {
       return savedTheme === 'theme-dark';
-    }
-    // Check system preference
-    if (window.matchMedia) {
-      return window.matchMedia('(prefers-color-scheme: dark)').matches;
     }
     return false;
   });
@@ -27,7 +22,7 @@ export const ThemeProvider = ({ children }) => {
   useEffect(() => {
     // Apply theme to body
     const theme = isDark ? 'theme-dark' : 'theme-light';
-    document.body.className = document.body.className.replace(/theme-(dark|light)/g, '');
+    document.body.className = document.body.className.replace(/theme-(dark|light)/g, '').trim();
     document.body.classList.add(theme);
     
     // Update checkbox (for Mazer script compatibility)
@@ -37,6 +32,7 @@ export const ThemeProvider = ({ children }) => {
     }
     
     // Save to localStorage
+    localStorage.setItem('gaspol_theme', theme);
     localStorage.setItem('theme', theme);
   }, [isDark]);
 

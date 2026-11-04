@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import Swal from "../utils/alerts";
 import { MenuModal } from "../components/MenuModal";
+import { MenuBatchModal } from "../components/MenuBatchModal";
 import { useTheme } from "../contexts/ThemeContext";
 import axios from "axios";
 import "../styles/menu-module.css";
@@ -14,6 +15,8 @@ const Menu = ({ userTokenData }) => {
   const [filteredMenus, setFilteredMenus] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [showModal, setShowModal] = useState(false);
+  const [showBatchModal, setShowBatchModal] = useState(false);
+  const [exportingMenus, setExportingMenus] = useState(false);
   const [selectedMenuId, setSelectedMenuId] = useState(null);
   const [viewMode, setViewMode] = useState('grid');
   const [visibleCount, setVisibleCount] = useState(MENU_BATCH_SIZE);
@@ -72,6 +75,36 @@ const Menu = ({ userTokenData }) => {
 
   const closeModal = () => {
     setShowModal(false);
+  };
+
+  const handleDirectExportExcel = async () => {
+    setExportingMenus(true);
+    try {
+      const response = await axios.get(`${apiBaseUrl}/v2/menu/batch/export`, {
+        params: { outlet_id: userTokenData.outlet_id },
+        responseType: "blob",
+      });
+      const blob = new Blob([response.data], {
+        type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute("download", `Export_Menu_Outlet_${userTokenData.outlet_id}.xlsx`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error("Failed to export menu Excel:", error);
+      Swal.fire({
+        icon: "error",
+        title: "Gagal Export Menu",
+        text: "Tidak dapat mengunduh file Excel menu.",
+      });
+    } finally {
+      setExportingMenus(false);
+    }
   };
 
   const handleSaveMenu = async (menuData) => {
@@ -248,7 +281,25 @@ const Menu = ({ userTokenData }) => {
                     </button>
                   </div>
                 </div>
-                <div className="menu-add-button">
+                <div className="menu-add-button d-flex flex-wrap gap-2">
+                  <button
+                    type="button"
+                    className="btn btn-outline-success menu-batch-action-btn"
+                    onClick={handleDirectExportExcel}
+                    disabled={exportingMenus}
+                    title="Export seluruh menu, varian & harga Serving Type outlet ini ke Excel"
+                  >
+                    <i className="bi bi-file-earmark-arrow-down"></i>{" "}
+                    {exportingMenus ? "Exporting..." : "Export Excel"}
+                  </button>
+                  <button
+                    type="button"
+                    className="btn btn-outline-primary menu-batch-action-btn"
+                    onClick={() => setShowBatchModal(true)}
+                    title="Batch Upload / Import Excel atau input banyak menu via Tabel GUI"
+                  >
+                    <i className="bi bi-cloud-arrow-up"></i> Batch Upload / Import
+                  </button>
                   <button
                     className="btn btn-primary"
                     onClick={() => openModal(null)}
@@ -280,6 +331,13 @@ const Menu = ({ userTokenData }) => {
         onSave={handleSaveMenu}
         selectedMenuId={selectedMenuId}
         getMenus={getMenus}
+        userTokenData={userTokenData}
+      />
+
+      <MenuBatchModal
+        show={showBatchModal}
+        onClose={() => setShowBatchModal(false)}
+        onSuccess={getMenus}
         userTokenData={userTokenData}
       />
     </div>

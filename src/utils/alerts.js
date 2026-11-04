@@ -1,5 +1,11 @@
-import { notification } from "antd";
+import { notification as staticNotification } from "antd";
 import SweetAlert from "sweetalert2";
+
+let appNotificationInstance = null;
+
+export const setAppNotificationInstance = (instance) => {
+  appNotificationInstance = instance;
+};
 
 const TYPE_MAP = {
   success: "success",
@@ -27,8 +33,10 @@ const fire = async (input, title, icon) => {
 
   const type = TYPE_MAP[options.icon] || "info";
   const duration = options.timer ? Math.max(options.timer / 1000, 1) : type === "error" ? 5 : 3;
-  notification[type]({
-    message: options.title || (type === "error" ? "Terjadi kesalahan" : "Informasi"),
+  const notifier = appNotificationInstance || staticNotification;
+
+  notifier[type]({
+    title: options.title || (type === "error" ? "Terjadi kesalahan" : "Informasi"),
     description: options.text || stripHtml(options.html),
     placement: options.position === "bottom-end" ? "bottomRight" : "topRight",
     duration,
