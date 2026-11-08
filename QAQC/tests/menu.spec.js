@@ -10,6 +10,7 @@ test.describe('Outlet 4 Menu CRUD', () => {
     const menuPage = new MenuPage(page);
     let menuName = schema.menu.create.name;
     let menuExists = false;
+    const validationDefects = [];
 
     await test.step('login outlet 4', async () => {
       await login(page, schema.outletId);
@@ -17,6 +18,38 @@ test.describe('Outlet 4 Menu CRUD', () => {
     });
 
     try {
+      await test.step('reject missing menu name', async () => {
+        await menuPage.expectCreateValidation({
+          price: schema.menu.create.price,
+          message: 'Nama menu harus diisi'
+        });
+      });
+
+      await test.step('reject missing menu price', async () => {
+        await menuPage.expectCreateValidation({
+          name: schema.negative.menuName,
+          message: 'Harga menu harus diisi'
+        });
+      });
+
+      await test.step('reject negative menu price', async () => {
+        let submitted = false;
+        const blockInvalid = async (route) => {
+          submitted = true;
+          await route.abort();
+        };
+        await page.route('**/v2/menu', blockInvalid);
+        await menuPage.openCreate();
+        await menuPage.editor.getByPlaceholder('Masukkan nama menu').fill(schema.negative.menuName);
+        await menuPage.editor.getByPlaceholder('Masukkan harga menu').fill(String(schema.negative.price));
+        await menuPage.editor.getByRole('button', { name: 'Simpan', exact: true }).click();
+        await page.waitForTimeout(500);
+        await page.unroute('**/v2/menu', blockInvalid);
+        if (submitted) validationDefects.push('CMS submitted a negative menu price');
+        await expect(menuPage.editor).toBeVisible();
+        await menuPage.closeEditor();
+      });
+
       await test.step('create menu', async () => {
         await menuPage.createMenu(schema.menu.create);
         menuExists = true;
@@ -26,6 +59,20 @@ test.describe('Outlet 4 Menu CRUD', () => {
         await menuPage.updateMenu(menuName, schema.menu.update);
         menuName = schema.menu.update.name;
         await menuPage.expectMenu(menuName);
+      });
+
+      await test.step('reject negative variant price', async () => {
+        await menuPage.openMenu(menuName);
+        await menuPage.editor.getByRole('button', { name: /Tambah Varian/ }).click();
+        const modal = menuPage.variantModal('Tambah Varian Menu');
+        await expect(modal).toBeVisible();
+        await modal.getByPlaceholder('Contoh: Regular, Large, Extra').fill(schema.negative.variantName);
+        const price = modal.locator('input[type="number"]').first();
+        await price.fill(String(schema.negative.price));
+        await modal.getByRole('button', { name: 'Simpan', exact: true }).click();
+        if (await modal.count() === 0) validationDefects.push('CMS accepted a negative variant price');
+        else await modal.getByRole('button', { name: 'Batal', exact: true }).click();
+        await menuPage.editor.getByRole('button', { name: 'Batal', exact: true }).click();
       });
 
       await test.step('add variant', async () => {
@@ -53,6 +100,10 @@ test.describe('Outlet 4 Menu CRUD', () => {
       await test.step('delete menu', async () => {
         await menuPage.deleteMenu(menuName);
         menuExists = false;
+      });
+
+      await test.step('assert negative prices are rejected', async () => {
+        expect(validationDefects, validationDefects.join('; ')).toEqual([]);
       });
     } finally {
       if (menuExists) {

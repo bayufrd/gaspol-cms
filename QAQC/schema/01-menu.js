@@ -5,6 +5,11 @@ const runId = `${Date.now()}-${process.pid}`;
 
 const schema = Object.freeze({
   outletId: 4,
+  negative: {
+    menuName: `QAQC Invalid Menu ${runId}`,
+    price: -1,
+    variantName: `QAQC Invalid Variant ${runId}`
+  },
   menu: {
     create: {
       name: `QAQC Menu ${runId}`,

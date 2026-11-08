@@ -64,9 +64,27 @@ class MenuPage {
     }
   }
 
-  async createMenu(data) {
+  async openCreate() {
     await this.page.getByRole('button', { name: /Tambah Data/ }).click();
     await expect(this.editor.getByRole('heading', { name: 'Tambah Menu' })).toBeVisible();
+  }
+
+  async closeEditor() {
+    await this.editor.getByRole('button', { name: 'Batal', exact: true }).click();
+    await expect(this.editor).toBeHidden();
+  }
+
+  async expectCreateValidation({ name = '', price = '', message }) {
+    await this.openCreate();
+    if (name) await this.editor.getByPlaceholder('Masukkan nama menu').fill(name);
+    if (price !== '') await this.editor.getByPlaceholder('Masukkan harga menu').fill(String(price));
+    await this.editor.getByRole('button', { name: 'Simpan', exact: true }).click();
+    await expect(this.editor.getByText(message, { exact: true })).toBeVisible();
+    await this.closeEditor();
+  }
+
+  async createMenu(data) {
+    await this.openCreate();
     await this.editor.getByPlaceholder('Masukkan nama menu').fill(data.name);
     await this.editor.locator('select').nth(0).selectOption(data.type);
     await this.editor.getByPlaceholder('Masukkan harga menu').fill(String(data.price));
