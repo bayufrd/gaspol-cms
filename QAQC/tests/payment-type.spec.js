@@ -11,13 +11,16 @@ test.describe('Outlet 4 Payment Type validation and lifecycle', () => {
     let name = schema.create.name;
     let exists = false;
     let creates = 0;
+    let originalOrder = [];
+    const defects = [];
     page.on('request', (request) => {
       if (/\/payment-management\/?$/.test(new URL(request.url()).pathname) && request.method() === 'POST') creates += 1;
     });
 
-    await test.step('login outlet 4', async () => {
+    await test.step('login outlet 4 and remove stale QAQC records', async () => {
       await login(page, schema.outletId);
-      await paymentPage.goto();
+      await paymentPage.cleanupGenerated();
+      originalOrder = paymentPage.paymentTypes.map(({ id }) => ({ id }));
     });
 
     try {
@@ -31,21 +34,27 @@ test.describe('Outlet 4 Payment Type validation and lifecycle', () => {
         exists = true;
       });
       await test.step('edit name category and deactivate', async () => {
-        await paymentPage.update(name, schema.update);
-        name = schema.update.name;
+        if (await paymentPage.update(name, schema.update)) {
+          name = schema.update.name;
+        } else {
+          defects.push('CMS opens Add Payment Type instead of Edit Payment Type when an existing row is clicked');
+          await paymentPage.close();
+        }
       });
       await test.step('reorder payment types', async () => {
-        await paymentPage.reorder();
+        const result = await paymentPage.reorder();
+        if (!result.ok) defects.push(`CMS payment reorder failed: HTTP ${result.status} ${result.body}`);
       });
       await test.step('delete unavailable in CMS and cleanup test data', async () => {
-        await paymentPage.open(name);
-        await expect(paymentPage.modal.getByRole('button', { name: /Hapus|Delete/ })).toHaveCount(0);
-        await paymentPage.close();
-        await paymentPage.cleanup(name);
+        await expect(page.getByRole('button', { name: /Hapus|Delete/ })).toHaveCount(0);
+        await paymentPage.cleanupGenerated();
         exists = false;
       });
+      expect(defects, defects.join('; ')).toEqual([]);
     } finally {
-      if (exists) await paymentPage.cleanup(name).catch(() => {});
+      await paymentPage.cleanupGenerated().catch(() => {});
+      if (originalOrder.length) await paymentPage.restoreOrder(originalOrder).catch(() => {});
+      exists = false;
     }
   });
 });

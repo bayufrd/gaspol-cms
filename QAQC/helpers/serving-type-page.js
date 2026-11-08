@@ -38,7 +38,7 @@ class ServingTypePage {
   }
 
   async close() {
-    await this.modal.getByRole('button', { name: 'Close', exact: true }).click();
+    await this.modal.locator('button.btn-light-secondary', { hasText: 'Close' }).click();
     await expect(this.modal).toBeHidden();
   }
 
