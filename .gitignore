@@ -7,6 +7,10 @@
 
 # testing
 /coverage
+/QAQC/.env.qaqc
+/QAQC/test-results/
+/QAQC/playwright-report/
+/QAQC/blob-report/
 
 # production
 /build
