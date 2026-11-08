@@ -132,7 +132,8 @@ export const MenuVariantModal = ({
         }));
 
       await axios.patch(`${apiBaseUrl}/v2/custom-menu-price/${menuId}`, {
-        custom_prices
+        custom_prices,
+        outlet_id: Number(outletId)
       });
 
       onClose();
