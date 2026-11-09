@@ -61,6 +61,7 @@ const computeBatchFingerprint = (outletId, mode, items) => {
     o: outletId,
     m: mode,
     i: items.map((r) => [
+      String(r.menu_id || "").trim(),
       normalizeText(r.name),
       r.menu_type,
       normalizeText(r.varian),
@@ -319,6 +320,9 @@ export const MenuBatchModal = ({
             return found ? found[1] : "";
           };
 
+          const rawMenuId = findCol(
+            (k) => k.includes("menu id") || k === "menu_id"
+          );
           const rawName = findCol(
             (k) => k.includes("nama menu") || k === "nama" || k === "name" || k === "menu"
           );
@@ -329,7 +333,7 @@ export const MenuBatchModal = ({
             (k) => k.includes("nama varian") || k === "varian" || k === "variant"
           );
           const rawActive = findCol(
-            (k) => k.includes("status aktif") || k === "is_active" || k === "status" || k === "aktif"
+            (k) => k.includes("status aktif") || k.includes("status menu") || k === "is_active" || k === "status" || k === "aktif"
           );
           const rawBasePrice = findCol(
             (k) =>
@@ -373,6 +377,7 @@ export const MenuBatchModal = ({
 
           return {
             _rowId: `excel_${Date.now()}_${idx}`,
+            menu_id: String(rawMenuId || "").trim(),
             name: String(rawName || "").trim(),
             menu_type: resolveMenuType(rawType) || "Makanan",
             varian: String(rawVarian || "").trim(),
@@ -515,6 +520,7 @@ export const MenuBatchModal = ({
 
     const payloadItems = nonBlankRows.map((r) => ({
       row_number: r.rowNumber,
+      ...(String(r.menu_id || "").trim() ? { menu_id: Number(r.menu_id) } : {}),
       name: String(r.name).trim(),
       menu_type: r.menu_type,
       varian: String(r.varian || "").trim(),
